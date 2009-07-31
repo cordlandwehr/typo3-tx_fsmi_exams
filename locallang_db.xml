@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>Language labels for database tables/fields belonging to extension 'fsmi_exams'</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="tx_fsmiexams_degreeprogram">Degree Program</label>
+			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
+			<label index="tx_fsmiexams_cycle">Cycle of degree program</label>
+			<label index="tx_fsmiexams_cycle.name">Name</label>
+			<label index="tx_fsmiexams_cycle.degreeprogram">Degree Program</label>
+			<label index="tx_fsmiexams_module">Module</label>
+			<label index="tx_fsmiexams_module.name">Name</label>
+			<label index="tx_fsmiexams_module.cycle">Cycle</label>
+			<label index="tx_fsmiexams_lecture">Lecture</label>
+			<label index="tx_fsmiexams_lecture.name">Name</label>
+			<label index="tx_fsmiexams_lecture.module">Module</label>
+			<label index="tx_fsmiexams_exam">Exam</label>
+			<label index="tx_fsmiexams_exam.name">Name</label>
+			<label index="tx_fsmiexams_exam.number">Number</label>
+			<label index="tx_fsmiexams_exam.term.I.0">Winter</label>
+			<label index="tx_fsmiexams_exam.term.I.1">Summer</label>
+			<label index="tx_fsmiexams_exam.term">Term</label>
+			<label index="tx_fsmiexams_exam.lecture">Lecture</label>
+			<label index="tx_fsmiexams_exam.year">Year</label>
+			<label index="tx_fsmiexams_exam.lecturer">Lecturer</label>
+			<label index="tx_fsmiexams_exam.approved">Approved for Publishing</label>
+			<label index="tx_fsmiexams_exam.file">File</label>
+			<label index="tx_fsmiexams_exam.examtype">Exam Type</label>
+			<label index="tx_fsmiexams_lecturer">Lecturer</label>
+			<label index="tx_fsmiexams_lecturer.firstname">First Name</label>
+			<label index="tx_fsmiexams_lecturer.lastname">Last Name</label>
+			<label index="tx_fsmiexams_examtype">Exam Type</label>
+			<label index="tx_fsmiexams_examtype.description">Description</label>
+			<label index="tx_fsmiexams_folder">Folder</label>
+			<label index="tx_fsmiexams_folder.name">Name</label>
+			<label index="tx_fsmiexams_folder.number">Number</label>
+			<label index="tx_fsmiexams_folder.barcode">Barcode</label>
+			<label index="tx_fsmiexams_folder.state">State</label>
+			<label index="tx_fsmiexams_folder.content">Content</label>
+			<label index="tx_fsmiexams_state">State</label>
+			<label index="tx_fsmiexams_state.name">Name</label>
+			<label index="tx_fsmiexams_state.description">Description</label>
+			<label index="tx_fsmiexams_loan">Loan</label>
+			<label index="tx_fsmiexams_loan.folder">Folder</label>
+			<label index="tx_fsmiexams_loan.lender">Lender</label>
+			<label index="tx_fsmiexams_loan.dispenser">Dispenser</label>
+			<label index="tx_fsmiexams_loan.lenderlogin">Lender IMT Login</label>
+			<label index="tx_fsmiexams_loan.weight">Weight (g)</label>
+			<label index="tx_fsmiexams_loan.withdrawal">Withdrawal by</label>
+			<label index="tx_fsmiexams_loan.withdrawaldate">Withdrawal Date</label>
+			<label index="tx_fsmiexams_loan.deposit">Deposit</label>
+			<label index="tx_fsmiexams_loan.lendingdate">Lending Date</label>
+			<label index="tt_content.list_type_pi1">Exam Input</label>
+			<label index="tt_content.list_type_pi2">Edit Exams Folder</label>
+			<label index="tt_content.list_type_pi3">Lend it</label>
+			<label index="tt_content.list_type_pi4">List View</label>
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="tx_fsmiexams_degreeprogram">Studiengang</label>
+			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
+			<label index="tx_fsmiexams_cycle">Studienabschnitt</label>
+			<label index="tx_fsmiexams_cycle.name">Name</label>
+			<label index="tx_fsmiexams_cycle.degreeprogram">Studiengang</label>
+			<label index="tx_fsmiexams_module">Modul</label>
+			<label index="tx_fsmiexams_module.name">Name</label>
+			<label index="tx_fsmiexams_module.cycle">Studienabschnitt</label>
+			<label index="tx_fsmiexams_lecture">Veranstaltung</label>
+			<label index="tx_fsmiexams_lecture.name">Name</label>
+			<label index="tx_fsmiexams_lecture.module">Modul</label>
+			<label index="tx_fsmiexams_exam">Prüfung</label>
+			<label index="tx_fsmiexams_exam.name">Name</label>
+			<label index="tx_fsmiexams_exam.number">Nummer</label>
+			<label index="tx_fsmiexams_exam.term.I.0">WiSe</label>
+			<label index="tx_fsmiexams_exam.term.I.1">SoSe</label>
+			<label index="tx_fsmiexams_exam.term">Semester</label>
+			<label index="tx_fsmiexams_exam.lecture">Veranstaltung</label>
+			<label index="tx_fsmiexams_exam.year">Jahr</label>
+			<label index="tx_fsmiexams_exam.lecturer">Prüfer</label>
+			<label index="tx_fsmiexams_exam.approved">Freigegeben</label>
+			<label index="tx_fsmiexams_exam.file">Datei</label>
+			<label index="tx_fsmiexams_exam.examtype">Prüfungsart</label>
+			<label index="tx_fsmiexams_lecturer">Prüfer</label>
+			<label index="tx_fsmiexams_lecturer.firstname">Vorname</label>
+			<label index="tx_fsmiexams_lecturer.lastname">Nachname</label>
+			<label index="tx_fsmiexams_examtype">Prüfungsart</label>
+			<label index="tx_fsmiexams_examtype.description">Beschreibung</label>
+			<label index="tx_fsmiexams_folder">Ordner</label>
+			<label index="tx_fsmiexams_folder.name">Name</label>
+			<label index="tx_fsmiexams_folder.number">Nummer</label>
+			<label index="tx_fsmiexams_folder.barcode">Barcode</label>
+			<label index="tx_fsmiexams_folder.state">Status</label>
+			<label index="tx_fsmiexams_folder.content">Inhalt</label>
+			<label index="tx_fsmiexams_state">Status</label>
+			<label index="tx_fsmiexams_state.name">Name</label>
+			<label index="tx_fsmiexams_state.description">Beschreibung</label>
+			<label index="tx_fsmiexams_loan">Ausleihe</label>
+			<label index="tx_fsmiexams_loan.folder">Ordner</label>
+			<label index="tx_fsmiexams_loan.lender">Ausleiher</label>
+			<label index="tx_fsmiexams_loan.dispenser">Ausgeber</label>
+			<label index="tx_fsmiexams_loan.lenderlogin">Ausleher IMT Login</label>
+			<label index="tx_fsmiexams_loan.weight">Gewicht (g)</label>
+			<label index="tx_fsmiexams_loan.withdrawal">Rückname von</label>
+			<label index="tx_fsmiexams_loan.withdrawaldate">Rücknahme Datum</label>
+			<label index="tx_fsmiexams_loan.deposit">Pfand</label>
+			<label index="tx_fsmiexams_loan.lendingdate">Ausleihe Datum</label>
+			<label index="tt_content.list_type_pi1">Klausur Eingabe</label>
+			<label index="tt_content.list_type_pi2">Ausleiheordner bearbeiten</label>
+			<label index="tt_content.list_type_pi3">Ausleihen</label>
+			<label index="tt_content.list_type_pi4">Listenansicht</label>
+		</languageKey>
+	</data>
+</T3locallang>
