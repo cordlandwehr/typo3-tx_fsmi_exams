@@ -358,7 +358,7 @@ $TCA['tx_fsmiexams_exam'] = array (
 				'type' => 'input',	
 				'size' => '30',	
 				'checkbox' => '',	
-				'eval' => 'required,trim,nospace',
+				'eval' => 'trim',
 			)
 		),
 		'number' => array (		
@@ -410,18 +410,31 @@ $TCA['tx_fsmiexams_exam'] = array (
 				'eval' => 'year,nospace',
 			)
 		),
+		'exactdate' => array (		
+			'exclude' => 0,		
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.exactdate',		
+			'config' => array (
+				'type'     => 'input',
+				'size'     => '12',
+				'max'      => '20',
+				'eval'     => 'date',
+				'checkbox' => '0',
+				'default'  => '0'
+			)
+		),
 		'lecturer' => array (		
 			'exclude' => 0,		
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.lecturer',		
 			'config' => array (
-				'type' => 'group',	
-				'internal_type' => 'db',	
-				'allowed' => 'tx_fsmiexams_lecturer',	
-				'size' => 1,	
+				'type' => 'select',		
+				'foreign_table' => 'tx_fsmiexams_lecturer',
+				'foreign_table_where' => 'ORDER BY tx_fsmiexams_lecturer.lastname',
+				'rootLevel' => 1,	
+				'size' => 20,	
 				'minitems' => 0,
 				'maxitems' => 2,
 			)
-		),
+		),		
 		'approved' => array (		
 			'exclude' => 0,		
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.approved',		
@@ -447,9 +460,9 @@ $TCA['tx_fsmiexams_exam'] = array (
 			'exclude' => 0,		
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.examtype',		
 			'config' => array (
-				'type' => 'group',	
-				'internal_type' => 'db',	
-				'allowed' => 'tx_fsmiexams_examtype',	
+				'type' => 'select',	
+				'foreign_table' => 'tx_fsmiexams_examtype',	
+				'rootLevel' => 1,
 				'size' => 1,	
 				'minitems' => 0,
 				'maxitems' => 1,
@@ -457,7 +470,7 @@ $TCA['tx_fsmiexams_exam'] = array (
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, term, lecture, year, lecturer, approved, file, examtype')
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, lecture, term, year, exactdate, lecturer, approved, file, examtype')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')

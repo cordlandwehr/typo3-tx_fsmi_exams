@@ -108,6 +108,7 @@ CREATE TABLE tx_fsmiexams_exam (
 	term int(11) DEFAULT '0' NOT NULL,
 	lecture text,
 	year int(11) DEFAULT '0' NOT NULL,
+	exactdate int(11) DEFAULT '0' NOT NULL,
 	lecturer text,
 	approved tinyint(3) DEFAULT '0' NOT NULL,
 	file text,

@@ -20,8 +20,8 @@
 			<label index="tx_fsmiexams_exam">Exam</label>
 			<label index="tx_fsmiexams_exam.name">Name</label>
 			<label index="tx_fsmiexams_exam.number">Number</label>
-			<label index="tx_fsmiexams_exam.term.I.0">Winter</label>
-			<label index="tx_fsmiexams_exam.term.I.1">Summer</label>
+			<label index="tx_fsmiexams_exam.term.I.0">Winterterm</label>
+			<label index="tx_fsmiexams_exam.term.I.1">Summerterm</label>
 			<label index="tx_fsmiexams_exam.term">Term</label>
 			<label index="tx_fsmiexams_exam.lecture">Lecture</label>
 			<label index="tx_fsmiexams_exam.year">Year</label>
@@ -29,6 +29,7 @@
 			<label index="tx_fsmiexams_exam.approved">Approved for Publishing</label>
 			<label index="tx_fsmiexams_exam.file">File</label>
 			<label index="tx_fsmiexams_exam.examtype">Exam Type</label>
+			<label index="tx_fsmiexams_exam.exactdate">Exact Exam Date</label>
 			<label index="tx_fsmiexams_lecturer">Lecturer</label>
 			<label index="tx_fsmiexams_lecturer.firstname">First Name</label>
 			<label index="tx_fsmiexams_lecturer.lastname">Last Name</label>
@@ -82,6 +83,7 @@
 			<label index="tx_fsmiexams_exam.approved">Freigegeben</label>
 			<label index="tx_fsmiexams_exam.file">Datei</label>
 			<label index="tx_fsmiexams_exam.examtype">Prüfungsart</label>
+			<label index="tx_fsmiexams_exam.exactdate">Genaues Prüfungsdatum</label>
 			<label index="tx_fsmiexams_lecturer">Prüfer</label>
 			<label index="tx_fsmiexams_lecturer.firstname">Vorname</label>
 			<label index="tx_fsmiexams_lecturer.lastname">Nachname</label>
