@@ -22,9 +22,9 @@ $TCA['tx_fsmiexams_degreeprogram'] = array (
 	),
 );
 
-$TCA['tx_fsmiexams_cycle'] = array (
+$TCA['tx_fsmiexams_field'] = array (
 	'ctrl' => array (
-		'title'     => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_cycle',		
+		'title'     => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_field',		
 		'label'     => 'name',	
 		'tstamp'    => 'tstamp',
 		'crdate'    => 'crdate',
@@ -38,7 +38,7 @@ $TCA['tx_fsmiexams_cycle'] = array (
 			'disabled' => 'hidden',
 		),
 		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tca.php',
-		'iconfile'          => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_fsmiexams_cycle.gif',
+		'iconfile'          => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_fsmiexams_field.gif',
 	),
 );
 

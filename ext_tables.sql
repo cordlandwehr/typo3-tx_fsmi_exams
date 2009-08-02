@@ -21,9 +21,9 @@ CREATE TABLE tx_fsmiexams_degreeprogram (
 
 
 #
-# Table structure for table 'tx_fsmiexams_cycle'
+# Table structure for table 'tx_fsmiexams_field'
 #
-CREATE TABLE tx_fsmiexams_cycle (
+CREATE TABLE tx_fsmiexams_field (
 	uid int(11) NOT NULL auto_increment,
 	pid int(11) DEFAULT '0' NOT NULL,
 	tstamp int(11) DEFAULT '0' NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE tx_fsmiexams_module (
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	name varchar(128) DEFAULT '' NOT NULL,
-	cycle text,
+	field text,
 	
 	PRIMARY KEY (uid),
 	KEY parent (pid)

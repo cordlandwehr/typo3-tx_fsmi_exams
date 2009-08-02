@@ -8,12 +8,12 @@
 		<languageKey index="default" type="array">
 			<label index="tx_fsmiexams_degreeprogram">Degree Program</label>
 			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
-			<label index="tx_fsmiexams_cycle">Cycle of degree program</label>
-			<label index="tx_fsmiexams_cycle.name">Name</label>
-			<label index="tx_fsmiexams_cycle.degreeprogram">Degree Program</label>
+			<label index="tx_fsmiexams_field">Part of degree program</label>
+			<label index="tx_fsmiexams_field.name">Name</label>
+			<label index="tx_fsmiexams_field.degreeprogram">Degree Program</label>
 			<label index="tx_fsmiexams_module">Module</label>
 			<label index="tx_fsmiexams_module.name">Name</label>
-			<label index="tx_fsmiexams_module.cycle">Cycle</label>
+			<label index="tx_fsmiexams_module.field">Field</label>
 			<label index="tx_fsmiexams_lecture">Lecture</label>
 			<label index="tx_fsmiexams_lecture.name">Name</label>
 			<label index="tx_fsmiexams_lecture.module">Module</label>
@@ -54,20 +54,20 @@
 			<label index="tx_fsmiexams_loan.withdrawaldate">Withdrawal Date</label>
 			<label index="tx_fsmiexams_loan.deposit">Deposit</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Lending Date</label>
-			<label index="tt_content.list_type_pi1">Exam Input</label>
+			<label index="tt_content.list_type_pi1">List View</label>
 			<label index="tt_content.list_type_pi2">Edit Exams Folder</label>
 			<label index="tt_content.list_type_pi3">Lend it</label>
-			<label index="tt_content.list_type_pi4">List View</label>
+			<label index="tt_content.list_type_pi4">Exam InputList View</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="tx_fsmiexams_degreeprogram">Studiengang</label>
 			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
-			<label index="tx_fsmiexams_cycle">Studienabschnitt</label>
-			<label index="tx_fsmiexams_cycle.name">Name</label>
-			<label index="tx_fsmiexams_cycle.degreeprogram">Studiengang</label>
+			<label index="tx_fsmiexams_field">Bereich/Fachrichtung</label>
+			<label index="tx_fsmiexams_field.name">Name</label>
+			<label index="tx_fsmiexams_field.degreeprogram">Studiengang</label>
 			<label index="tx_fsmiexams_module">Modul</label>
 			<label index="tx_fsmiexams_module.name">Name</label>
-			<label index="tx_fsmiexams_module.cycle">Studienabschnitt</label>
+			<label index="tx_fsmiexams_module.field">Studienabschnitt</label>
 			<label index="tx_fsmiexams_lecture">Veranstaltung</label>
 			<label index="tx_fsmiexams_lecture.name">Name</label>
 			<label index="tx_fsmiexams_lecture.module">Modul</label>
@@ -108,10 +108,10 @@
 			<label index="tx_fsmiexams_loan.withdrawaldate">Rücknahme Datum</label>
 			<label index="tx_fsmiexams_loan.deposit">Pfand</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Ausleihe Datum</label>
-			<label index="tt_content.list_type_pi1">Klausur Eingabe</label>
+			<label index="tt_content.list_type_pi1">Listenansicht</label>
 			<label index="tt_content.list_type_pi2">Ausleiheordner bearbeiten</label>
 			<label index="tt_content.list_type_pi3">Ausleihen</label>
-			<label index="tt_content.list_type_pi4">Listenansicht</label>
+			<label index="tt_content.list_type_pi4">Klausur Eingabe</label>
 		</languageKey>
 	</data>
 </T3locallang>
