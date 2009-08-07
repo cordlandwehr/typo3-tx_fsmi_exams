@@ -108,7 +108,10 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 					//$content .= '<td>'.$exam['name'].'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer']).'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
-					$content .= '<td>'.$exam['number'].'</td>';
+					if ($exam['number']!=0)
+						$content .= '<td>'.$exam['number'].'</td>';
+					else
+						$content .= '<td>--</td>';
 					$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Download</a></td>';
 					$content .= '</tr>';
 
