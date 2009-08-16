@@ -456,6 +456,32 @@ $TCA['tx_fsmiexams_exam'] = array (
 				'maxitems' => 1,
 			)
 		),
+		'material' => array (		
+			'exclude' => 0,		
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.material',		
+			'config' => array (
+				'type' => 'group',
+				'internal_type' => 'file',
+				'allowed' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'],	
+				'max_size' => $GLOBALS['TYPO3_CONF_VARS']['BE']['maxFileSize'],	
+				'uploadfolder' => 'uploads/tx_fsmiexams',
+				'size' => 1,	
+				'minitems' => 0,
+				'maxitems' => 1,
+			)
+		),
+		'quality' => array (		
+			'exclude' => 0,		
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.quality',		
+			'config' => array (
+				'type' => 'radio',
+				'items' => array (
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.quality.I.0', '0'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.quality.I.1', '1'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.quality.I.2', '2'),
+				),
+			)
+		),
 		'examtype' => array (		
 			'exclude' => 0,		
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.examtype',		
@@ -470,7 +496,7 @@ $TCA['tx_fsmiexams_exam'] = array (
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, lecture, term, year, examtype, exactdate, lecturer, approved, file')
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, lecture, term, year, examtype, exactdate, lecturer, approved, file, material, quality')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')

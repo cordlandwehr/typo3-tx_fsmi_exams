@@ -87,36 +87,52 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 			while ($resField && $rowField = mysql_fetch_assoc($resField)) {
 				$content .= '<h3>'.$rowField['name'].'</h3>';
 
-				$examUIDs = tx_fsmiexams_div::getExamUIDs($rowProgram['uid'],$rowField['uid'],0,0,0,0,0);
-				if (count($examUIDs)==0)
-					continue;
-					
-				$content .= '<table>';
-				$content .= '<tr>';
-					$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';	
-					//$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.name").'</th>';
-					$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.lecturer").'</th>';
-					$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.term").'</th>';
-					$content .= '<th>Nr.</th>';
-					$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.file").'</th>';
-				$content .= '</tr>';
+				$resModule = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
+												FROM tx_fsmiexams_module
+												WHERE '.$rowField['uid'].' in (tx_fsmiexams_module.field)
+												AND deleted=0 AND hidden=0');
 				
-				foreach ($examUIDs as $uid) {
-        			$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
+				while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
+				
+					$examUIDs = tx_fsmiexams_div::getExamUIDs($rowProgram['uid'],$rowField['uid'],$rowModule['uid'],0,0,0,0);
+					if (count($examUIDs)==0)
+						continue;
+						
+					// only print module if there is something in
+					$content .= '<h4>'.$rowModule['name'].'</h4>';
+						
+					$content .= '<table>';
 					$content .= '<tr>';
-					$content .= '<td>'.tx_fsmiexams_div::lectureToText($exam['lecture']).'</td>';
-					//$content .= '<td>'.$exam['name'].'</td>';
-					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer']).'</td>';
-					$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
-					if ($exam['number']!=0)
-						$content .= '<td>'.$exam['number'].'</td>';
-					else
-						$content .= '<td>--</td>';
-					$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Download</a></td>';
+						$content .= '<th width="200px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';	
+						//$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.name").'</th>';
+						$content .= '<th width="140px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecturer").'</th>';
+						$content .= '<th width="60px">'.$this->LANG->getLL("tx_fsmiexams_exam.term").'</th>';
+						$content .= '<th>Nr.</th>';
+						$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.exactdate").'</th>';
+						$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.file").'</th>';
 					$content .= '</tr>';
-
-				}				
-				$content .= '</table>';
+					
+					foreach ($examUIDs as $uid) {
+	        			$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
+						$content .= '<tr>';
+						$content .= '<td>'.tx_fsmiexams_div::lectureToText($exam['lecture']).'</td>';
+						//$content .= '<td>'.$exam['name'].'</td>';
+						$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer']).'</td>';
+						$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
+						if ($exam['number']!=0)
+							$content .= '<td>'.$exam['number'].'</td>';
+						else
+							$content .= '<td>-</td>';
+						if ($exam['exactdate']!=0)
+							$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
+						else
+							$content .= '<td>-</td>';
+						$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Download</a></td>';
+						$content .= '</tr>';
+	
+					}				
+					$content .= '</table>';
+				}
 			}
 		}
 		return $content;

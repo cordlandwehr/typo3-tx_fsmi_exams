@@ -38,10 +38,7 @@ require_once(PATH_t3lib.'class.t3lib_iconworks.php');
  *
  */
 class tx_fsmiexams_div {
-//	static $imagePath_house_picture = 'uploads/tx_jhhouseinfo/house_picture';
-//	static $imagePath_web_picture = "uploads/tx_jhhouseinfo/web_pictures";
-//	static $imagePath_catalog_picture = "uploads/tx_jhhouseinfo/catalog_pictures";
-
+	static $imagePath = 'typo3conf/ext/fsmi_exams/images/';
 
 	/**
 	 * Translates given UID of lecture to name

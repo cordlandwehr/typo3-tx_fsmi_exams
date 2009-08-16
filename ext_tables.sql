@@ -112,6 +112,8 @@ CREATE TABLE tx_fsmiexams_exam (
 	lecturer text,
 	approved tinyint(3) DEFAULT '0' NOT NULL,
 	file text,
+	material text,
+	quality int(11) DEFAULT '0' NOT NULL,
 	examtype text,
 	
 	PRIMARY KEY (uid),
