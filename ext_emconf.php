@@ -32,6 +32,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'version' => '0.0.3',
 	'constraints' => array(
 		'depends' => array(
+			'bc_dojolib' => '0.9.6-',
 		),
 		'conflicts' => array(
 		),

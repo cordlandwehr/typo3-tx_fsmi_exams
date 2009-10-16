@@ -62,7 +62,7 @@
 			<label index="tt_content.list_type_pi1">List View</label>
 			<label index="tt_content.list_type_pi2">Edit Exams Folder</label>
 			<label index="tt_content.list_type_pi3">Lend it</label>
-			<label index="tt_content.list_type_pi4">Exam InputList View</label>
+			<label index="tt_content.list_type_pi4">Exam Input</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="tx_fsmiexams_degreeprogram">Studiengang</label>

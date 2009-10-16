@@ -32,7 +32,7 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php
 require_once(t3lib_extMgm::extPath('lang').'lang.php');
 
 /**
- * Plugin 'Exam Input' for the 'fsmi_exams' extension.
+ * Plugin 'Exam List' for the 'fsmi_exams' extension.
  *
  * @author	Andreas Cord-Landwehr <fsmi@uni-paderborn.de>
  * @package	TYPO3
