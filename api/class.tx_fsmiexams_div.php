@@ -149,15 +149,19 @@ class tx_fsmiexams_div {
 		if ($module == 0) {
 			
 			foreach ($fieldUIDs as $fieldUID) {
-				$fieldWhere = $fieldUID.' in (field) ';
 				// get modules
-				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_module.uid as uid
+				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_module.uid as uid, field
 													FROM tx_fsmiexams_module
-													WHERE '.$fieldWhere.'
-														AND deleted=0 AND hidden=0 
+													WHERE deleted=0 AND hidden=0 
 													ORDER BY field, name');
-				while ($res && $row = mysql_fetch_assoc($res))
-					array_push($moduleUIDs, $row['uid']);
+				
+				
+				while ($res && $row = mysql_fetch_assoc($res)) {
+					// TODO a little bit inefficient
+					$rowHaystack = explode(',',$row['field']);
+					if (in_array($fieldUID, $rowHaystack))
+						array_push($moduleUIDs, $row['uid']);
+				}
 			}				
 		}
 		else
@@ -170,15 +174,18 @@ class tx_fsmiexams_div {
 		if ($lecture == 0) {
 
 			foreach ($moduleUIDs as $moduleUID) {
-				$lectureWhere = $moduleUID.' in (module) ';
 				// get lectures
-				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_lecture.uid as uid
+				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_lecture.uid as uid, module
 													FROM tx_fsmiexams_lecture
-													WHERE '.$lectureWhere.'
-														AND deleted=0 AND hidden=0 
+													WHERE deleted=0 AND hidden=0 
 													ORDER BY module, name');
-				while ($res && $row = mysql_fetch_assoc($res))
-					array_push($lectureUIDs, $row['uid']);
+
+				while ($res && $row = mysql_fetch_assoc($res)) {
+					// TODO a little bit inefficient
+					$rowHaystack = explode(',',$row['module']);
+					if (in_array($moduleUID, $rowHaystack))
+						array_push($lectureUIDs, $row['uid']);
+				}
 			}				
 		}
 		else

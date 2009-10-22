@@ -111,7 +111,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 						$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.exactdate").'</th>';
 						$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.file").'</th>';
 					$content .= '</tr>';
-					
+
 					foreach ($examUIDs as $uid) {
 	        			$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 						$content .= '<tr>';
@@ -129,8 +129,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 							$content .= '<td>-</td>';
 						$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Download</a></td>';
 						$content .= '</tr>';
-	
-					}				
+					}		
 					$content .= '</table>';
 				}
 			}
