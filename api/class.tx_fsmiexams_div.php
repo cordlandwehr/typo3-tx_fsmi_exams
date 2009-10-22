@@ -148,15 +148,17 @@ class tx_fsmiexams_div {
 		$moduleUIDs = array ();
 		if ($module == 0) {
 			
-			$fieldWhere = 'field in ('.implode(',',$fieldUIDs).')';
-			// get modules
-			$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_module.uid as uid
-												FROM tx_fsmiexams_module
-												WHERE '.$fieldWhere.'
-													AND deleted=0 AND hidden=0 
-												ORDER BY field, name');
-			while ($res && $row = mysql_fetch_assoc($res))
-				array_push($moduleUIDs, $row['uid']);				
+			foreach ($fieldUIDs as $fieldUID) {
+				$fieldWhere = $fieldUID.' in (field) ';
+				// get modules
+				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_module.uid as uid
+													FROM tx_fsmiexams_module
+													WHERE '.$fieldWhere.'
+														AND deleted=0 AND hidden=0 
+													ORDER BY field, name');
+				while ($res && $row = mysql_fetch_assoc($res))
+					array_push($moduleUIDs, $row['uid']);
+			}				
 		}
 		else
 			array_push($moduleUIDs, intval($module));
@@ -166,16 +168,18 @@ class tx_fsmiexams_div {
 		// no lecture given, check modules
 		$lectureUIDs = array ();
 		if ($lecture == 0) {
-				
-			$lectureWhere = 'module in ('.implode(',',$moduleUIDs).')';
-			// get lectures
-			$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_lecture.uid as uid
-												FROM tx_fsmiexams_lecture
-												WHERE '.$lectureWhere.'
-													AND deleted=0 AND hidden=0 
-												ORDER BY module, name');
-			while ($res && $row = mysql_fetch_assoc($res))
-				array_push($lectureUIDs, $row['uid']);				
+
+			foreach ($moduleUIDs as $moduleUID) {
+				$lectureWhere = $moduleUID.' in (module) ';
+				// get lectures
+				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_lecture.uid as uid
+													FROM tx_fsmiexams_lecture
+													WHERE '.$lectureWhere.'
+														AND deleted=0 AND hidden=0 
+													ORDER BY module, name');
+				while ($res && $row = mysql_fetch_assoc($res))
+					array_push($lectureUIDs, $row['uid']);
+			}				
 		}
 		else
 			array_push($lectureUIDs, intval($lecture));

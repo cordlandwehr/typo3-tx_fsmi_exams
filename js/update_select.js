@@ -22,6 +22,7 @@ function init_update_select_lecture() {
 function init_update_select_exam() {
 	dojo.require("dojo.NodeList-fx");
 	
+	
 	// update fields on degreeprogram change
 	dojo.addOnLoad(function(){
     	var field = dijit.byId("fsmi_exams_field");
@@ -50,7 +51,7 @@ function init_update_select_exam() {
 	dojo.addOnLoad(function(){
     	var exam = dojo.byId("fsmi_exams_name");
   		dojo.connect(dijit.byId("fsmi_exams_lecture"),"onChange",function(){
-  			exam.value=dijit.byId('fsmi_exams_lecture').attr('value');
+  			exam.value=dijit.byId('fsmi_exams_lecture').attr('displayedValue');
    		});	    
 	});
 }

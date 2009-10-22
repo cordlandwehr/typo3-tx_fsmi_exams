@@ -63,7 +63,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 		
-
 		// save POST data if received
 		if (t3lib_div::_POST($this->extKey))
 			$this->saveFormData();
@@ -115,6 +114,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				dojo.require("dojo.parser");
 				dojo.require("dijit.form.FilteringSelect");
 				dojo.require("dojo.data.ItemFileReadStore");
+				dojo.require("dijit.form.DateTextBox");
 			</script>'
 				.'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>'
 				.'<script type="text/javascript">
@@ -240,12 +240,19 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->createFieldListJSON();
 		$this->createDegreeprogramListJSON();
 		$this->createLecturerListJSON();
+		$this->createExamtypeListJSON();
+		$this->createQualityListJSON();
+		$this->createYearListJSON();
+		$this->createTermListJSON();
+		$this->createNumberListJSON();
 		
 		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] = 
 			'<script type="text/javascript">
 				dojo.require("dojo.parser");
 				dojo.require("dijit.form.FilteringSelect");
 				dojo.require("dojo.data.ItemFileReadStore");
+				dojo.require("dijit.form.DateTextBox");
+				dojo.require("dijit.form.CheckBox");
 			</script>'
 				.'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>'
 				.'<script type="text/javascript">
@@ -259,7 +266,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsField" url="typo3temp/fsmiexams_field.json"></div>'
 			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsLecture" url="typo3temp/fsmiexams_lecture.json"></div>'
 			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsDegreeprogram" url="typo3temp/fsmiexams_degreeprogram.json"></div>'
-			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsLecturer" url="typo3temp/fsmiexams_lecturer.json"></div>';
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsLecturer" url="typo3temp/fsmiexams_lecturer.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsExamtype" url="typo3temp/fsmiexams_examtype.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsQuality" url="typo3temp/fsmiexams_quality.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsYear" url="typo3temp/fsmiexams_year.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsTerm" url="typo3temp/fsmiexams_term.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsNumber" url="typo3temp/fsmiexams_number.json"></div>'
+			;
 		
 		$content .= '
 			<h2>Exam Input</h2> 
@@ -345,23 +358,45 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			</tr>
 			<tr>	
 				<td><label for="'.$this->extKey.'[number]">Number:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[number]" id="'.$this->extKey.'_number"  	
-					value="'.htmlspecialchars($this->piVars["number"]).'"></td>
+				<td><input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsNumber"
+						searchAttr="number"
+						name="'.$this->extKey.'[number]"
+						id="'.$this->extKey.'_number"  	
+						value="'.htmlspecialchars($this->piVars["number"]).'"
+						autocomplete="true" />
+				</td>
 			</tr>
 			<tr>	
 				<td><label for="'.$this->extKey.'[term]">Term:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[term]" id="'.$this->extKey.'_term"  	
-					value="'.htmlspecialchars($this->piVars["term"]).'"></td>
+				<td><input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsTerm"
+						searchAttr="name"
+						name="'.$this->extKey.'[term]" 
+						id="'.$this->extKey.'_term"  	
+						value="'.htmlspecialchars($this->piVars["term"]).'"
+						autocomplete="true" />
+				</td>
 			</tr>
 			<tr>	
 				<td><label for="'.$this->extKey.'[year]">Year:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[year]" id="'.$this->extKey.'_year"  	
-					value="'.htmlspecialchars($this->piVars["year"]).'"></td>
+				<td><input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsYear"
+						searchAttr="year"
+						name="'.$this->extKey.'[year]"
+						id="'.$this->extKey.'_year"  	
+						value="'.htmlspecialchars($this->piVars["year"]).'"
+						autocomplete="true" />
+				</td>
 			</tr>
 			<tr>	
 				<td><label for="'.$this->extKey.'[exactdate]">Day of Exam:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[exactdate]" id="'.$this->extKey.'_exactdate"  	
-					value="'.htmlspecialchars($this->piVars["exactdate"]).'"></td>
+				<td><input 
+						type="text" 
+						name="'.$this->extKey.'[exactdate]" 
+						id="'.$this->extKey.'_exactdate"
+						dojoType="dijit.form.DateTextBox"
+						value="'.htmlspecialchars($this->piVars["exactdate"]).'"></td>
 			</tr>';
 		
 		// Lecturer
@@ -382,29 +417,44 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 			<tr>	
 				<td><label for="'.$this->extKey.'[approved]">Approved:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[approved]" id="'.$this->extKey.'_approved"  	
-					value="'.htmlspecialchars($this->piVars["approved"]).'"></td>
+				<td><input dojoType="dijit.form.CheckBox"
+						name="'.$this->extKey.'[approved]"
+						id="'.$this->extKey.'_approved"  	
+						value="'.htmlspecialchars($this->piVars["approved"]).'" />
+				</td>
 			</tr>
 			<tr>	
 				<td><label for="'.$this->extKey.'[file]">Exam File:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[file]" id="'.$this->extKey.'_file"
+				<td><input type="file" name="'.$this->extKey.'[file]" id="'.$this->extKey.'_file"
 					value="'.htmlspecialchars($this->piVars["file"]).'"></td>
 			</tr>
 			<tr>	
 				<td><label for="'.$this->extKey.'[material]">Add. Material:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[material]" id="'.$this->extKey.'_material"  	
+				<td><input type="file" name="'.$this->extKey.'[material]" id="'.$this->extKey.'_material"  	
 					value="'.htmlspecialchars($this->piVars["material"]).'"></td>
 			</tr>
 			<tr>	
 				<td><label for="'.$this->extKey.'[quality]">Quality:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[quality]" id="'.$this->extKey.'_quality"  	
-					value="'.htmlspecialchars($this->piVars["quality"]).'"></td>
+				<td><input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsQuality"
+						searchAttr="name"				
+						name="'.$this->extKey.'[quality]" 
+						id="'.$this->extKey.'_quality"
+						autocomplete="true"  	
+						value="'.htmlspecialchars($this->piVars["quality"]).'" />
+				</td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[examtype]">Exam Type:</label></td>
-				<td><input type="text" name="'.$this->extKey.'[examtype]" id="'.$this->extKey.'_examtype"  	
-					value="'.htmlspecialchars($this->piVars["examtype"]).'"></td>
-			</tr>
+				<td><label for="'.$this->extKey.'_examtype">Exam Type:</label></td>
+				<td><input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsExamtype"
+						searchAttr="name"
+						name="'.$this->extKey.'[examtype]" 
+						id="'.$this->extKey.'_examtype"  
+						autocomplete="true"	
+						value="'.htmlspecialchars($this->piVars["examtype"]).'" />
+				</td>
+			</tr>		
 			</table>
 			<input type="submit" name="'.$this->extKey.'[submit_button]" 
 				value="'.htmlspecialchars($this->pi_getLL("submit_button_label")).'">
@@ -546,6 +596,132 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// writing file
 		t3lib_div::writeFileToTypo3tempDir (	
 										PATH_site."typo3temp/".'fsmiexams_lecturer.json',
+										$fileContent 
+										);
+		
+		
+	}
+	
+	function createExamtypeListJSON () {
+		$fileContent = '';
+		
+		// file opening
+		$fileContent  = 
+			'{'."\n".
+				'identifier: "uid",'."\n".
+				'items: ['."\n";
+			
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
+												FROM tx_fsmiexams_examtype 
+												WHERE deleted=0 AND hidden=0');
+		
+		while ($res && $row = mysql_fetch_assoc($res))
+			$fileContent .= '{name:"'.$row['description'].'", uid:"'.$row['uid'].'"},'."\n";
+		
+		// file ending
+		$fileContent .= '] }';
+		
+		// writing file
+		t3lib_div::writeFileToTypo3tempDir (	
+										PATH_site."typo3temp/".'fsmiexams_examtype.json',
+										$fileContent 
+										);
+		
+		
+	}
+	
+	function createYearListJSON () {
+		$fileContent = '';
+		
+		// file opening
+		$fileContent  = 
+			'{'."\n".
+				'identifier: "year",'."\n".
+				'items: ['."\n";
+			
+		for ($i=intval(date('Y')); $i>=1976; $i--)
+			$fileContent .= '{year:"'.$i.'"},'."\n";
+		
+		// file ending
+		$fileContent .= '] }';
+		
+		// writing file
+		t3lib_div::writeFileToTypo3tempDir (	
+										PATH_site."typo3temp/".'fsmiexams_year.json',
+										$fileContent 
+										);
+		
+		
+	}
+	
+	function createTermListJSON () {
+		$fileContent = '';
+		
+		// file opening
+		$fileContent  = 
+			'{'."\n".
+				'identifier: "uid",'."\n".
+				'items: ['."\n";
+			
+		for ($i=0; $i<2; $i++)
+			$fileContent .= '{name:"'.$GLOBALS['TSFE']->sL('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.term.I.'.$i).'", uid:"'.$i.'"},'."\n";
+		
+		// file ending
+		$fileContent .= '] }';
+		
+		// writing file
+		t3lib_div::writeFileToTypo3tempDir (	
+										PATH_site."typo3temp/".'fsmiexams_term.json',
+										$fileContent 
+										);
+		
+		
+	}
+	
+	function createNumberListJSON () {
+		$fileContent = '';
+		
+		// file opening
+		$fileContent  = 
+			'{'."\n".
+				'identifier: "number",'."\n".
+				'items: ['."\n";
+			
+		for ($i=1; $i<4; $i++)
+			$fileContent .= '{number:"'.$i.'"},'."\n";
+	
+		$fileContent .= '{number:""},'."\n";
+			
+		// file ending
+		$fileContent .= '] }';
+		
+		// writing file
+		t3lib_div::writeFileToTypo3tempDir (	
+										PATH_site."typo3temp/".'fsmiexams_number.json',
+										$fileContent 
+										);
+		
+		
+	}
+	
+	function createQualityListJSON () {
+		$fileContent = '';
+		
+		// file opening
+		$fileContent  = 
+			'{'."\n".
+				'identifier: "uid",'."\n".
+				'items: ['."\n";
+			
+		for ($i=0; $i<3; $i++)
+			$fileContent .= '{name:"'.$GLOBALS['TSFE']->sL('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.quality.I.'.$i).'", uid:"'.$i.'"},'."\n";
+		
+		// file ending
+		$fileContent .= '] }';
+		
+		// writing file
+		t3lib_div::writeFileToTypo3tempDir (	
+										PATH_site."typo3temp/".'fsmiexams_quality.json',
 										$fileContent 
 										);
 		
