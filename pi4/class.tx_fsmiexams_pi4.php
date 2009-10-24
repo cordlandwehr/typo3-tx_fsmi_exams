@@ -28,7 +28,7 @@
  */
 
 require_once(PATH_tslib.'class.tslib_pibase.php');
-
+require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
 
 /**
  * Plugin 'Exam Input' for the 'fsmi_exams' extension.
@@ -63,12 +63,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 		
-		// save POST data if received
-		if (t3lib_div::_POST($this->extKey))
-			$this->saveFormData();
 		
 		// type selection head
 		$content .= $this->createTypeSelector();
+		
+		// save POST data if received
+		if (t3lib_div::_POST($this->extKey))
+			$content .= $this->saveFormData();
 					
 		// select input type
 		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
@@ -173,15 +174,66 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				<td><label for="'.$this->extKey.'_module">Module:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
-						store="fsmiexamsModule"						searchAttr="name"
+						store="fsmiexamsModule"
+						earchAttr="name"
 						query="{uid:\'*\'}"
 						name="'.$this->extKey.'[module]" 
 						id="'.$this->extKey.'_module"
 						autocomplete="true"
 					/>
 				</td>
-			</tr>
-			<tr>	
+			</tr>';
+		
+		$content .= 
+			'<tr>	
+				<td><label for="'.$this->extKey.'_module">Module + 1:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						disabled="disabled"
+						store="fsmiexamsModule"
+						earchAttr="name"
+						query="{uid:\'*\'}"
+						name="'.$this->extKey.'[module1]" 
+						id="'.$this->extKey.'_module1"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+		
+		$content .= 
+			'<tr>	
+				<td><label for="'.$this->extKey.'_module">Module + 2:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						disabled="disabled"
+						store="fsmiexamsModule"
+						earchAttr="name"
+						query="{uid:\'*\'}"
+						name="'.$this->extKey.'[module2]" 
+						id="'.$this->extKey.'_module2"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+		
+		$content .= 
+			'<tr>	
+				<td><label for="'.$this->extKey.'_module">Module + 3:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						disabled="disabled"
+						store="fsmiexamsModule"
+						earchAttr="name"
+						query="{uid:\'*\'}"
+						name="'.$this->extKey.'[module3]" 
+						id="'.$this->extKey.'_module3"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+		
+		$content .= 
+			'<tr>	
 				<td><label for="'.$this->extKey.'[name]">Lecture Name:</label></td>
 				<td><input 
 					type="text" 
@@ -413,8 +465,43 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						autocomplete="true"
 					/>
 				</td>
-			</tr>
+			</tr>';
 
+		// Lecturer 2
+		$content .= 
+			'<tr>	
+				<td><label for="'.$this->extKey.'_module">Lecturer + 1:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecturer"
+						searchAttr="name"
+						disabled="disabled"
+						query="{uid:\'*\'}"
+						name="'.$this->extKey.'[lecturer1]" 
+						id="'.$this->extKey.'_lecturer1"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+		
+		// Lecturer 3
+		$content .= 
+			'<tr>	
+				<td><label for="'.$this->extKey.'_module">Lecturer + 2:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecturer"
+						searchAttr="name"
+						disabled="disabled"
+						query="{uid:\'*\'}"
+						name="'.$this->extKey.'[lecturer2]" 
+						id="'.$this->extKey.'_lecturer2"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+		
+		$content .= '
 			<tr>	
 				<td><label for="'.$this->extKey.'[approved]">Approved:</label></td>
 				<td><input dojoType="dijit.form.CheckBox"
@@ -479,6 +566,15 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		while ($res && $row = mysql_fetch_assoc($res))
 			$fileContent .= '{name:"'.$row['name'].'", uid:"'.$row['uid'].'", field:"'.$row['field'].'"},'."\n";
 		
+		// empty entry for each field
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
+												FROM tx_fsmiexams_field 
+												WHERE deleted=0 AND hidden=0');
+		
+		$negativeCntr = -1;
+		while ($res && $row = mysql_fetch_assoc($res))
+			$fileContent .= '{name:"---", uid:"'.$negativeCntr--.'", field:"'.$row['uid'].'"},'."\n";
+			
 		// file ending
 		$fileContent .= '] }';
 		
@@ -590,6 +686,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		while ($res && $row = mysql_fetch_assoc($res))
 			$fileContent .= '{name:"'.$row['lastname'].', '.$row['firstname'].'", uid:"'.$row['uid'].'"},'."\n";
 		
+		// empty one
+		$fileContent .= '{name:"---", uid:"-1"},'."\n";
+			
 		// file ending
 		$fileContent .= '] }';
 		
@@ -735,26 +834,42 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// switch by hidden type field
 		switch (intval($formData['type'])) {
 			case $this->kLECTURE: {
-			;//	debug('adsf');
+				$query = "INSERT INTO ";
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				debug($query);
 			} break;
 				
+			case $this->kLECTURER: {
+				
+				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(	
+									'tx_fsmiexams_lecturer',
+									array (	'pid' => $this->storePidLecturer,
+											'crdate' => time(),
+											'tstamp' => time(),
+											'firstname' => $GLOBALS['TYPO3_DB']->quoteStr($formData['firstname'], 'tx_fsmiexams_lecturer'),
+											'lastname' => $GLOBALS['TYPO3_DB']->quoteStr($formData['lastname'], 'tx_fsmiexams_lecturer'),
+									));
+									
+				// output info, if ok
+				if ($res) 
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::$kSTATUS_INFO,
+						'Lecturer saved: '.htmlentities($formData['lastname'].', '.$formData['firstname']));
+				else
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::$kSTATUS_ERROR, 
+						'Error on MYSQL INSERT');
+			} break;
 		}
-		
-
-		
-//		$protocolPost = t3lib_div::_POST($this->extKey);
-//		// test if there are post variables for new protocol
-//		if (t3lib_div::_POST('protocol_new')) {
-//			$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(	'tx_fsmiprotokolle_list',
-//													array (	'pid' => $this->storePidNew,
-//															'crdate' => time(),
-//															'tstamp' => time(),
-//															'meeting_date' => strtotime($protocolPost['meeting_date']),
-//															'protocol' => $protocolPost['protocol'],
-//															'reviewer_a' => $protocolPost['reviewer_a'],
-//															'reviewer_b' => $protocolPost['reviewer_b'],
-//													));
-		
+			
 		
 	}
 	

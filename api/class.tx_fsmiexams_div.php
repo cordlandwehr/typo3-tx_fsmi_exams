@@ -39,6 +39,8 @@ require_once(PATH_t3lib.'class.t3lib_iconworks.php');
  */
 class tx_fsmiexams_div {
 	static $imagePath = 'typo3conf/ext/fsmi_exams/images/';
+	static $kSTATUS_INFO = 0;
+	static $kSTATUS_ERROR = 1;
 
 	/**
 	 * Translates given UID of lecture to name
@@ -213,6 +215,23 @@ class tx_fsmiexams_div {
 			array_push($examUIDs, $row['uid']);				
 		
 		return $examUIDs;
+	}
+	
+	/**
+	 * This function provides an easy way to give some status information. For switching please use $fsmiexams_div::kSTATUS_... values.
+	 *
+	 * @param integer $status from constants
+	 * @param string $text information text
+	 * @return string of HTML div box
+	 */
+	function printSystemMessage($status, $text) {
+		$content = '';
+		$content .= '<div style="padding: 5px; border: 2px dotted; background-color: #eee; margin-top: 10px; max-width: 400px;">';
+		// TODO switch $status
+		$content .= $text;
+		$content .= '</div>';
+		
+		return $content;
 	}
 
 }
