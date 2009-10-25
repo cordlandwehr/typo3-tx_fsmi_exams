@@ -338,7 +338,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		
 		$content .= '
 			<h2>Exam Input</h2> 
-			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
+			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'" enctype="multipart/form-data">
 			<input type="hidden" name="no_cache" value="1" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.$this->kEXAM.'" />
 			<table>
@@ -944,6 +944,54 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$lecturers = array_unique($lecturers); // delete duplicate values
 				$lecturerTXT = implode(',',$lecturers);
 				
+				//TODO make shure that we have "*.pdf"
+				
+				// move files
+				$formDataFiles = $_FILES[$this->extKey];
+//				uploads/tx_fsmiexams/'.$exam['file'].
+				$examFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['file']);
+				$materiallFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['material']);
+				
+				// file names
+				$examFileName =  $formDataFiles['name']['file'];
+				$materialFileName =  $formDataFiles['name']['material'];
+				
+				// make filenames valid
+				$examFileName = preg_replace(
+					array("/\s+/", "/[^-\.\w]+/"),
+					array("_", ""),
+					trim($examFileName)); 
+				$materialFileName = preg_replace(
+					array("/\s+/", "/[^-\.\w]+/"),
+					array("_", ""),
+					trim($materialFileName)); 
+				
+				$usedFilenames = t3lib_div::getFilesInDir(	'uploads/tx_fsmiexams/',
+															$extensionList = 'pdf');  	
+				
+				// save ExamFile										
+				if ($examFile) {
+					$cnt=0;
+					$baseFilename = basename($examFileName, ".pdf");
+					// make fileanme unique
+					while (array_search($examFileName,$usedFilenames)==true)
+						$examFileName = $baseFilename.'_'.$cntr++.'.pdf';
+					t3lib_div::upload_copy_move($examFile, 'uploads/tx_fsmiexams/'.$examFileName);  	
+				}
+					
+				// save MaterialFile										
+				if ($materialFile) {
+					$cnt=0;
+					$baseFilename = basename($materialFileName, ".pdf");
+					// make fileanme unique
+					while (array_search($materialFileName,$usedFilenames)==true)
+						$materialFileName = $baseFilename.'_'.$cntr++.'.pdf';
+					t3lib_div::upload_copy_move($materialFile, 'uploads/tx_fsmiexams/'.$materialFileName);  	
+				}
+					
+				// delete files from temp-dir
+				t3lib_div::unlink_tempfile($examFile);
+				t3lib_div::unlink_tempfile($materialFile);
 				// save everything
 				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(	
 									'tx_fsmiexams_exam',
@@ -959,8 +1007,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 											'exactdate' => strtotime(htmlspecialchars($formData['exactdate'])),
 											'lecturer' => $GLOBALS['TYPO3_DB']->quoteStr($lecturerTXT, 'tx_fsmiexams_exam'),
 											'approved' => intval($formData['approved']),
-						//TODO file
-						//TODO material
+											'file' => $examFileName,
+											'material' => $materialFileName,
 											'quality' => intval($formData['quality']),
 											'examtype' => intval($formData['examtype']),		
 									));
