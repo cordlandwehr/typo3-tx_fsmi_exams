@@ -395,7 +395,7 @@ $TCA['tx_fsmiexams_exam'] = array (
 				'type' => 'select',		
 				'foreign_table' => 'tx_fsmiexams_lecture',
 				'foreign_table_where' => 'ORDER BY tx_fsmiexams_lecture.name',
-				'size' => 3,
+				'size' => 10,
 				'minitems' => 0,
 				'maxitems' => 5,
 			)
@@ -430,7 +430,7 @@ $TCA['tx_fsmiexams_exam'] = array (
 				'foreign_table' => 'tx_fsmiexams_lecturer',
 				'foreign_table_where' => 'ORDER BY tx_fsmiexams_lecturer.lastname',
 				'rootLevel' => 1,	
-				'size' => 20,	
+				'size' => 10,	
 				'minitems' => 0,
 				'maxitems' => 2,
 			)
