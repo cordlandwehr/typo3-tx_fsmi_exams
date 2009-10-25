@@ -50,6 +50,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $kLECTURE		= 3;
 	var $kLECTURER		= 4;
 	
+	// storages
+	var $storageLecturer;
+	var $storageLecture;
+	var $storageExam;
 	
 	/**
 	 * The main method of the PlugIn
@@ -62,6 +66,12 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->conf = $conf;
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
+		$this->pi_initPIflexForm(); // Init and get the flexform data of the plugin
+		
+		// set storages
+		$this->storageLecturer = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecturer'));
+		$this->storageLecture = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecture'));
+		$this->storageExam = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreExam'));
 		
 		
 		// type selection head
@@ -171,14 +181,14 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Modules
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Module:</label></td>
+				<td><label for="'.$this->extKey.'_module0">Module:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
-						name="'.$this->extKey.'[module]" 
-						id="'.$this->extKey.'_module"
+						name="'.$this->extKey.'[module0]" 
+						id="'.$this->extKey.'_module0"
 						autocomplete="true"
 					/>
 				</td>
@@ -186,7 +196,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Module + 1:</label></td>
+				<td><label for="'.$this->extKey.'_module1">Module + 1:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						disabled="disabled"
@@ -202,7 +212,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Module + 2:</label></td>
+				<td><label for="'.$this->extKey.'_module2">Module + 2:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						disabled="disabled"
@@ -218,7 +228,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Module + 3:</label></td>
+				<td><label for="'.$this->extKey.'_module3">Module + 3:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						disabled="disabled"
@@ -381,17 +391,51 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>';
 		
-		// Lecture
+		// Lecture 0
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Lecture:</label></td>
+				<td><label for="'.$this->extKey.'_lecture0">Lecture:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecture"
 						searchAttr="name"
 						query="{uid:\'*\'}"
-						name="'.$this->extKey.'[lecture]" 
-						id="'.$this->extKey.'_lecture"
+						name="'.$this->extKey.'[lecture0]" 
+						id="'.$this->extKey.'_lecture0"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+		
+		// Lecture 1
+		$content .= 
+			'<tr>	
+				<td><label for="'.$this->extKey.'_lecture1">Lecture + 1:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecture"
+						searchAttr="name"
+						disabled="disabled"
+						query="{uid:\'*\'}"
+						name="'.$this->extKey.'[lecture1]" 
+						id="'.$this->extKey.'_lecture1"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+		
+		// Lecture 2
+		$content .= 
+			'<tr>	
+				<td><label for="'.$this->extKey.'_lecture2">Lecture + 2:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecture"
+						searchAttr="name"
+						disabled="disabled"
+						query="{uid:\'*\'}"
+						name="'.$this->extKey.'[lecture2]" 
+						id="'.$this->extKey.'_lecture2"
 						autocomplete="true"
 					/>
 				</td>
@@ -409,7 +453,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[number]">Number:</label></td>
+				<td><label for="'.$this->extKey.'_number">Number:</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsNumber"
 						searchAttr="number"
@@ -420,7 +464,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[term]">Term:</label></td>
+				<td><label for="'.$this->extKey.'_term">Term:</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsTerm"
 						searchAttr="name"
@@ -431,7 +475,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[year]">Year:</label></td>
+				<td><label for="'.$this->extKey.'_year">Year:</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsYear"
 						searchAttr="year"
@@ -442,7 +486,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[exactdate]">Day of Exam:</label></td>
+				<td><label for="'.$this->extKey.'_exactdate">Day of Exam:</label></td>
 				<td><input 
 						type="text" 
 						name="'.$this->extKey.'[exactdate]" 
@@ -454,14 +498,14 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecturer
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Lecturer:</label></td>
+				<td><label for="'.$this->extKey.'_lecturer0">Lecturer:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecturer"
 						searchAttr="name"
 						query="{uid:\'*\'}"
-						name="'.$this->extKey.'[lecturer]" 
-						id="'.$this->extKey.'_lecturer"
+						name="'.$this->extKey.'[lecturer0]" 
+						id="'.$this->extKey.'_lecturer0"
 						autocomplete="true"
 					/>
 				</td>
@@ -470,7 +514,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecturer 2
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Lecturer + 1:</label></td>
+				<td><label for="'.$this->extKey.'_lecturer1">Lecturer + 1:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecturer"
@@ -487,7 +531,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecturer 3
 		$content .= 
 			'<tr>	
-				<td><label for="'.$this->extKey.'_module">Lecturer + 2:</label></td>
+				<td><label for="'.$this->extKey.'_lecturer2">Lecturer + 2:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecturer"
@@ -503,7 +547,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		
 		$content .= '
 			<tr>	
-				<td><label for="'.$this->extKey.'[approved]">Approved:</label></td>
+				<td><label for="'.$this->extKey.'_approved">Approved:</label></td>
 				<td><input dojoType="dijit.form.CheckBox"
 						name="'.$this->extKey.'[approved]"
 						id="'.$this->extKey.'_approved"  	
@@ -511,17 +555,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[file]">Exam File:</label></td>
+				<td><label for="'.$this->extKey.'_file">Exam File:</label></td>
 				<td><input type="file" name="'.$this->extKey.'[file]" id="'.$this->extKey.'_file"
 					value="'.htmlspecialchars($this->piVars["file"]).'"></td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[material]">Add. Material:</label></td>
+				<td><label for="'.$this->extKey.'_material">Add. Material:</label></td>
 				<td><input type="file" name="'.$this->extKey.'[material]" id="'.$this->extKey.'_material"  	
 					value="'.htmlspecialchars($this->piVars["material"]).'"></td>
 			</tr>
 			<tr>	
-				<td><label for="'.$this->extKey.'[quality]">Quality:</label></td>
+				<td><label for="'.$this->extKey.'_quality">Quality:</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsQuality"
 						searchAttr="name"				
@@ -658,6 +702,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		while ($res && $row = mysql_fetch_assoc($res))
 			$fileContent .= '{name:"'.$row['name'].'", uid:"'.$row['uid'].'", module:"'.$row['module'].'"},'."\n";
 		
+		// TODO workaround
+		// empty entry for each module
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
+												FROM tx_fsmiexams_module 
+												WHERE deleted=0 AND hidden=0');
+		
+		$negativeCntr = -1;
+		while ($res && $row = mysql_fetch_assoc($res))
+			$fileContent .= '{name:"---", uid:"'.$negativeCntr--.'", module:"'.$row['uid'].'"},'."\n";
+			
+			
 		// file ending
 		$fileContent .= '] }';
 		
@@ -834,24 +889,99 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// switch by hidden type field
 		switch (intval($formData['type'])) {
 			case $this->kLECTURE: {
-				$query = "INSERT INTO ";
 				
+				// get module list
+				$modules = array();
+				for ($i=0; $i<4; $i++) {
+					if (intval($formData['module'.$i])<=0)
+						continue;
+					array_push($modules,intval($formData['module'.$i]));
+				}
+				$modules = array_unique($modules); // delete duplicate values
+				$moduleTXT = implode(',',$modules);
 				
-				
-				
-				
-				
-				
-				
-				
-				debug($query);
+				// save everything
+				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(	
+									'tx_fsmiexams_lecture',
+									array (	'pid' => $this->storageLecture,
+											'crdate' => time(),
+											'tstamp' => time(),
+											'l10n_diffsource' => 'a:4:{s:16:"sys_language_uid";N;s:6:"hidden";N;s:4:"name";N;s:6:"module";N;}',
+											'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_lecture'),
+											'module' => $GLOBALS['TYPO3_DB']->quoteStr($moduleTXT, 'tx_fsmiexams_lecture'),
+									));
+		
+				// output info, if ok
+				if ($res) 
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::$kSTATUS_INFO,
+						'Lecture saved: '.htmlentities($formData['name']));
+				else
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::$kSTATUS_ERROR, 
+						'Error on MYSQL INSERT');
 			} break;
 				
+			case $this->kEXAM: {
+				
+				// get lecture list
+				$lectures = array();
+				for ($i=0; $i<4; $i++) {
+					if (intval($formData['lecture'.$i])<=0)
+						continue;
+					array_push($lectures,intval($formData['lecture'.$i]));
+				}
+				$lectures = array_unique($lectures); // delete duplicate values
+				$lectureTXT = implode(',',$lectures);
+				
+				// get lecturer list
+				$lecturers = array();
+				for ($i=0; $i<4; $i++) {
+					if (intval($formData['lecturer'.$i])<=0)
+						continue;
+					array_push($lecturers,intval($formData['lecturer'.$i]));
+				}
+				$lecturers = array_unique($lecturers); // delete duplicate values
+				$lecturerTXT = implode(',',$lecturers);
+				
+				// save everything
+				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(	
+									'tx_fsmiexams_exam',
+									array (	'pid' => $this->storageExam,
+											'crdate' => time(),
+											'tstamp' => time(),
+											'l10n_diffsource' => 'a:12:{s:16:"sys_language_uid";N;s:6:"hidden";N;s:4:"name";N;s:6:"number";N;s:7:"lecture";N;s:4:"term";N;s:4:"year";N;s:8:"examtype";N;s:9:"exactdate";N;s:8:"lecturer";N;s:8:"approved";N;s:4:"file";N;}',
+											'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_exam'),
+											'number' => intval($formData['number']),
+											'term' => intval($formData['term']),
+											'lecture' => $GLOBALS['TYPO3_DB']->quoteStr($lectureTXT, 'tx_fsmiexams_exam'),
+											'year' => intval($formData['year']),
+											'exactdate' => strtotime(htmlspecialchars($formData['exactdate'])),
+											'lecturer' => $GLOBALS['TYPO3_DB']->quoteStr($lecturerTXT, 'tx_fsmiexams_exam'),
+											'approved' => intval($formData['approved']),
+						//TODO file
+						//TODO material
+											'quality' => intval($formData['quality']),
+											'examtype' => intval($formData['examtype']),		
+									));
+		
+				// output info, if ok
+				if ($res) 
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::$kSTATUS_INFO,
+						'Lecture saved: '.htmlentities($formData['name']));
+				else
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::$kSTATUS_ERROR, 
+						'Error on MYSQL INSERT');
+			} break;
+		
+			
 			case $this->kLECTURER: {
 				
 				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(	
 									'tx_fsmiexams_lecturer',
-									array (	'pid' => $this->storePidLecturer,
+									array (	'pid' => $this->storageLecturer,
 											'crdate' => time(),
 											'tstamp' => time(),
 											'firstname' => $GLOBALS['TYPO3_DB']->quoteStr($formData['firstname'], 'tx_fsmiexams_lecturer'),

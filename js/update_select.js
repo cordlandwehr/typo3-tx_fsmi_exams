@@ -13,7 +13,7 @@ function init_update_select_lecture() {
 	// update modules on field-change
 	dojo.addOnLoad(function(){
   		dojo.connect(dijit.byId("fsmi_exams_field"),"onChange",function(){
-  			dijit.byId("fsmi_exams_module").query={field:(dijit.byId('fsmi_exams_field').attr('value'))};
+  			dijit.byId("fsmi_exams_module0").query={field:(dijit.byId('fsmi_exams_field').attr('value'))};
   			dijit.byId("fsmi_exams_module1").query={field:(dijit.byId('fsmi_exams_field').attr('value'))};
   			dijit.byId("fsmi_exams_module2").query={field:(dijit.byId('fsmi_exams_field').attr('value'))};
   			dijit.byId("fsmi_exams_module3").query={field:(dijit.byId('fsmi_exams_field').attr('value'))};
@@ -22,7 +22,7 @@ function init_update_select_lecture() {
 	
 	// update module1
 	dojo.addOnLoad(function(){
-  		dojo.connect(dijit.byId("fsmi_exams_module"),"onChange",function(){
+  		dojo.connect(dijit.byId("fsmi_exams_module0"),"onChange",function(){
   			dijit.byId("fsmi_exams_module1").setAttribute("disabled",false);
    		});	    
 	});
@@ -64,23 +64,38 @@ function init_update_select_exam() {
 
 	// update lecture on module-change
 	dojo.addOnLoad(function(){
-    	var lecture = dijit.byId("fsmi_exams_lecture");
   		dojo.connect(dijit.byId("fsmi_exams_module"),"onChange",function(){
-  			lecture.query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
+  			dijit.byId("fsmi_exams_lecture0").query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
+  			dijit.byId("fsmi_exams_lecture1").query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
+  			dijit.byId("fsmi_exams_lecture2").query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
    		});	    
 	});
 	
 	// update exam-name on lecture-change
 	dojo.addOnLoad(function(){
     	var exam = dojo.byId("fsmi_exams_name");
-  		dojo.connect(dijit.byId("fsmi_exams_lecture"),"onChange",function(){
-  			exam.value=dijit.byId('fsmi_exams_lecture').attr('displayedValue');
+  		dojo.connect(dijit.byId("fsmi_exams_lecture0"),"onChange",function(){
+  			exam.value=dijit.byId('fsmi_exams_lecture0').attr('displayedValue');
+   		});	    
+	});
+	
+	// update lecture1
+	dojo.addOnLoad(function(){
+  		dojo.connect(dijit.byId("fsmi_exams_lecture0"),"onChange",function(){
+  			dijit.byId("fsmi_exams_lecture1").setAttribute("disabled",false);
+   		});	    
+	});
+	
+	// update lecture2
+	dojo.addOnLoad(function(){
+  		dojo.connect(dijit.byId("fsmi_exams_lecture1"),"onChange",function(){
+  			dijit.byId("fsmi_exams_lecture2").setAttribute("disabled",false);
    		});	    
 	});
 	
 	// update lecturer1
 	dojo.addOnLoad(function(){
-  		dojo.connect(dijit.byId("fsmi_exams_lecturer"),"onChange",function(){
+  		dojo.connect(dijit.byId("fsmi_exams_lecturer0"),"onChange",function(){
   			dijit.byId("fsmi_exams_lecturer1").setAttribute("disabled",false);
    		});	    
 	});
