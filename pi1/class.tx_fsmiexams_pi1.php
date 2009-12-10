@@ -77,6 +77,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 												WHERE deleted=0 AND hidden=0');
 		
 		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
+			$content .= '<hr />';
 			$content .= '<h2>'.$rowProgram['name'].'</h2>';
 			
 			$resField = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
@@ -115,7 +116,10 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 					foreach ($examUIDs as $uid) {
 	        			$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 						$content .= '<tr>';
-						$content .= '<td>'.tx_fsmiexams_div::lectureToText($exam['lecture']).'</td>';
+						$content .= '<td>'.tx_fsmiexams_div::lectureToText($exam['lecture']);
+							if (tx_fsmiexams_div::lectureToText($exam['lecture'])!=tx_fsmiexams_div::examToText($exam['uid']))
+								$content .= '<br/><span style="font-style:italic;">('.tx_fsmiexams_div::examToText($exam['uid']).')</span>';
+						$content .= '</td>';
 						//$content .= '<td>'.$exam['name'].'</td>';
 						$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer']).'</td>';
 						$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';

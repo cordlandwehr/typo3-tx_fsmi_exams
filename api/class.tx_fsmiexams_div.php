@@ -54,6 +54,17 @@ class tx_fsmiexams_div {
 	}
 	
 	/**
+	 * Translates given UID of exams to name
+	 *
+	 * @param UID $uid
+	 * @return text
+	 */
+	function examToText ($uid) {
+		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
+		return $exam['name'];
+	}
+	
+	/**
 	 * Translates given UID of lecturer to name
 	 *
 	 * @param UID $uid
