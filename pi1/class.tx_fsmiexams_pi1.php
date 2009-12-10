@@ -104,7 +104,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 						
 					$content .= '<table>';
 					$content .= '<tr>';
-						$content .= '<th width="200px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';	
+						$content .= '<th width="220px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';	
 						//$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.name").'</th>';
 						$content .= '<th width="140px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecturer").'</th>';
 						$content .= '<th width="60px">'.$this->LANG->getLL("tx_fsmiexams_exam.term").'</th>';
@@ -131,7 +131,11 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 							$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
 						else
 							$content .= '<td>-</td>';
-						$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Download</a></td>';
+						$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Exam Download</a>';
+						if ($exam['material']!='')
+							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmateriall</a>';
+						$content .= '</td>';
+						
 						$content .= '</tr>';
 					}		
 					$content .= '</table>';
