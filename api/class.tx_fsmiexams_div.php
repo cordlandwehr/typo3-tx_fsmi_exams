@@ -210,7 +210,7 @@ class tx_fsmiexams_div {
 											WHERE '.$examWhere.
 												$lectureWhere.'
 												AND deleted=0 AND hidden=0 
-											ORDER BY lecture, name');
+											ORDER BY lecture, year, exactdate, name');
 		while ($res && $row = mysql_fetch_assoc($res))
 			array_push($examUIDs, $row['uid']);				
 		
