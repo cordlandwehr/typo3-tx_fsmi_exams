@@ -157,6 +157,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					store="fsmiexamsDegreeprogram" 
 					searchAttr="name"
 					autocomplete="true"
+					style="width:300px;"
 					name="'.$this->extKey.'[degreeprogram]" 
 					id="'.$this->extKey.'_degreeprogram"
 				/>
@@ -172,6 +173,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					store="fsmiexamsField"
 					searchAttr="name"
 					autocomplete="true"
+					style="width:300px;"
 					name="'.$this->extKey.'[field]" 
 					id="'.$this->extKey.'_field"
 				/>
@@ -187,6 +189,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[module0]" 
 						id="'.$this->extKey.'_module0"
 						autocomplete="true"
@@ -203,6 +206,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[module1]" 
 						id="'.$this->extKey.'_module1"
 						autocomplete="true"
@@ -219,6 +223,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[module2]" 
 						id="'.$this->extKey.'_module2"
 						autocomplete="true"
@@ -235,6 +240,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[module3]" 
 						id="'.$this->extKey.'_module3"
 						autocomplete="true"
@@ -247,6 +253,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				<td><label for="'.$this->extKey.'[name]">Lecture Name:</label></td>
 				<td><input 
 					type="text" 
+					style="width:300px;"
 					name="'.$this->extKey.'[name]" 
 					id="'.$this->extKey.'_name"  	
 					value="'.htmlspecialchars($this->piVars["name"]).'"></td>
@@ -354,6 +361,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					store="fsmiexamsDegreeprogram" 
 					searchAttr="name"
 					autocomplete="true"
+					style="width:300px;"
 					name="'.$this->extKey.'[degreeprogram]" 
 					id="'.$this->extKey.'_degreeprogram"
 				/>
@@ -369,6 +377,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					store="fsmiexamsField"
 					searchAttr="name"
 					autocomplete="true"
+					style="width:300px;"
 					name="'.$this->extKey.'[field]" 
 					id="'.$this->extKey.'_field"
 				/>
@@ -384,6 +393,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsModule"
 						searchAttr="name"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[module]" 
 						id="'.$this->extKey.'_module"
 						autocomplete="true"
@@ -400,6 +410,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsLecture"
 						searchAttr="name"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[lecture0]" 
 						id="'.$this->extKey.'_lecture0"
 						autocomplete="true"
@@ -417,6 +428,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						searchAttr="name"
 						disabled="disabled"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[lecture1]" 
 						id="'.$this->extKey.'_lecture1"
 						autocomplete="true"
@@ -434,6 +446,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						searchAttr="name"
 						disabled="disabled"
 						query="{uid:\'*\'}"
+						style="width:300px;"
 						name="'.$this->extKey.'[lecture2]" 
 						id="'.$this->extKey.'_lecture2"
 						autocomplete="true"
@@ -841,7 +854,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				'identifier: "number",'."\n".
 				'items: ['."\n";
 			
-		for ($i=1; $i<4; $i++)
+		for ($i=1; $i<10; $i++)
 			$fileContent .= '{number:"'.$i.'"},'."\n";
 	
 		$fileContent .= '{number:""},'."\n";
