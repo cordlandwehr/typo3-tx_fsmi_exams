@@ -1053,8 +1053,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				// output info, if ok
 				if ($res)
 					return tx_fsmiexams_div::printSystemMessage(
-						tx_fsmiexams_div::$kSTATUS_INFO,
-						'Lecture saved: '.htmlentities($formData['name']));
+							tx_fsmiexams_div::$kSTATUS_OK,
+							'<div>'.
+								'<h4>Exam data was saved</h4>
+								<ul>'.
+									'<li><strong>Name:</strong> '.$formData['name'].'</li>'.
+									'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT).'</li>'.
+									'<li><strong>Year/Term/No.:</strong> '.intval($formData['year']).'/'.intval($formData['term']).'/'.intval($formData['number']).'</li>'.
+									'<li><strong>Date:</strong> '.date('d.m.y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
+									'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT).'</li>'.
+								'</ul>'.
+							'</div>');
 				else
 					return tx_fsmiexams_div::printSystemMessage(
 						tx_fsmiexams_div::$kSTATUS_ERROR,
@@ -1091,7 +1100,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::$kSTATUS_INFO,
 							'Lecturer successfully created: '.$formData['lastname'].', '.$formData['firstname']);
-				// output info, if ok
 				}
 
 				// this point should never be reached
