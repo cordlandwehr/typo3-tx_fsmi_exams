@@ -32,15 +32,22 @@
 require_once(PATH_t3lib.'class.t3lib_befunc.php');
 require_once(PATH_t3lib.'class.t3lib_tcemain.php');
 require_once(PATH_t3lib.'class.t3lib_iconworks.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_pi4.php');
+
 
 /**
  * Script Class to download files as defined in reports
  *
  */
 class tx_fsmiexams_div {
-	static $imagePath = 'typo3conf/ext/fsmi_exams/images/';
-	static $kSTATUS_INFO = 0;
-	static $kSTATUS_ERROR = 1;
+	const kSTATUS_INFO 		= 0;
+	const kSTATUS_WARNING 	= 1;
+	const kSTATUS_ERROR 	= 2;
+	const kSTATUS_OK 		= 3;
+	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
+
+	static $kSTATUS_INFO = 0;		// deprecated, need to change!
+	static $kSTATUS_ERROR = 2;		// deprecated, need to change!
 
 	/**
 	 * Translates given UID of lecture to name
@@ -52,7 +59,7 @@ class tx_fsmiexams_div {
 		$lecture = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
 		return $lecture['name'];
 	}
-	
+
 	/**
 	 * Translates given UID of exams to name
 	 *
@@ -63,23 +70,35 @@ class tx_fsmiexams_div {
 		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 		return $exam['name'];
 	}
-	
+
 	/**
-	 * Translates given UID of lecturer to name
+	 * Prints name of the lecturer in order "lastname, firstname", but also links to edit page if any is given.
 	 *
 	 * @param UID $uid
+	 * @param INTEGER edit page id
 	 * @return text
 	 */
-	function lecturerToText ($uid) {
+	function lecturerToText ($uid, $editPage) {
 		$lecturerList = explode(',',$uid);
 		$text = '';
 		foreach ($lecturerList as $uid) {
 			$lecturer = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
-			$text .= $lecturer['lastname'].', '.$lecturer['firstname']. ' ';
+			if ($editPage)
+				$text .= $this->pi_linkTP(
+								$lecturer['lastname'].', '.$lecturer['firstname'],
+								array (
+									$this->extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURER,
+									$this->extKey.'[uid]' => $lecturer['uid']
+								),
+								0,
+								$editPage
+							  ). ' ';
+			else
+				$text .= $lecturer['lastname'].', '.$lecturer['firstname'].' ';
 		}
-		return $text; 
+		return $text;
 	}
-	
+
 	/**
 	 * Translates given UID of exam to readable term date
 	 *
@@ -88,18 +107,18 @@ class tx_fsmiexams_div {
 	 */
 	function examToTermdate ($uid) {//TODO no locallang yet
 		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
-		
+
 		$text = '';
 		if ($exam['term'] == 1)
 			$text .= 'SS ';
-		else 
+		else
 			$text .= 'WS ';
-			
+
 		$text .= $exam['year'];
-			
+
 		return $text;
 	}
-	
+
 	/**
 	 * This function provides a database access ability for exams. Use this function
 	 * to get the UIDs for specific exams as requested.
@@ -114,21 +133,21 @@ class tx_fsmiexams_div {
 	 */
 	function getExamUIDs ($degreeprogram, $field, $module, $lecture, $lecturer, $folder, $examtype) {
 		/*
-		 * For the logic behind the following questions please confer the handbook, especially the 
+		 * For the logic behind the following questions please confer the handbook, especially the
 		 * database scheme. E.g. if a field is given, the degreeprogram alreade is uniquely defined
-		 * 
+		 *
 		 * TODO NOTICE: $folder not implemented, yet!
-		 *  
+		 *
 		 * The way is the following:
 		 * CASE $folder  -> only the the content
 		 * CASE $lecture -> only select further by $examtype and $lecturer
 		 * CASE $module  -> select further as at $lecture
-		 * 
+		 *
 		 * Prework
 		 *   1. construct list of modules
 		 *   2. construct by this list of lectures
 		 */
-		
+
 
 		// no field given, check degree program
 		$fieldUIDs = array ();
@@ -138,7 +157,7 @@ class tx_fsmiexams_div {
 				// get all fields
 				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_field.uid as uid
 												FROM tx_fsmiexams_field
-												WHERE deleted=0 AND hidden=0 
+												WHERE deleted=0 AND hidden=0
 												ORDER BY name');
 				while ($res && $row = mysql_fetch_assoc($res))
 					array_push($fieldUIDs, $row['uid']);
@@ -148,40 +167,40 @@ class tx_fsmiexams_div {
 				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_field.uid as uid
 												FROM tx_fsmiexams_field
 												WHERE degreeprogram = '.intval($degreeprogram).'
-													AND deleted=0 AND hidden=0 
+													AND deleted=0 AND hidden=0
 												ORDER BY degreeprogram, name');
 				while ($res && $row = mysql_fetch_assoc($res))
-					array_push($fieldUIDs, $row['uid']);				
+					array_push($fieldUIDs, $row['uid']);
 			}
 		}
-		else 
+		else
 			array_push($fieldUIDs, intval($field));
-		
+
 		// no module given, check field
 		$moduleUIDs = array ();
 		if ($module == 0) {
-			
+
 			foreach ($fieldUIDs as $fieldUID) {
 				// get modules
 				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_module.uid as uid, field
 													FROM tx_fsmiexams_module
-													WHERE deleted=0 AND hidden=0 
+													WHERE deleted=0 AND hidden=0
 													ORDER BY field, name');
-				
-				
+
+
 				while ($res && $row = mysql_fetch_assoc($res)) {
 					// TODO a little bit inefficient
 					$rowHaystack = explode(',',$row['field']);
 					if (in_array($fieldUID, $rowHaystack))
 						array_push($moduleUIDs, $row['uid']);
 				}
-			}				
+			}
 		}
 		else
 			array_push($moduleUIDs, intval($module));
 		if (count($moduleUIDs)==0)
 			return array ();
-			
+
 		// no lecture given, check modules
 		$lectureUIDs = array ();
 		if ($lecture == 0) {
@@ -190,7 +209,7 @@ class tx_fsmiexams_div {
 				// get lectures
 				$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_lecture.uid as uid, module
 													FROM tx_fsmiexams_lecture
-													WHERE deleted=0 AND hidden=0 
+													WHERE deleted=0 AND hidden=0
 													ORDER BY module, name');
 
 				while ($res && $row = mysql_fetch_assoc($res)) {
@@ -199,13 +218,13 @@ class tx_fsmiexams_div {
 					if (in_array($moduleUID, $rowHaystack))
 						array_push($lectureUIDs, $row['uid']);
 				}
-			}				
+			}
 		}
 		else
 			array_push($lectureUIDs, intval($lecture));
 		if (count($lectureUIDs)==0)
 			return array ();
-			
+
 		// finally get exams
 		$examWhere = '';
 		$examUIDs = array ();
@@ -213,37 +232,62 @@ class tx_fsmiexams_div {
 			$examWhere .= 'lecturer = '.intval($lecturer).' AND ';
 		if ($examtype != 0)
 			$examWhere .=  'examtype = '.intval($examtype).' AND ';
-		
+
 		$lectureWhere = 'lecture in ('.implode(',',$lectureUIDs).') ';
 		// get exams
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_exam.uid as uid
 											FROM tx_fsmiexams_exam
 											WHERE '.$examWhere.
 												$lectureWhere.'
-												AND deleted=0 AND hidden=0 
-											ORDER BY lecture, year, exactdate, name');
+												AND deleted=0 AND hidden=0
+											ORDER BY lecture, year DESC, exactdate DESC, name');
 		while ($res && $row = mysql_fetch_assoc($res))
-			array_push($examUIDs, $row['uid']);				
-		
+			array_push($examUIDs, $row['uid']);
+
 		return $examUIDs;
 	}
-	
+
 	/**
-	 * This function provides an easy way to give some status information. For switching please use $fsmiexams_div::kSTATUS_... values.
 	 *
 	 * @param integer $status from constants
 	 * @param string $text information text
 	 * @return string of HTML div box
 	 */
 	function printSystemMessage($status, $text) {
+
+		// TODO it would be nice if the info boxes may be hidden on click
+
 		$content = '';
-		$content .= '<div style="padding: 5px; border: 2px dotted; background-color: #eee; margin-top: 10px; max-width: 400px;">';
+		$content .= '<div style="min-height:30px; " ';
+		switch ($status) {
+			case self::kSTATUS_INFO: {
+				$content .= 'class="fsmivkrit_notify_info">';
+				$content .=  '<img src="'.self::imgPath.'info.png" width="30" style="float:left; margin-right:10px;" />';
+				break;
+			}
+			case self::kSTATUS_WARNING: {
+				$content .= 'class="fsmivkrit_notify_warning">';
+				$content .=  '<img src="'.self::imgPath.'warning.png" width="30" style="float:left; margin-right:10px;" />';
+				break;
+			}
+			case self::kSTATUS_ERROR: {
+				$content .= 'class="fsmivkrit_notify_error">';
+				$content .=  '<img src="'.self::imgPath.'error.png" width="30" style="float:left; margin-right:10px;" />';
+				break;
+			}
+			case self::kSTATUS_OK: {
+				$content .= 'class="fsmivkrit_notify_ok">';
+				$content .=  '<img src="'.self::imgPath.'ok.png" width="30" style="float:left; margin-right:10px;" />';
+				break;
+			}
+		}
 		// TODO switch $status
 		$content .= $text;
 		$content .= '</div>';
-		
+
 		return $content;
 	}
+
 
 }
 

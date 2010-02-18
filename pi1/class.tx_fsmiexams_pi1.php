@@ -42,7 +42,8 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 	var $prefixId      = 'tx_fsmiexams_pi1';		// Same as class name
 	var $scriptRelPath = 'pi1/class.tx_fsmiexams_pi1.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
-	
+	var $pidEditPage   = 0;
+
 	/**
 	 * The main method of the PlugIn
 	 *
@@ -55,57 +56,78 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 		$this->pi_USER_INT_obj = 1;	// Configuring so caching is not expected. This value means that no cHash params are ever set. We do this, because it's a USER_INT object!
-		
+		$this->pi_initPIflexForm(); // Init and get the flexform data of the plugin
+
 		$this->LANG = t3lib_div::makeInstance('language');
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
-		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml'); 
-		
-		$content = $this->listAllExams();
-	
+		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
+		$this->pidEditPage = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidEdit'));
+
+		$content = $this->listDegreeprogramAnchors();
+
+		$content .= $this->listAllExams();
+
 		return $this->pi_wrapInBaseClass($content);
 	}
+
+	/**
+	 * This function outputs a list with anchors to all degree programs.
+	 */
+	function listDegreeprogramAnchors() {
+		$content = '';
+
+		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+												FROM tx_fsmiexams_degreeprogram
+												WHERE deleted=0 AND hidden=0');
+		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
+			$content .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'#fsmiexams_degreeprogram_'.$rowProgram['uid'].'">'.$rowProgram['name'].'</a>';
+			$content .= ' / ';
+		}
+
+		return $content;
+	}
+
 	/**
 	 * This function lists all exams ordered by degree program, part etc.
-	 * @return HTML table 
+	 * @return HTML table
 	 *
 	 */
 	function listAllExams () {
 		$content = '';
-		
-		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
-												FROM tx_fsmiexams_degreeprogram 
+
+		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+												FROM tx_fsmiexams_degreeprogram
 												WHERE deleted=0 AND hidden=0');
-		
+
 		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
 			$content .= '<hr />';
-			$content .= '<h2>'.$rowProgram['name'].'</h2>';
-			
-			$resField = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
+			$content .= '<a name="fsmiexams_degreeprogram_'.$rowProgram['uid'].'"><h2>'.$rowProgram['name'].'</h2></a>';
+
+			$resField = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_field
 												WHERE '.$rowProgram['uid'].' = tx_fsmiexams_field.degreeprogram
 												AND deleted=0 AND hidden=0');
-		
+
 			while ($resField && $rowField = mysql_fetch_assoc($resField)) {
 				$content .= '<h3>'.$rowField['name'].'</h3>';
 
-				$resModule = $GLOBALS['TYPO3_DB']->sql_query('SELECT * 
+				$resModule = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_module
 												WHERE '.$rowField['uid'].' in (tx_fsmiexams_module.field)
 												AND deleted=0 AND hidden=0');
-				
+
 				while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
-				
+
 					$examUIDs = tx_fsmiexams_div::getExamUIDs($rowProgram['uid'],$rowField['uid'],$rowModule['uid'],0,0,0,0);
 					if (count($examUIDs)==0)
 						continue;
-						
+
 					// only print module if there is something in
-					$content .= '<h4>'.$rowModule['name'].'</h4>';
-						
+					$content .= '<div name="fsmiexams_module_'.$rowModule['uid'].'" class="fsmiexams_module"><h4>'.$rowModule['name'].'</h4></div>';
+
 					$content .= '<table>';
 					$content .= '<tr>';
-						$content .= '<th width="220px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';	
-						//$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.name").'</th>';
+						$content .= '<th width="300px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';
 						$content .= '<th width="140px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecturer").'</th>';
 						$content .= '<th width="60px">'.$this->LANG->getLL("tx_fsmiexams_exam.term").'</th>';
 						$content .= '<th>Nr.</th>';
@@ -113,15 +135,30 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 						$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.file").'</th>';
 					$content .= '</tr>';
 
+					$lineCounter = 1;
+					$lastLectureName = '';
 					foreach ($examUIDs as $uid) {
 	        			$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
-						$content .= '<tr>';
-						$content .= '<td>'.tx_fsmiexams_div::lectureToText($exam['lecture']);
+
+	        			// colorize odd lines
+						($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
+
+						// to improve readability only write lecture name once
+						if ($lastLectureName != tx_fsmiexams_div::lectureToText($exam['lecture'])) {	// new name
+							$content .= '<td><strong>'.tx_fsmiexams_div::lectureToText($exam['lecture']).'</strong>';
 							if (tx_fsmiexams_div::lectureToText($exam['lecture'])!=tx_fsmiexams_div::examToText($exam['uid']))
 								$content .= '<br/><span style="font-style:italic;">('.tx_fsmiexams_div::examToText($exam['uid']).')</span>';
-						$content .= '</td>';
-						//$content .= '<td>'.$exam['name'].'</td>';
-						$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer']).'</td>';
+							$lastLectureName = tx_fsmiexams_div::lectureToText($exam['lecture']);
+							$content .= '</td>';
+						}
+						else {	// no new name
+							$content .= '<td><img src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
+							if (tx_fsmiexams_div::lectureToText($exam['lecture'])!=tx_fsmiexams_div::examToText($exam['uid']))
+								$content .= '<span style="font-style:italic;">('.tx_fsmiexams_div::examToText($exam['uid']).')</span>';
+							$content .= '</td>';
+						}
+
+						$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer'],$this->pidEditPage).'</td>';
 						$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
 						if ($exam['number']!=0)
 							$content .= '<td>'.$exam['number'].'</td>';
@@ -135,17 +172,17 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 						if ($exam['material']!='')
 							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmateriall</a>';
 						$content .= '</td>';
-						
+
 						$content .= '</tr>';
-					}		
+					}
 					$content .= '</table>';
 				}
 			}
 		}
 		return $content;
-		
+
 	}
-	
+
 }
 
 

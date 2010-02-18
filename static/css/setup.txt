@@ -1,0 +1,45 @@
+ plugin.tx_fsmi_food {
+	_CSS_DEFAULT_STYLE (
+		div.fsmiexams_module {
+			background-color: #d5e5ff;
+		}
+		tr.oddline {
+			background-color: #f3f0f0;
+		}
+
+		/* notification messages */
+		div.fsmivkrit_notify_ok {
+			background-color: #d3efd3;
+			border: solid 2px;
+			border-color: #40b424;
+			padding: 10px;
+			margin-top:10px;
+			margin-bottom:10px;
+		}
+		div.fsmivkrit_notify_warning {
+			background-color: #fffe8c;
+			border: solid 2px;
+			border-color: #ffb309;
+			padding: 10px;
+			margin-top:10px;
+			margin-bottom:10px;
+		}
+		div.fsmivkrit_notify_error {
+			background-color: #ffc7c7;
+			border: solid 2px;
+			border-color: #b42424;
+			padding: 10px;
+			margin-top:10px;
+			margin-bottom:10px;
+		}
+		div.fsmivkrit_notify_info {
+			background-color: #abb3ea;
+			border: solid 2px;
+			border-color: #2b45ff;
+			padding: 10px;
+			margin-top:10px;
+			margin-bottom:10px;
+		}
+
+ 	)
+ }
