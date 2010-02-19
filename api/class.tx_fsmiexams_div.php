@@ -55,12 +55,23 @@ class tx_fsmiexams_div {
 	 * @param UID $uid
 	 * @return text
 	 */
-	function lectureToText ($uid) {
+	function lectureToText ($uid, $editPage) {
 		$lectureList = explode(',',$uid);
 		$text = '';
 		foreach ($lectureList as $uid) {
 			$lecture = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
-			$text .= $lecture['name'];
+			if ($editPage)
+				$text .= $this->pi_linkTP(
+								$lecture['name'],
+								array (
+									$this->extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURE,
+									$this->extKey.'[uid]' => $lecture['uid']
+								),
+								0,
+								$editPage
+							  ). ' ';
+			else
+				$text .= $lecture['name'];
 		}
 		return $text;
 	}

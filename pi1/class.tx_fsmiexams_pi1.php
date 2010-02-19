@@ -117,8 +117,6 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 												AND deleted=0 AND hidden=0');
 
 				while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
-
-					//TODO only print module if there is something in
 					$content .= '<div name="fsmiexams_module_'.$rowModule['uid'].'" class="fsmiexams_module"><h4>'.$rowModule['name'].'</h4></div>';
 
 					$content .= '<table>';
@@ -153,7 +151,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 
 							// to improve readability only write lecture name once
 							if ($firstEntry) {	// start of next lecture
-								$content .= '<td><strong>'.tx_fsmiexams_div::lectureToText($rowLecture['uid']).'</strong>';
+								$content .= '<td><strong>'.tx_fsmiexams_div::lectureToText($rowLecture['uid'],$this->pidEditPage).'</strong>';
 								if (tx_fsmiexams_div::lectureToText($rowLecture['uid'])!=tx_fsmiexams_div::examToText($exam['uid']))
 									$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid']).'</span>';
 								$firstEntry = false;

@@ -84,8 +84,18 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// select input type
 		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
 		switch (intval($GETcommands['type'])) {
-			case self::kEDIT_TYPE_LECTURE:
-				$content .= $this->createLectureInputForm(); break;
+			case self::kEDIT_TYPE_LECTURE: {
+				if (intval($GETcommands['uid'])) {
+				$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', intval($GETcommands['uid']));
+					$this->piVars["name"] = $lectureDB['name'];
+					$this->piVars["field"] = $lectureDB['field']; //TODO not in this DB, search by DB select
+					$modules = explode(',',$lectureDB['module']);
+					for ($i=0; $i<count($modules); $i++)
+						$this->piVars["module".$i] = $modules[$i];
+				}
+				$content .= $this->createLectureInputForm(intval($GETcommands['uid']));
+				break;
+			}
 			case self::kEDIT_TYPE_EXAM:
 
 				$content .= $this->createExamInputForm(); break;
@@ -121,7 +131,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 	}
 
-	function createLectureInputForm () {
+	function createLectureInputForm ($editUID) {
+
+		if ($editUID)
+			$content .= '<h2>Edit existing Lecture</h2>';
+		else
+			$content .= '<h2>Lecture Input</h2>';
+
 
 		// create JSON files
 		$this->createModuleListJSON();
@@ -152,7 +168,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			<h2>Lecture Input</h2>
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
-			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_LECTURE.'" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_LECTURE.'" />';
+
+		// hidden field for UID if editing lecturer
+		if ($editUID)
+			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
+
+		$content .= '
 			<table>';
 
 		// Degree Program
@@ -181,6 +203,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					store="fsmiexamsField"
 					searchAttr="name"
 					autocomplete="true"
+					value="'.$this->piVars['field'].'"
 					style="width:300px;"
 					name="'.$this->extKey.'[field]"
 					id="'.$this->extKey.'_field"
@@ -198,6 +221,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						earchAttr="name"
 						query="{uid:\'*\'}"
 						style="width:300px;"
+						value="'.$this->piVars['module0'].'"
 						name="'.$this->extKey.'[module0]"
 						id="'.$this->extKey.'_module0"
 						autocomplete="true"
@@ -215,6 +239,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						earchAttr="name"
 						query="{uid:\'*\'}"
 						style="width:300px;"
+						value="'.$this->piVars['module1'].'"
 						name="'.$this->extKey.'[module1]"
 						id="'.$this->extKey.'_module1"
 						autocomplete="true"
@@ -232,6 +257,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						earchAttr="name"
 						query="{uid:\'*\'}"
 						style="width:300px;"
+						value="'.$this->piVars['module2'].'"
 						name="'.$this->extKey.'[module2]"
 						id="'.$this->extKey.'_module2"
 						autocomplete="true"
@@ -249,6 +275,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						earchAttr="name"
 						query="{uid:\'*\'}"
 						style="width:300px;"
+						value="'.$this->piVars['module3'].'"
 						name="'.$this->extKey.'[module3]"
 						id="'.$this->extKey.'_module3"
 						autocomplete="true"
