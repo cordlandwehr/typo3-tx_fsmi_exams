@@ -94,6 +94,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 	 */
 	function listAllExams () {
 		$content = '';
+		$examTypes = $this->listExamTypes();
 
 		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_degreeprogram
@@ -142,27 +143,22 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 						if (count($examUIDs)==0)
 							continue;
 
-						$firstEntry = true;
+						// lecture
+						$content .= '<tr class="sepline">
+										<td colspan="5"><strong>'.tx_fsmiexams_div::lectureToText($rowLecture['uid'],$this->pidEditPage).
+										' ('.count($examUIDs).')</strong><td>
+									</tr>';
+
+						// exams
 						foreach ($examUIDs as $uid) {
 							$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
 							// colorize odd lines
 							($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
 
-							// to improve readability only write lecture name once
-							if ($firstEntry) {	// start of next lecture
-								$content .= '<td><strong>'.tx_fsmiexams_div::lectureToText($rowLecture['uid'],$this->pidEditPage).'</strong>';
-								if (tx_fsmiexams_div::lectureToText($rowLecture['uid'])!=tx_fsmiexams_div::examToText($exam['uid']))
-									$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid']).'</span>';
-								$firstEntry = false;
-								$content .= '</td>';
-							}
-							else {	// no new name
-								$content .= '<td><img src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
-								if (tx_fsmiexams_div::lectureToText($rowLecture['uid'])!=tx_fsmiexams_div::examToText($exam['uid']))
-									$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid']).'</span>';
-								$content .= '</td>';
-							}
+							$content .= '<td><img src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
+							$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid']).'</span>';
+							$content .= '</td>';
 
 							$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer'],$this->pidEditPage).'</td>';
 							$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
@@ -174,7 +170,10 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 								$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
 							else
 								$content .= '<td>-</td>';
-							$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Exam Download</a>';
+
+
+
+							$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">'.$examTypes[$exam['examtype']].'</a>';
 							if ($exam['material']!='')
 								$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmateriall</a>';
 							$content .= '</td>';
@@ -190,6 +189,22 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 
 	}
 
+	/**
+	 * Creates an array with key UID and value description of exam type.
+	 * @return array
+	 */
+	function listExamTypes () {
+		$types = array ();
+
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_examtype
+													WHERE deleted=0 AND hidden=0');
+
+		while ($res && $row = mysql_fetch_assoc($res))
+			$types[$row['uid']] = $row['description'];
+
+		return $types;
+	}
 }
 
 

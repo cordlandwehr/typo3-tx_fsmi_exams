@@ -249,16 +249,19 @@ class tx_fsmiexams_div {
 		if ($examtype != 0)
 			$examWhere .=  'examtype = '.intval($examtype).' AND ';
 
-		$lectureWhere = 'lecture in ('.implode(',',$lectureUIDs).') ';
-		// get exams
-		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_exam.uid as uid
-											FROM tx_fsmiexams_exam
-											WHERE '.$examWhere.
-												$lectureWhere.'
-												AND deleted=0 AND hidden=0
-											ORDER BY lecture, year DESC, exactdate DESC, name');
-		while ($res && $row = mysql_fetch_assoc($res))
-			array_push($examUIDs, $row['uid']);
+		foreach ($lectureUIDs as $lecture) {
+			$lectureWhere = ' FIND_IN_SET('.$lecture.',lecture) ';
+			// get exams
+			$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_exam.uid as uid, year, term, exactdate
+												FROM tx_fsmiexams_exam
+												WHERE '.$examWhere.
+													$lectureWhere.'
+													AND deleted=0 AND hidden=0
+												ORDER BY year DESC, term ASC, number DESC, exactdate DESC, name');
+			while ($res && $row = mysql_fetch_assoc($res))
+				array_push($examUIDs, $row['uid']);
+		}
+
 
 		return $examUIDs;
 	}

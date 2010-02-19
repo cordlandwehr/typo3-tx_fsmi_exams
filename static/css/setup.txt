@@ -6,6 +6,9 @@
 		tr.oddline {
 			background-color: #f3f0f0;
 		}
+		tr.sepline {
+			background-color: #ccc;
+		}
 
 		/* notification messages */
 		div.fsmivkrit_notify_ok {
