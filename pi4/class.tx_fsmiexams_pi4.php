@@ -87,14 +87,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			case self::kEDIT_TYPE_LECTURE:
 				$content .= $this->createLectureInputForm(); break;
 			case self::kEDIT_TYPE_EXAM:
+
 				$content .= $this->createExamInputForm(); break;
 			case self::kEDIT_TYPE_LECTURER: {
 				if (intval($GETcommands['uid'])) {
 					$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', intval($GETcommands['uid']));
-
 					$this->piVars["firstname"] = $lecturerDB['firstname'];
 					$this->piVars['lastname'] = $lecturerDB['lastname'];
-
 				}
 				$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
 				break;
@@ -927,36 +926,59 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		switch (intval($formData['type'])) {
 			case self::kEDIT_TYPE_LECTURE: {
 
-				// get module list
-				$modules = array();
-				for ($i=0; $i<4; $i++) {
-					if (intval($formData['module'.$i])<=0)
-						continue;
-					array_push($modules,intval($formData['module'.$i]));
-				}
-				$modules = array_unique($modules); // delete duplicate values
-				$moduleTXT = implode(',',$modules);
-
-				// save everything
-				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+				if (intval($formData['uid']!=0)) { // update data
+					$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 									'tx_fsmiexams_lecture',
-									array (	'pid' => $this->storageLecture,
-											'crdate' => time(),
-											'tstamp' => time(),
-											'l10n_diffsource' => 'a:4:{s:16:"sys_language_uid";N;s:6:"hidden";N;s:4:"name";N;s:6:"module";N;}',
-											'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_lecture'),
-											'module' => $GLOBALS['TYPO3_DB']->quoteStr($moduleTXT, 'tx_fsmiexams_lecture'),
-									));
+									'uid = '.intval($formData['uid']),
+									array (
+										'tstamp' => time(),
+										'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_lecture'),
+										'module' => $GLOBALS['TYPO3_DB']->quoteStr($moduleTXT, 'tx_fsmiexams_lecture')
+										)
+									);
+					// output info, if ok
+					if ($res)
+						return tx_fsmiexams_div::printSystemMessage(
+							tx_fsmiexams_div::$kSTATUS_INFO,
+							'Lecture &quot;'.$htmlentities($formData['name']).'&quot; updated (UID:'.intval($formData['uid']).')');
+					else
+						return tx_fsmiexams_div::printSystemMessage(
+							tx_fsmiexams_div::$kSTATUS_ERROR,
+							'Error on MYSQL Update');
+				}
 
-				// output info, if ok
-				if ($res)
-					return tx_fsmiexams_div::printSystemMessage(
-						tx_fsmiexams_div::$kSTATUS_INFO,
-						'Lecture saved: '.htmlentities($formData['name']));
-				else
-					return tx_fsmiexams_div::printSystemMessage(
-						tx_fsmiexams_div::$kSTATUS_ERROR,
-						'Error on MYSQL INSERT');
+				else { // enter new entry
+					// get module list
+					$modules = array();
+					for ($i=0; $i<4; $i++) {
+						if (intval($formData['module'.$i])<=0)
+							continue;
+						array_push($modules,intval($formData['module'.$i]));
+					}
+					$modules = array_unique($modules); // delete duplicate values
+					$moduleTXT = implode(',',$modules);
+
+					// save everything
+					$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+										'tx_fsmiexams_lecture',
+										array (	'pid' => $this->storageLecture,
+												'crdate' => time(),
+												'tstamp' => time(),
+												'l10n_diffsource' => 'a:4:{s:16:"sys_language_uid";N;s:6:"hidden";N;s:4:"name";N;s:6:"module";N;}',
+												'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_lecture'),
+												'module' => $GLOBALS['TYPO3_DB']->quoteStr($moduleTXT, 'tx_fsmiexams_lecture'),
+										));
+
+					// output info, if ok
+					if ($res)
+						return tx_fsmiexams_div::printSystemMessage(
+							tx_fsmiexams_div::$kSTATUS_INFO,
+							'Lecture saved: '.htmlentities($formData['name']));
+					else
+						return tx_fsmiexams_div::printSystemMessage(
+							tx_fsmiexams_div::$kSTATUS_ERROR,
+							'Error on MYSQL INSERT');
+				}
 			} break;
 
 			case self::kEDIT_TYPE_EXAM: {

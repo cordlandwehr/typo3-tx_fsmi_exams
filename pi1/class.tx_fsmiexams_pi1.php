@@ -118,11 +118,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 
 				while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
 
-					$examUIDs = tx_fsmiexams_div::getExamUIDs($rowProgram['uid'],$rowField['uid'],$rowModule['uid'],0,0,0,0);
-					if (count($examUIDs)==0)
-						continue;
-
-					// only print module if there is something in
+					//TODO only print module if there is something in
 					$content .= '<div name="fsmiexams_module_'.$rowModule['uid'].'" class="fsmiexams_module"><h4>'.$rowModule['name'].'</h4></div>';
 
 					$content .= '<table>';
@@ -136,44 +132,57 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 					$content .= '</tr>';
 
 					$lineCounter = 1;
-					$lastLectureName = '';
-					foreach ($examUIDs as $uid) {
-	        			$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
-	        			// colorize odd lines
-						($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
+					$resLecture = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_lecture
+													WHERE '.$rowModule['uid'].' in (tx_fsmiexams_lecture.module)
+													AND deleted=0 AND hidden=0');
 
-						// to improve readability only write lecture name once
-						if ($lastLectureName != tx_fsmiexams_div::lectureToText($exam['lecture'])) {	// new name
-							$content .= '<td><strong>'.tx_fsmiexams_div::lectureToText($exam['lecture']).'</strong>';
-							if (tx_fsmiexams_div::lectureToText($exam['lecture'])!=tx_fsmiexams_div::examToText($exam['uid']))
-								$content .= '<br/><span style="font-style:italic;">('.tx_fsmiexams_div::examToText($exam['uid']).')</span>';
-							$lastLectureName = tx_fsmiexams_div::lectureToText($exam['lecture']);
+					while ($resLecture && $rowLecture = mysql_fetch_assoc($resLecture)) {
+
+						$examUIDs = tx_fsmiexams_div::getExamUIDs($rowProgram['uid'],$rowField['uid'],$rowModule['uid'],$rowLecture['uid'],0,0,0);
+						if (count($examUIDs)==0)
+							continue;
+
+						$firstEntry = true;
+						foreach ($examUIDs as $uid) {
+							$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
+
+							// colorize odd lines
+							($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
+
+							// to improve readability only write lecture name once
+							if ($firstEntry) {	// start of next lecture
+								$content .= '<td><strong>'.tx_fsmiexams_div::lectureToText($rowLecture['uid']).'</strong>';
+								if (tx_fsmiexams_div::lectureToText($rowLecture['uid'])!=tx_fsmiexams_div::examToText($exam['uid']))
+									$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid']).'</span>';
+								$firstEntry = false;
+								$content .= '</td>';
+							}
+							else {	// no new name
+								$content .= '<td><img src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
+								if (tx_fsmiexams_div::lectureToText($rowLecture['uid'])!=tx_fsmiexams_div::examToText($exam['uid']))
+									$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid']).'</span>';
+								$content .= '</td>';
+							}
+
+							$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer'],$this->pidEditPage).'</td>';
+							$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
+							if ($exam['number']!=0)
+								$content .= '<td>'.$exam['number'].'</td>';
+							else
+								$content .= '<td>-</td>';
+							if ($exam['exactdate']!=0)
+								$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
+							else
+								$content .= '<td>-</td>';
+							$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Exam Download</a>';
+							if ($exam['material']!='')
+								$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmateriall</a>';
 							$content .= '</td>';
-						}
-						else {	// no new name
-							$content .= '<td><img src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
-							if (tx_fsmiexams_div::lectureToText($exam['lecture'])!=tx_fsmiexams_div::examToText($exam['uid']))
-								$content .= '<span style="font-style:italic;">('.tx_fsmiexams_div::examToText($exam['uid']).')</span>';
-							$content .= '</td>';
-						}
 
-						$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer'],$this->pidEditPage).'</td>';
-						$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
-						if ($exam['number']!=0)
-							$content .= '<td>'.$exam['number'].'</td>';
-						else
-							$content .= '<td>-</td>';
-						if ($exam['exactdate']!=0)
-							$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
-						else
-							$content .= '<td>-</td>';
-						$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">Exam Download</a>';
-						if ($exam['material']!='')
-							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmateriall</a>';
-						$content .= '</td>';
-
-						$content .= '</tr>';
+							$content .= '</tr>';
+						}
 					}
 					$content .= '</table>';
 				}

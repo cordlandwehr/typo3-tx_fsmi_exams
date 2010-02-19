@@ -56,8 +56,13 @@ class tx_fsmiexams_div {
 	 * @return text
 	 */
 	function lectureToText ($uid) {
-		$lecture = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
-		return $lecture['name'];
+		$lectureList = explode(',',$uid);
+		$text = '';
+		foreach ($lectureList as $uid) {
+			$lecture = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
+			$text .= $lecture['name'];
+		}
+		return $text;
 	}
 
 	/**
