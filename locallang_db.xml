@@ -6,6 +6,7 @@
 	</meta>
 	<data type="array">
 		<languageKey index="default" type="array">
+			<label index="tx_fsmiexams_general.message.sql_error">A database error occured. The operation did not succeed.</label>
 			<label index="tx_fsmiexams_degreeprogram">Degree Program</label>
 			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
 			<label index="tx_fsmiexams_field">Part of degree program</label>
@@ -15,10 +16,10 @@
 			<label index="tx_fsmiexams_module.name">Name</label>
 			<label index="tx_fsmiexams_module.field">Field</label>
 			<label index="tx_fsmiexams_lecture">Lecture</label>
-			<label index="tx_fsmiexams_lecture.name">Name</label>
+			<label index="tx_fsmiexams_lecture.name">Lecture Name</label>
 			<label index="tx_fsmiexams_lecture.module">Module</label>
 			<label index="tx_fsmiexams_exam">Exam</label>
-			<label index="tx_fsmiexams_exam.name">Name</label>
+			<label index="tx_fsmiexams_exam.name">Exam Name</label>
 			<label index="tx_fsmiexams_exam.number">Number</label>
 			<label index="tx_fsmiexams_exam.term.I.0">Winterterm</label>
 			<label index="tx_fsmiexams_exam.term.I.1">Summerterm</label>
@@ -65,6 +66,7 @@
 			<label index="tt_content.list_type_pi4">Exam Input</label>
 		</languageKey>
 		<languageKey index="de" type="array">
+			<label index="tx_fsmiexams_general.message.sql_error">Ein Datenbankfehler ist aufgetreten. Die Operation wurde nicht erfolgreich durchgeführt.</label>
 			<label index="tx_fsmiexams_degreeprogram">Studiengang</label>
 			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
 			<label index="tx_fsmiexams_field">Bereich/Fachrichtung</label>
@@ -74,10 +76,10 @@
 			<label index="tx_fsmiexams_module.name">Name</label>
 			<label index="tx_fsmiexams_module.field">Studienabschnitt</label>
 			<label index="tx_fsmiexams_lecture">Veranstaltung</label>
-			<label index="tx_fsmiexams_lecture.name">Name</label>
+			<label index="tx_fsmiexams_lecture.name">Veranstaltungsname</label>
 			<label index="tx_fsmiexams_lecture.module">Modul</label>
 			<label index="tx_fsmiexams_exam">Prüfung</label>
-			<label index="tx_fsmiexams_exam.name">Name</label>
+			<label index="tx_fsmiexams_exam.name">Prüfungsname</label>
 			<label index="tx_fsmiexams_exam.number">Nummer</label>
 			<label index="tx_fsmiexams_exam.term.I.0">WiSe</label>
 			<label index="tx_fsmiexams_exam.term.I.1">SoSe</label>

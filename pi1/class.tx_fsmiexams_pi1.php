@@ -157,7 +157,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 							($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
 
 							$content .= '<td><img src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
-							$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid']).'</span>';
+							$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid'],$this->pidEditPage).'</span>';
 							$content .= '</td>';
 
 							$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer'],$this->pidEditPage).'</td>';

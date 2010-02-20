@@ -54,6 +54,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $storageLecturer;
 	var $storageLecture;
 	var $storageExam;
+	var $LANG;
 
 	/**
 	 * The main method of the PlugIn
@@ -67,6 +68,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 		$this->pi_initPIflexForm(); // Init and get the flexform data of the plugin
+
+		$this->LANG = t3lib_div::makeInstance('language');
+		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
+		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 
 		// set storages
 		$this->storageLecturer = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecturer'));
@@ -86,7 +91,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		switch (intval($GETcommands['type'])) {
 			case self::kEDIT_TYPE_LECTURE: {
 				if (intval($GETcommands['uid'])) {
-				$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', intval($GETcommands['uid']));
+					$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', intval($GETcommands['uid']));
 					$this->piVars["name"] = $lectureDB['name'];
 					$this->piVars["field"] = $lectureDB['field']; //TODO not in this DB, search by DB select
 					$modules = explode(',',$lectureDB['module']);
@@ -96,9 +101,30 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$content .= $this->createLectureInputForm(intval($GETcommands['uid']));
 				break;
 			}
-			case self::kEDIT_TYPE_EXAM:
-
-				$content .= $this->createExamInputForm(); break;
+			case self::kEDIT_TYPE_EXAM: {
+				if (intval($GETcommands['uid'])) {
+					$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', intval($GETcommands['uid']));
+					$this->piVars["name"] = $examDB['name'];
+					$this->piVars["number"] = $examDB['number'];
+					$this->piVars["term"] = $examDB['term'];
+					$lectures = explode(',',$examDB['lecture']);
+					for ($i=0; $i<count($lectures); $i++)
+						$this->piVars["lecture".$i] = $lectures[$i];
+					$this->piVars["year"] = $examDB['year'];
+					$this->piVars["exactdate"] = $examDB['exactdate'];
+					$this->piVars["name"] = $examDB['name'];
+					$lecturers = explode(',',$examDB['lecturer']);
+					for ($i=0; $i<count($lecturers); $i++)
+						$this->piVars["lecturer".$i] = $lecturers[$i];
+					$this->piVars["approved"] = $examDB['approved'];
+					$this->piVars["file"] = $examDB['file'];
+					$this->piVars["material"] = $examDB['material'];
+					$this->piVars["quality"] = $examDB['quality'];
+					$this->piVars["examtype"] = $examDB['examtype'];
+				}
+				$content .= $this->createExamInputForm(intval($GETcommands['uid']));
+				break;
+			}
 			case self::kEDIT_TYPE_LECTURER: {
 				if (intval($GETcommands['uid'])) {
 					$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', intval($GETcommands['uid']));
@@ -134,9 +160,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	function createLectureInputForm ($editUID) {
 
 		if ($editUID)
-			$content .= '<h2>Edit existing Lecture</h2>';
+			$content .= '<h2>'.$this->pi_getLL("edit_form_lecture").'</h2>';
 		else
-			$content .= '<h2>Lecture Input</h2>';
+			$content .= '<h2>'.$this->pi_getLL("input_form_lecturer").'</h2>';
 
 
 		// create JSON files
@@ -165,7 +191,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 
 		$content .= '
-			<h2>Lecture Input</h2>
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_LECTURE.'" />';
@@ -175,12 +200,14 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
 
 		$content .= '
-			<table>';
+			<fieldset><legend>Vorauswahl, nicht Bestandteil des Datensatzes</legend><table>';
 
 		// Degree Program
 		$content .= '
 			<tr>
-				<td><label for="'.$this->extKey.'_degreeprogram">Degree Program:</label></td>
+				<td><label for="'.$this->extKey.'_degreeprogram">'.
+					$this->LANG->getLL("tx_fsmiexams_field.degreeprogram").
+				':</label></td>
 				<td>
 				<input
 					dojoType="dijit.form.FilteringSelect"
@@ -197,7 +224,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Field
 		$content .= '
 			<tr>
-				<td><label for="'.$this->extKey.'_field">Field:</label></td>
+				<td><label for="'.$this->extKey.'_field">'.
+					$this->LANG->getLL("tx_fsmiexams_module.field").
+				':</label></td>
 				<td>
 				<input dojoType="dijit.form.FilteringSelect"
 					store="fsmiexamsField"
@@ -210,11 +239,15 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				/>
 				</td>
 			</tr>';
+		$content .= '</table></fieldset>';
 
+		$content .= '<fieldset><legend>Datensatz für Vorlesung</legend><table>';
 		// Modules
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_module0">Module:</label></td>
+				<td><label for="'.$this->extKey.'_module0">'.
+					$this->LANG->getLL("tx_fsmiexams_lecture.module").
+				':</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsModule"
@@ -231,10 +264,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_module1">Module + 1:</label></td>
+				<td><label for="'.$this->extKey.'_module1">'.
+					$this->LANG->getLL("tx_fsmiexams_lecture.module").
+				' + 1:</label></td>
 				<td>
-					<input dojoType="dijit.form.FilteringSelect"
-						disabled="disabled"
+					<input dojoType="dijit.form.FilteringSelect" ';
+		if (!$this->piVars['module0']) $content .= 'disabled="disabled"';
+		$content .= '
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
@@ -249,10 +285,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_module2">Module + 2:</label></td>
+				<td><label for="'.$thedit_form_lectureris->extKey.'_module2">'.
+					$this->LANG->getLL("tx_fsmiexams_lecture.module").
+				' + 2:</label></td>
 				<td>
-					<input dojoType="dijit.form.FilteringSelect"
-						disabled="disabled"
+					<input dojoType="dijit.form.FilteringSelect" ';
+		if (!$this->piVars['module1']) $content .= 'disabled="disabled"';
+		$content .= '
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
@@ -267,10 +306,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_module3">Module + 3:</label></td>
+				<td><label for="'.$this->extKey.'_module3">'.
+					$this->LANG->getLL("tx_fsmiexams_lecture.module").
+				' + 3:</label></td>
 				<td>
-					<input dojoType="dijit.form.FilteringSelect"
-						disabled="disabled"
+					<input dojoType="dijit.form.FilteringSelect" ';
+		if (!$this->piVars['module2']) $content .= 'disabled="disabled"';
+		$content .= '
 						store="fsmiexamsModule"
 						earchAttr="name"
 						query="{uid:\'*\'}"
@@ -285,7 +327,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'[name]">Lecture Name:</label></td>
+				<td><label for="'.$this->extKey.'[name]">'.
+					$this->LANG->getLL("tx_fsmiexams_lecture.name").
+				':</label></td>
 				<td><input
 					type="text"
 					style="width:300px;"
@@ -293,7 +337,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					id="'.$this->extKey.'_name"
 					value="'.htmlspecialchars($this->piVars["name"]).'"></td>
 			</tr>
-			</table>
+			</table></fieldset>
 			<input type="submit" name="'.$this->prefixId.'[submit_button]"
 				value="'.htmlspecialchars($this->pi_getLL("submit_button_label")).'">
 			</form>';
@@ -308,9 +352,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	function createLecturerInputForm ($editUID) {
 
 		if ($editUID)
-			$content .= '<h2>Edit existing Lecturer</h2>';
+			$content .= '<h2>'.$this->pi_getLL("edit_form_lecturer").'</h2>';
 		else
-			$content .= '<h2>Lecturer Input</h2>';
+			$content .= '<h2>'.$this->pi_getLL("input_form_lecturer").'</h2>';
 
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">';
@@ -328,7 +372,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// lecturer
 		$content .= '
 			<tr>
-				<td><label for="'.$this->extKey.'[firstname]">Forename:</label></td>
+				<td><label for="'.$this->extKey.'[firstname]">'.
+					$this->LANG->getLL("tx_fsmiexams_lecturer.firstname").
+				':</label></td>
 				<td><input
 					type="text"
 					name="'.$this->extKey.'[firstname]"
@@ -336,7 +382,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					value="'.htmlspecialchars($this->piVars["firstname"]).'"></td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'[lastname]">Lastname:</label></td>
+				<td><label for="'.$this->extKey.'[lastname]">'.
+					$this->LANG->getLL("tx_fsmiexams_lecturer.lastname").
+				':</label></td>
 				<td><input
 					type="text"
 					name="'.$this->extKey.'[lastname]"
@@ -351,7 +399,12 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		return $content;
 	}
 
-	function createExamInputForm () {
+	function createExamInputForm ($editUID) {
+
+		if ($editUID)
+			$content .= '<h2>'.$this->pi_getLL("edit_form_exam").'</h2>';
+		else
+			$content .= '<h2>'.$this->pi_getLL("input_form_exam").'</h2>';
 
 		// create JSON files
 		$this->createLectureListJSON();
@@ -393,9 +446,14 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsNumber" url="typo3temp/fsmiexams_number.json"></div>'
 			;
 
+		// start of form
 		$content .= '
-			<h2>Exam Input</h2>
-			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'" enctype="multipart/form-data">
+			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'" enctype="multipart/form-data">';
+
+		if ($editUID)
+			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
+
+		$content .= '
 			<input type="hidden" name="no_cache" value="1" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_EXAM.'" />
 			<table>
@@ -404,7 +462,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Degree Program
 		$content .= '
 			<tr>
-				<td><label for="'.$this->extKey.'_degreeprogram">Degree Program:</label></td>
+				<td><label for="'.$this->extKey.'_degreeprogram">'.
+					$this->LANG->getLL("tx_fsmiexams_field.degreeprogram").
+				':</label></td>
 				<td>
 				<input
 					dojoType="dijit.form.FilteringSelect"
@@ -421,7 +481,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Field
 		$content .= '
 			<tr>
-				<td><label for="'.$this->extKey.'_field">Field:</label></td>
+				<td><label for="'.$this->extKey.'_field">'.
+					$this->LANG->getLL("tx_fsmiexams_module.field").
+				':</label></td>
 				<td>
 				<input dojoType="dijit.form.FilteringSelect"
 					store="fsmiexamsField"
@@ -437,7 +499,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Modules
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_module">Module:</label></td>
+				<td><label for="'.$this->extKey.'_module">'.
+					$this->LANG->getLL("tx_fsmiexams_lecture.module").
+				':</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsModule"
@@ -454,13 +518,16 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecture 0
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_lecture0">Lecture:</label></td>
+				<td><label for="'.$this->extKey.'_lecture0">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				':</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecture"
 						searchAttr="name"
 						query="{uid:\'*\'}"
 						style="width:300px;"
+						value="'.$this->piVars['lecture0'].'"
 						name="'.$this->extKey.'[lecture0]"
 						id="'.$this->extKey.'_lecture0"
 						autocomplete="true"
@@ -471,14 +538,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecture 1
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_lecture1">Lecture + 1:</label></td>
+				<td><label for="'.$this->extKey.'_lecture1">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				' + 1:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecture"
-						searchAttr="name"
-						disabled="disabled"
-						query="{uid:\'*\'}"
+						searchAttr="name" ';
+		if (!$this->piVars['lecture0']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\'}"
 						style="width:300px;"
+						value="'.$this->piVars['lecture1'].'"
 						name="'.$this->extKey.'[lecture1]"
 						id="'.$this->extKey.'_lecture1"
 						autocomplete="true"
@@ -489,14 +559,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecture 2
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_lecture2">Lecture + 2:</label></td>
+				<td><label for="'.$this->extKey.'_lecture2">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				' + 2:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecture"
-						searchAttr="name"
-						disabled="disabled"
-						query="{uid:\'*\'}"
+						searchAttr="name" ';
+		if (!$this->piVars['lecture1']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\'}"
 						style="width:300px;"
+						value="'.$this->piVars['lecture2'].'"
 						name="'.$this->extKey.'[lecture2]"
 						id="'.$this->extKey.'_lecture2"
 						autocomplete="true"
@@ -506,20 +579,25 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$content .= '
 			<tr>
-				<td><label for="'.$this->extKey.'_name">Exam Name:</label></td>
+				<td><label for="'.$this->extKey.'_name">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.name").
+				':</label></td>
 				<td>
 					<input dojoType="dijit.form.ValidationTextBox"
+						value="'.$this->piVars['name'].'"
 						name="'.$this->extKey.'[name]"
 						id="'.$this->extKey.'_name"
-
 					/>
 				</td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_number">Number:</label></td>
+				<td><label for="'.$this->extKey.'_number">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.number").
+				':</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsNumber"
 						searchAttr="number"
+						value="'.$this->piVars['number'].'"
 						name="'.$this->extKey.'[number]"
 						id="'.$this->extKey.'_number"
 						value="'.htmlspecialchars($this->piVars["number"]).'"
@@ -527,10 +605,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_term">Term:</label></td>
+				<td><label for="'.$this->extKey.'_term">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.term").
+				':</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsTerm"
 						searchAttr="name"
+						value="'.$this->piVars['term'].'"
 						name="'.$this->extKey.'[term]"
 						id="'.$this->extKey.'_term"
 						value="'.htmlspecialchars($this->piVars["term"]).'"
@@ -538,10 +619,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_year">Year:</label></td>
+				<td><label for="'.$this->extKey.'_year">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.year").
+				':</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsYear"
 						searchAttr="year"
+						value="'.$this->piVars['year'].'"
 						name="'.$this->extKey.'[year]"
 						id="'.$this->extKey.'_year"
 						value="'.htmlspecialchars($this->piVars["year"]).'"
@@ -549,9 +633,12 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_exactdate">Day of Exam:</label></td>
+				<td><label for="'.$this->extKey.'_exactdate">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.exactdate").
+				':</label></td>
 				<td><input
 						type="text"
+						value="'.$this->piVars['exactdate'].'"
 						name="'.$this->extKey.'[exactdate]"
 						id="'.$this->extKey.'_exactdate"
 						dojoType="dijit.form.DateTextBox"
@@ -561,12 +648,15 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecturer
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_lecturer0">Lecturer:</label></td>
+				<td><label for="'.$this->extKey.'_lecturer0">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecturer").
+				':</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecturer"
 						searchAttr="name"
 						query="{uid:\'*\'}"
+						value="'.$this->piVars['lecturer0'].'"
 						name="'.$this->extKey.'[lecturer0]"
 						id="'.$this->extKey.'_lecturer0"
 						autocomplete="true"
@@ -577,13 +667,16 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecturer 2
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_lecturer1">Lecturer + 1:</label></td>
+				<td><label for="'.$this->extKey.'_lecturer1">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecturer").
+				' + 1:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecturer"
-						searchAttr="name"
-						disabled="disabled"
-						query="{uid:\'*\'}"
+						searchAttr="name" ';
+		if (!$this->piVars['lecturer0']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\'}"
+						value="'.$this->piVars['lecturer1'].'"
 						name="'.$this->extKey.'[lecturer1]"
 						id="'.$this->extKey.'_lecturer1"
 						autocomplete="true"
@@ -594,13 +687,16 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// Lecturer 3
 		$content .=
 			'<tr>
-				<td><label for="'.$this->extKey.'_lecturer2">Lecturer + 2:</label></td>
+				<td><label for="'.$this->extKey.'_lecturer2">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecturer").
+				' + 2:</label></td>
 				<td>
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecturer"
-						searchAttr="name"
-						disabled="disabled"
-						query="{uid:\'*\'}"
+						searchAttr="name" ';
+		if (!$this->piVars['lecturer1']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\'}"
+						value="'.$this->piVars['lecturer2'].'"
 						name="'.$this->extKey.'[lecturer2]"
 						id="'.$this->extKey.'_lecturer2"
 						autocomplete="true"
@@ -610,28 +706,48 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$content .= '
 			<tr>
-				<td><label for="'.$this->extKey.'_approved">Approved:</label></td>
+				<td><label for="'.$this->extKey.'_approved">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.approved").
+				':</label></td>
 				<td><input dojoType="dijit.form.CheckBox"
+						value="'.$this->piVars['approved'].'"
 						name="'.$this->extKey.'[approved]"
 						id="'.$this->extKey.'_approved"
 						value="'.htmlspecialchars($this->piVars["approved"]).'" />
 				</td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_file">Exam File:</label></td>
-				<td><input type="file" name="'.$this->extKey.'[file]" id="'.$this->extKey.'_file"
+				<td><label for="'.$this->extKey.'_file">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.file").
+				':</label></td>
+				<td><input ';
+		if ($this->piVars['file']) $content .= 'disabled="disabled"';
+		$content .= '	type="file"
+					value="'.$this->piVars['file'].'"
+					name="'.$this->extKey.'[file]"
+					id="'.$this->extKey.'_file"
 					value="'.htmlspecialchars($this->piVars["file"]).'"></td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_material">Add. Material:</label></td>
-				<td><input type="file" name="'.$this->extKey.'[material]" id="'.$this->extKey.'_material"
+				<td><label for="'.$this->extKey.'_material">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.material").
+				':</label></td>
+				<td><input ';
+		if ($this->piVars['material']) $content .= 'disabled="disabled"';
+		$content .= '	type="file"
+					value="'.$this->piVars['material'].'"
+					name="'.$this->extKey.'[material]"
+					id="'.$this->extKey.'_material"
 					value="'.htmlspecialchars($this->piVars["material"]).'"></td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_quality">Quality:</label></td>
+				<td><label for="'.$this->extKey.'_quality">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.quality").
+				':</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsQuality"
 						searchAttr="name"
+						value="'.$this->piVars['quality'].'"
 						name="'.$this->extKey.'[quality]"
 						id="'.$this->extKey.'_quality"
 						autocomplete="true"
@@ -639,10 +755,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				</td>
 			</tr>
 			<tr>
-				<td><label for="'.$this->extKey.'_examtype">Exam Type:</label></td>
+				<td><label for="'.$this->extKey.'_examtype">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.examtype").
+				':</label></td>
 				<td><input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsExamtype"
 						searchAttr="name"
+						value="'.$this->piVars['examtype'].'"
 						name="'.$this->extKey.'[examtype]"
 						id="'.$this->extKey.'_examtype"
 						autocomplete="true"
@@ -954,6 +1073,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			case self::kEDIT_TYPE_LECTURE: {
 
 				if (intval($formData['uid']!=0)) { // update data
+					// get module list
+					$modules = array();
+					for ($i=0; $i<4; $i++) {
+						if (intval($formData['module'.$i])<=0)
+							continue;
+						array_push($modules,intval($formData['module'.$i]));
+					}
+					$modules = array_unique($modules); // delete duplicate values
+					$moduleTXT = implode(',',$modules);
+
+
 					$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 									'tx_fsmiexams_lecture',
 									'uid = '.intval($formData['uid']),
@@ -967,11 +1097,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					if ($res)
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::$kSTATUS_INFO,
-							'Lecture &quot;'.$htmlentities($formData['name']).'&quot; updated (UID:'.intval($formData['uid']).')');
+							'Lecture &quot;'.htmlentities($formData['name']).'&quot; updated (UID:'.intval($formData['uid']).')');
 					else
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::$kSTATUS_ERROR,
-							'Error on MYSQL Update');
+							$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 				}
 
 				else { // enter new entry
@@ -1004,7 +1134,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					else
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::$kSTATUS_ERROR,
-							'Error on MYSQL INSERT');
+							$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 				}
 			} break;
 
@@ -1116,7 +1246,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				else
 					return tx_fsmiexams_div::printSystemMessage(
 						tx_fsmiexams_div::$kSTATUS_ERROR,
-						'Error on MYSQL INSERT');
+						$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 			} break;
 
 
@@ -1154,7 +1284,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				// this point should never be reached
 				return tx_fsmiexams_div::printSystemMessage(
 					tx_fsmiexams_div::$kSTATUS_ERROR,
-					'Error on MYSQL INSERT/UPDATE');
+					$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 			} break;
 		}
 

@@ -82,9 +82,22 @@ class tx_fsmiexams_div {
 	 * @param UID $uid
 	 * @return text
 	 */
-	function examToText ($uid) {
-		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
-		return $exam['name'];
+	function examToText ($uid, $editPage) {
+		$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
+
+		if ($editPage)
+			$text = $this->pi_linkTP(
+							$examDB['name'],
+							array (
+								$this->extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_EXAM,
+								$this->extKey.'[uid]' => $examDB['uid']
+							),
+							0,
+							$editPage
+						  ). ' ';
+		else
+			$text .= $examDB['name'];
+		return $text;
 	}
 
 	/**

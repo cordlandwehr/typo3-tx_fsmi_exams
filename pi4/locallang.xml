@@ -6,11 +6,24 @@
 	</meta>
 	<data type="array">
 		<languageKey index="default" type="array">
-			<label index="list_mode_1">Mode 1</label>
-			<label index="list_mode_2">Mode 2</label>
-			<label index="list_mode_3">Mode 3</label>
 			<label index="back">Back</label>
 			<label index="submit_button_label">Click here to submit value</label>
+			<label index="input_form_lecturer">Create new Lecturer</label>
+			<label index="input_form_lecture">Create new Lecture</label>
+			<label index="input_form_exam">Create new Exam</label>
+			<label index="edit_form_lecturer">Edit existing Lecturer</label>
+			<label index="edit_form_lecture">Edit existing Lecture</label>
+			<label index="edit_form_exam">Edit existing Exam</label>
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="back">Zurück</label>
+			<label index="submit_button_label">Daten eintragen</label>
+			<label index="input_form_lecturer">Neuen Dozenten erstellen</label>
+			<label index="input_form_lecture">Neue Veranstaltung erstellen</label>
+			<label index="input_form_exam">Neue Prüfung erstellen</label>
+			<label index="edit_form_lecturer">Bestehenden Dozenten bearbeiten</label>
+			<label index="edit_form_lecture">Bestehende Veranstaltung bearbeiten</label>
+			<label index="edit_form_exam">Bestehende Prüfung bearbeiten</label>
 		</languageKey>
 	</data>
 </T3locallang>
