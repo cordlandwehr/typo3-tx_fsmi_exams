@@ -12,5 +12,5 @@ t3lib_extMgm::addPItoST43($_EXTKEY, 'pi2/class.tx_fsmiexams_pi2.php', '_pi2', 'l
 t3lib_extMgm::addPItoST43($_EXTKEY, 'pi3/class.tx_fsmiexams_pi3.php', '_pi3', 'list_type', 0);
 
 
-t3lib_extMgm::addPItoST43($_EXTKEY, 'pi4/class.tx_fsmiexams_pi4.php', '_pi4', 'list_type', 1);
+t3lib_extMgm::addPItoST43($_EXTKEY, 'pi4/class.tx_fsmiexams_pi4.php', '_pi4', 'list_type', 0);
 ?>

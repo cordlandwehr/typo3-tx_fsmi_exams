@@ -68,6 +68,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 		$this->pi_initPIflexForm(); // Init and get the flexform data of the plugin
+		$this->pi_USER_INT_obj=1;	// Configuring so caching is not expected. This value means that no cHash params are ever set. We do this, because it's a USER_INT object!
 
 		$this->LANG = t3lib_div::makeInstance('language');
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
