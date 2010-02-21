@@ -367,7 +367,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			<input type="hidden" name="no_cache" value="1" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_LECTURER.'" />
-			<table>';
+			<fieldset><legend>Datensatz für Dozent</legend><table>';
 
 		// lecturer
 		$content .= '
@@ -391,7 +391,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					id="'.$this->extKey.'_lastname"
 					value="'.htmlspecialchars($this->piVars["lastname"]).'"></td>
 			</tr>
-			</table>
+			</table></fieldset>
 			<input type="submit" name="'.$this->prefixId.'[submit_button]"
 				value="'.htmlspecialchars($this->pi_getLL("submit_button_label")).'">
 			</form>';
@@ -456,8 +456,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			<input type="hidden" name="no_cache" value="1" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_EXAM.'" />
-			<table>
 			';
+
+		$content .= '
+			<fieldset><legend>Vorauswahl, nicht Bestandteil des Datensatzes</legend><table>';
 
 		// Degree Program
 		$content .= '
@@ -514,6 +516,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					/>
 				</td>
 			</tr>';
+
+		$content .= '</table></fieldset>';
+
+		// database entry
+		$content .= '<fieldset><legend>Datensatz für Prüfung</legend><table>';
 
 		// Lecture 0
 		$content .=
@@ -638,11 +645,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				':</label></td>
 				<td><input
 						type="text"
-						value="'.$this->piVars['exactdate'].'"
 						name="'.$this->extKey.'[exactdate]"
 						id="'.$this->extKey.'_exactdate"
 						dojoType="dijit.form.DateTextBox"
-						value="'.htmlspecialchars($this->piVars["exactdate"]).'"></td>
+						value="'.date('Y-m-d',intval($this->piVars["exactdate"])).'" /></td>
 			</tr>';
 
 		// Lecturer
@@ -709,9 +715,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				<td><label for="'.$this->extKey.'_approved">'.
 					$this->LANG->getLL("tx_fsmiexams_exam.approved").
 				':</label></td>
-				<td><input dojoType="dijit.form.CheckBox"
-						value="'.$this->piVars['approved'].'"
-						name="'.$this->extKey.'[approved]"
+				<td><input dojoType="dijit.form.CheckBox" ';
+		if ($this->piVars['approved']==1) $content .= ' checked="checked" ';
+		$content .= '	name="'.$this->extKey.'[approved]"
 						id="'.$this->extKey.'_approved"
 						value="'.htmlspecialchars($this->piVars["approved"]).'" />
 				</td>
@@ -768,7 +774,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						value="'.htmlspecialchars($this->piVars["examtype"]).'" />
 				</td>
 			</tr>
-			</table>
+			</table></fieldset>
 			<input type="submit" name="'.$this->extKey.'[submit_button]"
 				value="'.htmlspecialchars($this->pi_getLL("submit_button_label")).'">
 			</form>';
@@ -1096,11 +1102,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					// output info, if ok
 					if ($res)
 						return tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::$kSTATUS_INFO,
+							tx_fsmiexams_div::kSTATUS_INFO,
 							'Lecture &quot;'.htmlentities($formData['name']).'&quot; updated (UID:'.intval($formData['uid']).')');
 					else
 						return tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::$kSTATUS_ERROR,
+							tx_fsmiexams_div::kSTATUS_ERROR,
 							$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 				}
 
@@ -1126,19 +1132,20 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 												'module' => $GLOBALS['TYPO3_DB']->quoteStr($moduleTXT, 'tx_fsmiexams_lecture'),
 										));
 
-					// output info, if ok
+					// output info, if okmierung I
 					if ($res)
 						return tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::$kSTATUS_INFO,
+							tx_fsmiexams_div::kSTATUS_INFO,
 							'Lecture saved: '.htmlentities($formData['name']));
 					else
 						return tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::$kSTATUS_ERROR,
+							tx_fsmiexams_div::kSTATUS_ERROR,
 							$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 				}
 			} break;
 
 			case self::kEDIT_TYPE_EXAM: {
+				/* Prework for all saving mechanisms */
 
 				// get lecture list
 				$lectures = array();
@@ -1160,95 +1167,123 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$lecturers = array_unique($lecturers); // delete duplicate values
 				$lecturerTXT = implode(',',$lecturers);
 
-				//TODO make shure that we have "*.pdf"
+				// get approved button
+				if (isset($formData['approved']))
+					$approved = 1;
 
-				// move files
-				$formDataFiles = $_FILES[$this->extKey];
-//				uploads/tx_fsmiexams/'.$exam['file'].
-				$examFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['file']);
-				$materiallFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['material']);
-
-				// file names
-				$examFileName =  $formDataFiles['name']['file'];
-				$materialFileName =  $formDataFiles['name']['material'];
-
-				// make filenames valid
-				$examFileName = preg_replace(
-					array("/\s+/", "/[^-\.\w]+/"),
-					array("_", ""),
-					trim($examFileName));
-				$materialFileName = preg_replace(
-					array("/\s+/", "/[^-\.\w]+/"),
-					array("_", ""),
-					trim($materialFileName));
-
-				$usedFilenames = t3lib_div::getFilesInDir(	'uploads/tx_fsmiexams/',
-															$extensionList = 'pdf');
-
-				// save ExamFile
-				if ($examFile) {
-					$cnt=0;
-					$baseFilename = basename($examFileName, ".pdf");
-					// make fileanme unique
-					while (array_search($examFileName,$usedFilenames)==true)
-						$examFileName = $baseFilename.'_'.$cntr++.'.pdf';
-					t3lib_div::upload_copy_move($examFile, 'uploads/tx_fsmiexams/'.$examFileName);
+				// start saving
+				if (intval($formData['uid']!=0)) { // update data
+					// save everything
+					$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+										'tx_fsmiexams_exam',
+										'uid = '.intval($formData['uid']),
+										array (	'tstamp' => time(),
+												'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_exam'),
+												'number' => intval($formData['number']),
+												'term' => intval($formData['term']),
+												'lecture' => $GLOBALS['TYPO3_DB']->quoteStr($lectureTXT, 'tx_fsmiexams_exam'),
+												'year' => intval($formData['year']),
+												'exactdate' => strtotime(htmlspecialchars($formData['exactdate'])),
+												'lecturer' => $GLOBALS['TYPO3_DB']->quoteStr($lecturerTXT, 'tx_fsmiexams_exam'),
+												'approved' => $approved,
+												'quality' => intval($formData['quality']),
+												'examtype' => intval($formData['examtype']),
+										));
+					// output info, if ok
+					if ($res)
+						return tx_fsmiexams_div::printSystemMessage(
+								tx_fsmiexams_div::kSTATUS_OK,
+								'Update Query ok.');
 				}
+				else { // insert new db entry
 
-				// save MaterialFile
-				if ($materialFile) {
-					$cnt=0;
-					$baseFilename = basename($materialFileName, ".pdf");
-					// make fileanme unique
-					while (array_search($materialFileName,$usedFilenames)==true)
-						$materialFileName = $baseFilename.'_'.$cntr++.'.pdf';
-					t3lib_div::upload_copy_move($materialFile, 'uploads/tx_fsmiexams/'.$materialFileName);
+					//TODO make shure that we have "*.pdf"
+
+					// move files
+					$formDataFiles = $_FILES[$this->extKey];
+					$examFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['file']);
+					$materiallFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['material']);
+
+					// file names
+					$examFileName =  $formDataFiles['name']['file'];
+					$materialFileName =  $formDataFiles['name']['material'];
+
+					// make filenames valid
+					$examFileName = preg_replace(
+						array("/\s+/", "/[^-\.\w]+/"),
+						array("_", ""),
+						trim($examFileName));
+					$materialFileName = preg_replace(
+						array("/\s+/", "/[^-\.\w]+/"),
+						array("_", ""),
+						trim($materialFileName));
+
+					$usedFilenames = t3lib_div::getFilesInDir(	'uploads/tx_fsmiexams/',
+																$extensionList = 'pdf');
+					// save ExamFile
+					if ($examFile) {
+						$cnt=0;
+						$baseFilename = basename($examFileName, ".pdf");
+						// make fileanme unique
+						while (array_search($examFileName,$usedFilenames)==true)
+							$examFileName = $baseFilename.'_'.$cntr++.'.pdf';
+						t3lib_div::upload_copy_move($examFile, 'uploads/tx_fsmiexams/'.$examFileName);
+					}
+
+					// save MaterialFile
+					if ($materialFile) {
+						$cnt=0;
+						$baseFilename = basename($materialFileName, ".pdf");
+						// make fileanme unique
+						while (array_search($materialFileName,$usedFilenames)==true)
+							$materialFileName = $baseFilename.'_'.$cntr++.'.pdf';
+						t3lib_div::upload_copy_move($materialFile, 'uploads/tx_fsmiexams/'.$materialFileName);
+					}
+
+					// delete files from temp-dir
+					t3lib_div::unlink_tempfile($examFile);
+					t3lib_div::unlink_tempfile($materialFile);
+					// save everything
+					$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+										'tx_fsmiexams_exam',
+										array (	'pid' => $this->storageExam,
+												'crdate' => time(),
+												'tstamp' => time(),
+												'l10n_diffsource' => 'a:12:{s:16:"sys_language_uid";N;s:6:"hidden";N;s:4:"name";N;s:6:"number";N;s:7:"lecture";N;s:4:"term";N;s:4:"year";N;s:8:"examtype";N;s:9:"exactdate";N;s:8:"lecturer";N;s:8:"approved";N;s:4:"file";N;}',
+												'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_exam'),
+												'number' => intval($formData['number']),
+												'term' => intval($formData['term']),
+												'lecture' => $GLOBALS['TYPO3_DB']->quoteStr($lectureTXT, 'tx_fsmiexams_exam'),
+												'year' => intval($formData['year']),
+												'exactdate' => strtotime(htmlspecialchars($formData['exactdate'])),
+												'lecturer' => $GLOBALS['TYPO3_DB']->quoteStr($lecturerTXT, 'tx_fsmiexams_exam'),
+												'approved' => $approved,
+												'file' => $examFileName,
+												'material' => $materialFileName,
+												'quality' => intval($formData['quality']),
+												'examtype' => intval($formData['examtype']),
+										));
+
+					// output info, if ok
+					if ($res)
+						return tx_fsmiexams_div::printSystemMessage(
+								tx_fsmiexams_div::kSTATUS_OK,
+								'<div>'.
+									'<h4>Exam data was saved</h4>
+									<ul>'.
+										'<li><strong>Name:</strong> '.$formData['name'].'</li>'.
+										'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT).'</li>'.
+										'<li><strong>Year/Term/No.:</strong> '.intval($formData['year']).'/'.intval($formData['term']).'/'.intval($formData['number']).'</li>'.
+										'<li><strong>Date:</strong> '.date('d.m.y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
+										'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT).'</li>'.
+									'</ul>'.
+								'</div>');
+					else
+						return tx_fsmiexams_div::printSystemMessage(
+							tx_fsmiexams_div::kSTATUS_ERROR,
+							$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 				}
-
-				// delete files from temp-dir
-				t3lib_div::unlink_tempfile($examFile);
-				t3lib_div::unlink_tempfile($materialFile);
-				// save everything
-				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
-									'tx_fsmiexams_exam',
-									array (	'pid' => $this->storageExam,
-											'crdate' => time(),
-											'tstamp' => time(),
-											'l10n_diffsource' => 'a:12:{s:16:"sys_language_uid";N;s:6:"hidden";N;s:4:"name";N;s:6:"number";N;s:7:"lecture";N;s:4:"term";N;s:4:"year";N;s:8:"examtype";N;s:9:"exactdate";N;s:8:"lecturer";N;s:8:"approved";N;s:4:"file";N;}',
-											'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_exam'),
-											'number' => intval($formData['number']),
-											'term' => intval($formData['term']),
-											'lecture' => $GLOBALS['TYPO3_DB']->quoteStr($lectureTXT, 'tx_fsmiexams_exam'),
-											'year' => intval($formData['year']),
-											'exactdate' => strtotime(htmlspecialchars($formData['exactdate'])),
-											'lecturer' => $GLOBALS['TYPO3_DB']->quoteStr($lecturerTXT, 'tx_fsmiexams_exam'),
-											'approved' => intval($formData['approved']),
-											'file' => $examFileName,
-											'material' => $materialFileName,
-											'quality' => intval($formData['quality']),
-											'examtype' => intval($formData['examtype']),
-									));
-
-				// output info, if ok
-				if ($res)
-					return tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::$kSTATUS_OK,
-							'<div>'.
-								'<h4>Exam data was saved</h4>
-								<ul>'.
-									'<li><strong>Name:</strong> '.$formData['name'].'</li>'.
-									'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT).'</li>'.
-									'<li><strong>Year/Term/No.:</strong> '.intval($formData['year']).'/'.intval($formData['term']).'/'.intval($formData['number']).'</li>'.
-									'<li><strong>Date:</strong> '.date('d.m.y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
-									'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT).'</li>'.
-								'</ul>'.
-							'</div>');
-				else
-					return tx_fsmiexams_div::printSystemMessage(
-						tx_fsmiexams_div::$kSTATUS_ERROR,
-						$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 			} break;
-
 
 			case self::kEDIT_TYPE_LECTURER: {
 
@@ -1263,7 +1298,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 									);
 					if ($res)
 						return tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::$kSTATUS_INFO,
+							tx_fsmiexams_div::kSTATUS_INFO,
 							'Lecturer successfully updated (UID '.intval($formData['uid']).'): '.$formData['lastname'].', '.$formData['firstname']);
 				}
 				else { // create new one
@@ -1277,13 +1312,13 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 									));
 					if ($res)
 						return tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::$kSTATUS_INFO,
+							tx_fsmiexams_div::kSTATUS_INFO,
 							'Lecturer successfully created: '.$formData['lastname'].', '.$formData['firstname']);
 				}
 
 				// this point should never be reached
 				return tx_fsmiexams_div::printSystemMessage(
-					tx_fsmiexams_div::$kSTATUS_ERROR,
+					tx_fsmiexams_div::kSTATUS_ERROR,
 					$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 			} break;
 		}
