@@ -727,7 +727,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					$this->LANG->getLL("tx_fsmiexams_exam.file").
 				':</label></td>
 				<td><input ';
-		if ($this->piVars['file']) $content .= 'disabled="disabled"';
+		if ($editUID) $content .= 'disabled="disabled"';
 		$content .= '	type="file"
 					value="'.$this->piVars['file'].'"
 					name="'.$this->extKey.'[file]"
@@ -739,7 +739,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					$this->LANG->getLL("tx_fsmiexams_exam.material").
 				':</label></td>
 				<td><input ';
-		if ($this->piVars['material']) $content .= 'disabled="disabled"';
+		if ($editUID) $content .= 'disabled="disabled"';
 		$content .= '	type="file"
 					value="'.$this->piVars['material'].'"
 					name="'.$this->extKey.'[material]"
