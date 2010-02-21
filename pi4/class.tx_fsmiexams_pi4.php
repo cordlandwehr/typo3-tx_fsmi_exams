@@ -78,59 +78,50 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->storageLecture = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecture'));
 		$this->storageExam = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreExam'));
 
-
 		// type selection head
 		$content .= $this->createTypeSelector();
-
-		// save POST data if received
-		if (t3lib_div::_POST($this->extKey))
-			$content .= $this->saveFormData();
 
 		// select input type
 		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
 		switch (intval($GETcommands['type'])) {
 			case self::kEDIT_TYPE_LECTURE: {
-				if (intval($GETcommands['uid'])) {
-					$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', intval($GETcommands['uid']));
-					$this->piVars["name"] = $lectureDB['name'];
-					$this->piVars["field"] = $lectureDB['field']; //TODO not in this DB, search by DB select
-					$modules = explode(',',$lectureDB['module']);
-					for ($i=0; $i<count($modules); $i++)
-						$this->piVars["module".$i] = $modules[$i];
-				}
+				// save POST data if received
+				if (t3lib_div::_POST($this->extKey))
+					$content .= $this->saveFormData();
+				if (intval($GETcommands['uid']))
+					$this->setPiVarsFromDB(self::kEDIT_TYPE_LECTURE, intval($GETcommands['uid']));
 				$content .= $this->createLectureInputForm(intval($GETcommands['uid']));
 				break;
 			}
 			case self::kEDIT_TYPE_EXAM: {
-				if (intval($GETcommands['uid'])) {
-					$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', intval($GETcommands['uid']));
-					$this->piVars["name"] = $examDB['name'];
-					$this->piVars["number"] = $examDB['number'];
-					$this->piVars["term"] = $examDB['term'];
-					$lectures = explode(',',$examDB['lecture']);
-					for ($i=0; $i<count($lectures); $i++)
-						$this->piVars["lecture".$i] = $lectures[$i];
-					$this->piVars["year"] = $examDB['year'];
-					$this->piVars["exactdate"] = $examDB['exactdate'];
-					$this->piVars["name"] = $examDB['name'];
-					$lecturers = explode(',',$examDB['lecturer']);
-					for ($i=0; $i<count($lecturers); $i++)
-						$this->piVars["lecturer".$i] = $lecturers[$i];
-					$this->piVars["approved"] = $examDB['approved'];
-					$this->piVars["file"] = $examDB['file'];
-					$this->piVars["material"] = $examDB['material'];
-					$this->piVars["quality"] = $examDB['quality'];
-					$this->piVars["examtype"] = $examDB['examtype'];
+				// save POST data if received
+				if (t3lib_div::_POST($this->extKey)) {
+					if ($this->validateFormData(self::kEDIT_TYPE_EXAM)==false) {	// check content
+						$this->setPiVarsFromPOST(self::kEDIT_TYPE_EXAM);
+						$content .= tx_fsmiexams_div::printSystemMessage(
+							tx_fsmiexams_div::kSTATUS_ERROR,
+							'Error in input form! Nothing saved yet. Please modify and try again.'
+							);
+						$content .= $this->createExamInputForm();
+					}
+					else	// no input errors
+						$content .= $this->saveFormData();
 				}
-				$content .= $this->createExamInputForm(intval($GETcommands['uid']));
+				// output the input form
+				else {
+					if (intval($GETcommands['uid']))
+						$this->setPiVarsFromDB(self::kEDIT_TYPE_EXAM, intval($GETcommands['uid']));
+					$content .= $this->createExamInputForm(intval($GETcommands['uid']));
+				}
+
 				break;
 			}
 			case self::kEDIT_TYPE_LECTURER: {
-				if (intval($GETcommands['uid'])) {
-					$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', intval($GETcommands['uid']));
-					$this->piVars["firstname"] = $lecturerDB['firstname'];
-					$this->piVars['lastname'] = $lecturerDB['lastname'];
-				}
+				// save POST data if received
+				if (t3lib_div::_POST($this->extKey))
+					$content .= $this->saveFormData();
+				if (intval($GETcommands['uid']))
+					$this->setPiVarsFromDB(self::kEDIT_TYPE_LECTURER, intval($GETcommands['uid']));
 				$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
 				break;
 			}
@@ -143,18 +134,104 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 	function createTypeSelector () {
 		$content = '<div>';
-		$content .= $this->pi_linkTP('New Lecture',
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecture"),
 								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURE));
 		$content .= ' | ';
-		$content .= $this->pi_linkTP('New Exam',
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-exam"),
 								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_EXAM));
 		$content .= ' | ';
-		$content .= $this->pi_linkTP('New Lecturer',
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecturer"),
 								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURER));
 		$content .= '</div>';
 
 		return $content;
+	}
 
+	function setPiVarsFromDB($type, $uid) {
+		switch($type) {
+			case self::kEDIT_TYPE_LECTURE: {
+				$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
+				$this->piVars["name"] = $lectureDB['name'];
+				$this->piVars["field"] = $lectureDB['field']; //TODO not in this DB, search by DB select
+				$modules = explode(',',$lectureDB['module']);
+				for ($i=0; $i<count($modules); $i++)
+					$this->piVars["module".$i] = $modules[$i];
+				break;
+			}
+			case self::kEDIT_TYPE_EXAM: {
+				$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
+				$this->piVars["name"] = $examDB['name'];
+				$this->piVars["number"] = $examDB['number'];
+				$this->piVars["term"] = $examDB['term'];
+				$lectures = explode(',',$examDB['lecture']);
+				for ($i=0; $i<count($lectures); $i++)
+					$this->piVars["lecture".$i] = $lectures[$i];
+				$this->piVars["year"] = $examDB['year'];
+				if ($examDB['exactdate']!=0)
+					$this->piVars["exactdate"] = $examDB['exactdate'];
+				$this->piVars["name"] = $examDB['name'];
+				$lecturers = explode(',',$examDB['lecturer']);
+				for ($i=0; $i<count($lecturers); $i++)
+					$this->piVars["lecturer".$i] = $lecturers[$i];
+				$this->piVars["approved"] = $examDB['approved'];
+				$this->piVars["file"] = $examDB['file'];
+				$this->piVars["material"] = $examDB['material'];
+				$this->piVars["quality"] = $examDB['quality'];
+				$this->piVars["examtype"] = $examDB['examtype'];
+				break;
+			}
+			case self::kEDIT_TYPE_LECTURER: {
+				$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
+				$this->piVars["firstname"] = $lecturerDB['firstname'];
+				$this->piVars['lastname'] = $lecturerDB['lastname'];
+				break;
+			}
+		}
+	}
+
+	function setPiVarsFromPOST($type) {
+		// get form data
+		$formData = t3lib_div::_POST($this->extKey);
+		switch($type) {
+// 			case self::kEDIT_TYPE_LECTURE: {
+// 				$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
+// 				$this->piVars["name"] = $lectureDB['name'];
+// 				$this->piVars["field"] = $lectureDB['field']; //TODO not in this DB, search by DB select
+// 				$modules = explode(',',$lectureDB['module']);
+// 				for ($i=0; $i<count($modules); $i++)
+// 					$this->piVars["module".$i] = $modules[$i];
+// 				break;
+// 			}
+			case self::kEDIT_TYPE_EXAM: {
+				// get approved button
+				if (isset($formData['approved']))
+					$approved = 1;
+
+				$this->piVars["name"] = $formData['name'];
+				$this->piVars["number"] = $formData['number'];
+				$this->piVars["term"] = $formData['term'];
+				for ($i=0; $i<3; $i++)
+					$this->piVars["lecture".$i] = $formData['lecture'.$i];
+				$this->piVars["year"] = $formData['year'];
+				if ($formData['exactdate']!=0)
+					$this->piVars["exactdate"] = $formData['exactdate'];
+				$this->piVars["name"] = $formData['name'];
+				for ($i=0; $i<3; $i++)
+					$this->piVars["lecturer".$i] = $formData['lecturer'.$i];
+				$this->piVars["approved"] = $approved;
+				$this->piVars["file"] = $formData['file'];
+				$this->piVars["material"] = $formData['material'];
+				$this->piVars["quality"] = $formData['quality'];
+				$this->piVars["examtype"] = $formData['examtype'];
+				break;
+			}
+// 			case self::kEDIT_TYPE_LECTURER: {
+// 				$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
+// 				$this->piVars["firstname"] = $lecturerDB['firstname'];
+// 				$this->piVars['lastname'] = $lecturerDB['lastname'];
+// 				break;
+// 			}
+		}
 	}
 
 	function createLectureInputForm ($editUID) {
@@ -162,7 +239,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		if ($editUID)
 			$content .= '<h2>'.$this->pi_getLL("edit_form_lecture").'</h2>';
 		else
-			$content .= '<h2>'.$this->pi_getLL("input_form_lecturer").'</h2>';
+			$content .= '<h2>'.$this->pi_getLL("input_form_lecture").'</h2>';
 
 
 		// create JSON files
@@ -647,8 +724,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						type="text"
 						name="'.$this->extKey.'[exactdate]"
 						id="'.$this->extKey.'_exactdate"
-						dojoType="dijit.form.DateTextBox"
-						value="'.date('Y-m-d',intval($this->piVars["exactdate"])).'" /></td>
+						dojoType="dijit.form.DateTextBox" ';
+		if ($this->piVars['exactdate']!=0)
+			$content .=' value="'.date('Y-m-d',intval($this->piVars["exactdate"])).'"
+						/></td>
 			</tr>';
 
 		// Lecturer
@@ -1197,52 +1276,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				}
 				else { // insert new db entry
 
-					//TODO make shure that we have "*.pdf"
-
-					// move files
+					// save/move files
 					$formDataFiles = $_FILES[$this->extKey];
-					$examFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['file']);
-					$materiallFile = t3lib_div::upload_to_tempfile($formDataFiles['tmp_name']['material']);
+					$examFileName = $this->saveExamFiles($formDataFiles['tmp_name']['file'], $formDataFiles['name']['file']);
+					$materialFileName = $this->saveExamFiles($formDataFiles['tmp_name']['material'], $formDataFiles['name']['material']);
 
-					// file names
-					$examFileName =  $formDataFiles['name']['file'];
-					$materialFileName =  $formDataFiles['name']['material'];
-
-					// make filenames valid
-					$examFileName = preg_replace(
-						array("/\s+/", "/[^-\.\w]+/"),
-						array("_", ""),
-						trim($examFileName));
-					$materialFileName = preg_replace(
-						array("/\s+/", "/[^-\.\w]+/"),
-						array("_", ""),
-						trim($materialFileName));
-
-					$usedFilenames = t3lib_div::getFilesInDir(	'uploads/tx_fsmiexams/',
-																$extensionList = 'pdf');
-					// save ExamFile
-					if ($examFile) {
-						$cnt=0;
-						$baseFilename = basename($examFileName, ".pdf");
-						// make fileanme unique
-						while (array_search($examFileName,$usedFilenames)==true)
-							$examFileName = $baseFilename.'_'.$cntr++.'.pdf';
-						t3lib_div::upload_copy_move($examFile, 'uploads/tx_fsmiexams/'.$examFileName);
-					}
-
-					// save MaterialFile
-					if ($materialFile) {
-						$cnt=0;
-						$baseFilename = basename($materialFileName, ".pdf");
-						// make fileanme unique
-						while (array_search($materialFileName,$usedFilenames)==true)
-							$materialFileName = $baseFilename.'_'.$cntr++.'.pdf';
-						t3lib_div::upload_copy_move($materialFile, 'uploads/tx_fsmiexams/'.$materialFileName);
-					}
-
-					// delete files from temp-dir
-					t3lib_div::unlink_tempfile($examFile);
-					t3lib_div::unlink_tempfile($materialFile);
 					// save everything
 					$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
 										'tx_fsmiexams_exam',
@@ -1323,6 +1361,70 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			} break;
 		}
 
+	}
+
+	/**
+	 * This function saves files (from POST fileupload) into the 'uploads/fx_fsmiexams/' directory
+	 * At the moment no validation is done if this file really exists, please take care!
+	 * @param $tmpName the temporary name for the file uploaded by webserver
+	 * @param $fileName the name of the file it should be saved as
+	 * @return $fileName of the save file
+	 */
+
+	function saveExamFiles($tmpName, $fileName) {
+		// TODO generate some error codes
+		// TODO make shure that we have "*.pdf"
+
+		// move file
+		$file = t3lib_div::upload_to_tempfile($tmpName);
+
+		// make filename valid
+		$fileName = preg_replace(
+			array("/\s+/", "/[^-\.\w]+/"),
+			array("_", ""),
+			trim($fileName));
+
+		$usedFilenames = t3lib_div::getFilesInDir(	'uploads/tx_fsmiexams/',
+																$extensionList = 'pdf');
+		// save file
+		if ($file) {
+			$cnt=0;
+			$baseFilename = basename($fileName, ".pdf");
+			// make filename unique
+			while (array_search($fileName,$usedFilenames)==true)
+				$fileName = $baseFilename.'_'.$cntr++.'.pdf';
+				t3lib_div::upload_copy_move($file, 'uploads/tx_fsmiexams/'.$fileName);
+			}
+		t3lib_div::unlink_tempfile($file);
+
+		return $fileName;
+	}
+
+	/**
+	 * This function validates input strings
+	 * TODO compare with ER diagram -> is everything asked?
+	 * TODO give hints were error could be ;-)
+	 * @param $type is constant for edit-type
+	 * @return boolean true iff everything is fine
+	 */
+	function validateFormData($type) {
+
+		switch($type) {
+			case self::kEDIT_TYPE_EXAM: {
+
+				if (intval($formData['lecture0'])==0)
+					return false;
+
+				if ($formData['name']=='')
+					return false;
+				if (intval($formData['lecturers0'])==0)
+				if ($formData['file']=='')
+					return false;
+
+				return true;
+			}
+			default: return true;
+		}
 	}
 
 }
