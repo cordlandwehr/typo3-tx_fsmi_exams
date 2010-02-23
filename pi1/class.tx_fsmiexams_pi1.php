@@ -66,7 +66,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 		$listViewObj = t3lib_div::makeInstance(tx_fsmiexams_listview);
 		$listViewObj->init($this, $this->pidEditPage);
 
-		$content = $listViewObj->listDegreeprogramAnchors();
+		$content = $listViewObj->listMenuBreadcrumb();
 		$content .= $listViewObj->listAllExams();
 
 		return $this->pi_wrapInBaseClass($content);

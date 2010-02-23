@@ -45,11 +45,24 @@ class tx_fsmiexams_div {
 	const kSTATUS_ERROR 	= 2;
 	const kSTATUS_OK 		= 3;
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
+	const extKey			= 'fsmiexams';
 
-	var $cObj;
+	static private $pi_base;
+
 
 	static $kSTATUS_INFO = 0;		// deprecated, need to change!
 	static $kSTATUS_ERROR = 2;		// deprecated, need to change!
+
+// 	function __construct() {
+// 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
+// 	}
+
+	static function init () {
+		if (!self::$pi_base) {
+			self::$pi_base = t3lib_div::makeInstance('tslib_pibase');
+			self::$pi_base->cObj = t3lib_div::makeInstance('tslib_cObj');
+		}
+	}
 
 	/**
 	 * Translates given UID of lecture to name
@@ -57,18 +70,19 @@ class tx_fsmiexams_div {
 	 * @param UID $uid
 	 * @return text
 	 */
-	function lectureToText ($uid, $editPage) {
- 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
+	static function lectureToText ($uid, $editPage) {
+		self::init();
+
 		$lectureList = explode(',',$uid);
 		$text = '';
 		foreach ($lectureList as $uid) {
 			$lecture = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
 			if ($editPage)
-				$text .= $this->pi_linkTP(
+				$text .= self::$pi_base->pi_linkTP(
 								$lecture['name'],
 								array (
-									$this->extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURE,
-									$this->extKey.'[uid]' => $lecture['uid']
+									self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURE,
+									self::extKey.'[uid]' => $lecture['uid']
 								),
 								0,
 								$editPage
@@ -85,16 +99,16 @@ class tx_fsmiexams_div {
 	 * @param UID $uid
 	 * @return text
 	 */
-	function examToText ($uid, $editPage) {
-		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
+	static function examToText ($uid, $editPage) {
+		self::init();
 		$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
 		if ($editPage)
-			$text = $this->pi_linkTP(
+			$text = self::$pi_base->pi_linkTP(
 							$examDB['name'],
 							array (
-								$this->extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_EXAM,
-								$this->extKey.'[uid]' => $examDB['uid']
+								self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_EXAM,
+								self::extKey.'[uid]' => $examDB['uid']
 							),
 							0,
 							$editPage
@@ -111,18 +125,18 @@ class tx_fsmiexams_div {
 	 * @param INTEGER edit page id
 	 * @return text
 	 */
-	function lecturerToText ($uid, $editPage) {
-		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
+	static function lecturerToText ($uid, $editPage) {
+		self::init();
 		$lecturerList = explode(',',$uid);
 		$text = '';
 		foreach ($lecturerList as $uid) {
 			$lecturer = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
 			if ($editPage)
-				$text .= $this->pi_linkTP(
+				$text .= self::$pi_base->pi_linkTP(
 								$lecturer['lastname'].', '.$lecturer['firstname'],
 								array (
-									$this->extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURER,
-									$this->extKey.'[uid]' => $lecturer['uid']
+									self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURER,
+									self::extKey.'[uid]' => $lecturer['uid']
 								),
 								0,
 								$editPage
@@ -139,8 +153,7 @@ class tx_fsmiexams_div {
 	 * @param UID $uid
 	 * @return text
 	 */
-	function examToTermdate ($uid) {//TODO no locallang yet
-		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
+	static function examToTermdate ($uid) {//TODO no locallang yet
 		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
 		$text = '';
@@ -182,8 +195,7 @@ class tx_fsmiexams_div {
 		 *   1. construct list of modules
 		 *   2. construct by this list of lectures
 		 */
-		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
-
+	self::init();
 		// no field given, check degree program
 		$fieldUIDs = array ();
 		if ($field == 0) {
@@ -292,7 +304,6 @@ class tx_fsmiexams_div {
 	 * @return string of HTML div box
 	 */
 	function printSystemMessage($status, $text) {
-		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		// TODO it would be nice if the info boxes may be hidden on click
 
 		$content = '';

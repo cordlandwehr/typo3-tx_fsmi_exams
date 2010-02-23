@@ -33,13 +33,13 @@ require_once(PATH_t3lib.'class.t3lib_befunc.php');
 require_once(PATH_t3lib.'class.t3lib_tcemain.php');
 require_once(PATH_t3lib.'class.t3lib_iconworks.php');
 
-require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_view_user.php');
 
 /**
  * Script Class to download files as defined in reports
  *
  */
-class tx_fsmiexams_listview extends tslib_pibase {
+class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 	const kSTATUS_INFO 		= 0;
 	const kSTATUS_WARNING 	= 1;
 	const kSTATUS_ERROR 	= 2;
@@ -50,7 +50,8 @@ class tx_fsmiexams_listview extends tslib_pibase {
 	var $LANG;						// language object
 	var $cObj;
 
-	function tx_fsmiexams_listview () {
+	function __construct () {
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		$this->LANG = t3lib_div::makeInstance('language');
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
@@ -64,7 +65,7 @@ class tx_fsmiexams_listview extends tslib_pibase {
 	/**
 	 * This function outputs a list with anchors to all degree programs.
 	 */
-	function listDegreeprogramAnchors() {
+	function listMenuBreadcrumb() {
 		$content = '';
 
 		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
