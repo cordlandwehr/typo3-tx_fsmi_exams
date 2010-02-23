@@ -28,8 +28,10 @@
  */
 
 require_once(PATH_tslib.'class.tslib_pibase.php');
-require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
 require_once(t3lib_extMgm::extPath('lang').'lang.php');
+
+require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_listview.php');
 
 /**
  * Plugin 'Exam List' for the 'fsmi_exams' extension.
@@ -58,153 +60,19 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 		$this->pi_USER_INT_obj = 1;	// Configuring so caching is not expected. This value means that no cHash params are ever set. We do this, because it's a USER_INT object!
 		$this->pi_initPIflexForm(); // Init and get the flexform data of the plugin
 
-		$this->LANG = t3lib_div::makeInstance('language');
-		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
-		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 		$this->pidEditPage = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidEdit'));
 
-		$content = $this->listDegreeprogramAnchors();
+		// case of listview
+		$listViewObj = t3lib_div::makeInstance(tx_fsmiexams_listview);
+		$listViewObj->init($this, $this->pidEditPage);
 
-		$content .= $this->listAllExams();
+		$content = $listViewObj->listDegreeprogramAnchors();
+		$content .= $listViewObj->listAllExams();
 
 		return $this->pi_wrapInBaseClass($content);
 	}
 
-	/**
-	 * This function outputs a list with anchors to all degree programs.
-	 */
-	function listDegreeprogramAnchors() {
-		$content = '';
 
-		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-												FROM tx_fsmiexams_degreeprogram
-												WHERE deleted=0 AND hidden=0');
-		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
-			$content .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'#fsmiexams_degreeprogram_'.$rowProgram['uid'].'">'.$rowProgram['name'].'</a>';
-			$content .= ' / ';
-		}
-
-		return $content;
-	}
-
-	/**
-	 * This function lists all exams ordered by degree program, part etc.
-	 * @return HTML table
-	 *
-	 */
-	function listAllExams () {
-		$content = '';
-		$examTypes = $this->listExamTypes();
-
-		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-												FROM tx_fsmiexams_degreeprogram
-												WHERE deleted=0 AND hidden=0');
-
-		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
-			$content .= '<hr />';
-			$content .= '<a name="fsmiexams_degreeprogram_'.$rowProgram['uid'].'"><h2>'.$rowProgram['name'].'</h2></a>';
-
-			$resField = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-												FROM tx_fsmiexams_field
-												WHERE '.$rowProgram['uid'].' = tx_fsmiexams_field.degreeprogram
-												AND deleted=0 AND hidden=0');
-
-			while ($resField && $rowField = mysql_fetch_assoc($resField)) {
-				$content .= '<h3>'.$rowField['name'].'</h3>';
-
-				$resModule = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-												FROM tx_fsmiexams_module
-												WHERE '.$rowField['uid'].' in (tx_fsmiexams_module.field)
-												AND deleted=0 AND hidden=0');
-
-				while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
-					$content .= '<div name="fsmiexams_module_'.$rowModule['uid'].'" class="fsmiexams_module"><h4>'.$rowModule['name'].'</h4></div>';
-
-					$content .= '<table>';
-					$content .= '<tr>';
-						$content .= '<th width="300px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';
-						$content .= '<th width="140px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecturer").'</th>';
-						$content .= '<th width="60px">'.$this->LANG->getLL("tx_fsmiexams_exam.term").'</th>';
-						$content .= '<th>Nr.</th>';
-						$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.exactdate").'</th>';
-						$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.file").'</th>';
-					$content .= '</tr>';
-
-					$lineCounter = 1;
-
-					$resLecture = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-													FROM tx_fsmiexams_lecture
-													WHERE '.$rowModule['uid'].' in (tx_fsmiexams_lecture.module)
-													AND deleted=0 AND hidden=0');
-
-					while ($resLecture && $rowLecture = mysql_fetch_assoc($resLecture)) {
-
-						$examUIDs = tx_fsmiexams_div::getExamUIDs($rowProgram['uid'],$rowField['uid'],$rowModule['uid'],$rowLecture['uid'],0,0,0);
-						if (count($examUIDs)==0)
-							continue;
-
-						// lecture
-						$content .= '<tr class="sepline">
-										<td colspan="5"><strong>'.tx_fsmiexams_div::lectureToText($rowLecture['uid'],$this->pidEditPage).
-										' ('.count($examUIDs).')</strong><td>
-									</tr>';
-
-						// exams
-						foreach ($examUIDs as $uid) {
-							$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
-
-							// colorize odd lines
-							($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
-
-							$content .= '<td><img src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
-							$content .= '<span style="font-style:italic;">'.tx_fsmiexams_div::examToText($exam['uid'],$this->pidEditPage).'</span>';
-							$content .= '</td>';
-
-							$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer'],$this->pidEditPage).'</td>';
-							$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
-							if ($exam['number']!=0)
-								$content .= '<td>'.$exam['number'].'</td>';
-							else
-								$content .= '<td>-</td>';
-							if ($exam['exactdate']!=0)
-								$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
-							else
-								$content .= '<td>-</td>';
-
-
-
-							$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">'.$examTypes[$exam['examtype']].'</a>';
-							if ($exam['material']!='')
-								$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmateriall</a>';
-							$content .= '</td>';
-
-							$content .= '</tr>';
-						}
-					}
-					$content .= '</table>';
-				}
-			}
-		}
-		return $content;
-
-	}
-
-	/**
-	 * Creates an array with key UID and value description of exam type.
-	 * @return array
-	 */
-	function listExamTypes () {
-		$types = array ();
-
-		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-													FROM tx_fsmiexams_examtype
-													WHERE deleted=0 AND hidden=0');
-
-		while ($res && $row = mysql_fetch_assoc($res))
-			$types[$row['uid']] = $row['description'];
-
-		return $types;
-	}
 }
 
 

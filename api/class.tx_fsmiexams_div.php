@@ -46,6 +46,8 @@ class tx_fsmiexams_div {
 	const kSTATUS_OK 		= 3;
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
 
+	var $cObj;
+
 	static $kSTATUS_INFO = 0;		// deprecated, need to change!
 	static $kSTATUS_ERROR = 2;		// deprecated, need to change!
 
@@ -56,6 +58,7 @@ class tx_fsmiexams_div {
 	 * @return text
 	 */
 	function lectureToText ($uid, $editPage) {
+ 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		$lectureList = explode(',',$uid);
 		$text = '';
 		foreach ($lectureList as $uid) {
@@ -83,6 +86,7 @@ class tx_fsmiexams_div {
 	 * @return text
 	 */
 	function examToText ($uid, $editPage) {
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
 		if ($editPage)
@@ -108,6 +112,7 @@ class tx_fsmiexams_div {
 	 * @return text
 	 */
 	function lecturerToText ($uid, $editPage) {
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		$lecturerList = explode(',',$uid);
 		$text = '';
 		foreach ($lecturerList as $uid) {
@@ -135,6 +140,7 @@ class tx_fsmiexams_div {
 	 * @return text
 	 */
 	function examToTermdate ($uid) {//TODO no locallang yet
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
 		$text = '';
@@ -176,7 +182,7 @@ class tx_fsmiexams_div {
 		 *   1. construct list of modules
 		 *   2. construct by this list of lectures
 		 */
-
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 
 		// no field given, check degree program
 		$fieldUIDs = array ();
@@ -286,7 +292,7 @@ class tx_fsmiexams_div {
 	 * @return string of HTML div box
 	 */
 	function printSystemMessage($status, $text) {
-
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		// TODO it would be nice if the info boxes may be hidden on click
 
 		$content = '';
