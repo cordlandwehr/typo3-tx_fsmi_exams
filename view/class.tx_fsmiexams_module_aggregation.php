@@ -27,29 +27,64 @@
 * @author Andreas Cord-Landwehr <cola@uni-paderborn.de>
 */
 
-
-
 require_once(PATH_t3lib.'class.t3lib_befunc.php');
 require_once(PATH_t3lib.'class.t3lib_tcemain.php');
 require_once(PATH_t3lib.'class.t3lib_iconworks.php');
 
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_view_user.php');
 
 /**
  * Script Class to download files as defined in reports
  *
  */
-class tx_fsmiexams_module_aggregation {
-	const kSTATUS_INFO 		= 0;
-	const kSTATUS_WARNING 	= 1;
-	const kSTATUS_ERROR 	= 2;
-	const kSTATUS_OK 		= 3;
-	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
+class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
+
+	// selectors for single sub views
+	var $degreeprogram;
+	var $field;
+	var $module;
+	var $lecture;
+	var $lecturer;
+	var $exam;
+
+	function __construct() {
+		// select selectors
+		$GETcommands = t3lib_div::_GET($this->extKey);	// can be both: POST or GET
+
+		if (intval($GETcommands['degreeprogram']))
+			$this->degreeprogram = intval($GETcommands['degreeprogram']);
+		if (intval($GETcommands['field']))
+			$this->field = intval($GETcommands['field']);
+		if (intval($GETcommands['module']))
+			$this->module = intval($GETcommands['module']);
+		if (intval($GETcommands['lecture']))
+			$this->lecture = intval($GETcommands['lecture']);
+		if (intval($GETcommands['lecturer']))
+			$this->lecturer = intval($GETcommands['lecturer']);
+		if (intval($GETcommands['exam']))
+			$this->exam = intval($GETcommands['exam']);
+	}
 
 	function tx_fsmiexams_module_aggregation() {
 
 	}
 
+	/**
+	 * This function outputs a list with anchors to all degree programs.
+	 */
+	function listMenuBreadcrumb() {
+		$content = '';
 
+		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+												FROM tx_fsmiexams_degreeprogram
+												WHERE deleted=0 AND hidden=0');
+		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
+			$content .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'#fsmiexams_degreeprogram_'.$rowProgram['uid'].'">'.$rowProgram['name'].'</a>';
+			$content .= ' / ';
+		}
+
+		return $content;
+	}
 
 
 }

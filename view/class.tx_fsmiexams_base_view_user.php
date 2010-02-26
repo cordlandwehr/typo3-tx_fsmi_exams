@@ -40,16 +40,35 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php
  *
  */
 class tx_fsmiexams_base_view_user extends tslib_pibase {
-	const kSTATUS_INFO 		= 0;
-	const kSTATUS_WARNING 	= 1;
-	const kSTATUS_ERROR 	= 2;
-	const kSTATUS_OK 		= 3;
+	const kVIEW_TYPE_LIST			= 1;
+	const kVIEW_TYPE_AGGREGATION	= 2;
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
+	const extKey			= 'fsmiexams';
 
 	var $pidEditPage 		= 0;	// PID for edit functions
 	var $LANG;						// language object
 	var $cObj;
 	var $examDiv;
+
+
+	/**
+	 * This function provides a selector for the different views.
+	 * at the moment it does not preserve previous selections
+	 */
+	function switchViewMenu() {
+ 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');	// TODO need to check!
+		$content = '';
+
+		$content .= '<div style="text-align:right;">';
+		$content .= $this->pi_linkTP('List-View',
+						array (	self::extKey.'[type]' => self::kVIEW_TYPE_LIST));
+		$content .= ' / ';
+		$content .= $this->pi_linkTP('Menue-View',
+				array (	self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION));
+		$content .= '</div>';
+
+		return $content;
+	}
 
 	function tx_fsmiexams_listview () {
 		$this->LANG = t3lib_div::makeInstance('language');
@@ -57,9 +76,8 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 	}
 
-	function init($cObj, $pidEditPage) {
-		$this->pidEditPage = $pidEditPage;
-		$this->cObj = $cObj;
+	function init() {
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 	}
 
 	/**

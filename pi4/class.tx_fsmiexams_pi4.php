@@ -97,8 +97,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			case self::kEDIT_TYPE_EXAM: {
 				// save POST data if received
 				if (t3lib_div::_POST($this->extKey)) {
+					$this->setPiVarsFromPOST(self::kEDIT_TYPE_EXAM);	// further operations are down only with piVars
+
 					if ($this->validateFormData(self::kEDIT_TYPE_EXAM)==false) {	// check content
-						$this->setPiVarsFromPOST(self::kEDIT_TYPE_EXAM);
 						$content .= tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::kSTATUS_ERROR,
 							'Error in input form! Nothing saved yet. Please modify and try again.'
@@ -193,6 +194,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	function setPiVarsFromPOST($type) {
 		// get form data
 		$formData = t3lib_div::_POST($this->extKey);
+
 		switch($type) {
 // 			case self::kEDIT_TYPE_LECTURE: {
 // 				$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
@@ -214,8 +216,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				for ($i=0; $i<3; $i++)
 					$this->piVars["lecture".$i] = $formData['lecture'.$i];
 				$this->piVars["year"] = $formData['year'];
-				if ($formData['exactdate']!=0)
-					$this->piVars["exactdate"] = $formData['exactdate'];
+				if ($formData['exactdate']!='')
+					$this->piVars["exactdate"] = strtotime($formData['exactdate']);
 				$this->piVars["name"] = $formData['name'];
 				for ($i=0; $i<3; $i++)
 					$this->piVars["lecturer".$i] = $formData['lecturer'.$i];
@@ -727,8 +729,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						id="'.$this->extKey.'_exactdate"
 						dojoType="dijit.form.DateTextBox" ';
 		if ($this->piVars['exactdate']!=0)
-			$content .=' value="'.date('Y-m-d',intval($this->piVars["exactdate"])).'"
-						/></td>
+			$content .=' value="'.date('Y-m-d',intval($this->piVars["exactdate"])).'"';
+		$content .= '	/></td>
 			</tr>';
 
 		// Lecturer
@@ -1410,22 +1412,28 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	 */
 	function validateFormData($type) {
 
+		$formData = t3lib_div::_POST($this->extKey);
+		$formDataFiles = $_FILES[$this->extKey];
+
 		switch($type) {
 			case self::kEDIT_TYPE_EXAM: {
 
 				if (intval($formData['lecture0'])==0)
 					return false;
-
 				if ($formData['name']=='')
 					return false;
-				if (intval($formData['lecturers0'])==0)
-				if ($formData['file']=='')
+				if (intval($formData['lecturer0'])==0)
+					return false;
+				if ($formDataFiles['tmp_name']['file']=='')
 					return false;
 
-				return true;
+				break;
 			}
-			default: return true;
+			default:
+				return true;
 		}
+		return true;
+
 	}
 
 }
