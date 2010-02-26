@@ -45,7 +45,7 @@ class tx_fsmiexams_div {
 	const kSTATUS_ERROR 	= 2;
 	const kSTATUS_OK 		= 3;
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
-	const extKey			= 'fsmiexams';
+	const extKey			= 'fsmi_exams';
 
 	static private $pi_base;
 
