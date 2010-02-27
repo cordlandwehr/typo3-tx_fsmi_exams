@@ -46,10 +46,11 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	var $lecture;
 	var $lecturer;
 	var $exam;
+	var $LANG;
 
 	function __construct() {
 		// select selectors
-		$GETcommands = t3lib_div::_GET($this->extKey);	// can be both: POST or GET
+		$GETcommands = t3lib_div::_GET(self::extKey);	// can be both: POST or GET
 
 		if (intval($GETcommands['degreeprogram']))
 			$this->degreeprogram = intval($GETcommands['degreeprogram']);
@@ -63,10 +64,158 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 			$this->lecturer = intval($GETcommands['lecturer']);
 		if (intval($GETcommands['exam']))
 			$this->exam = intval($GETcommands['exam']);
+
+		$this->LANG = t3lib_div::makeInstance('language');
+		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
+		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 	}
 
-	function tx_fsmiexams_module_aggregation() {
+	/**
+	 * List function for selector menu and display
+	 */
+	function listAllExams() {
+		$content = '';
 
+		/* Idea: go as far as selections are given, then return */
+		if (!$this->degreeprogram) {
+			$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+												FROM tx_fsmiexams_degreeprogram
+												WHERE deleted=0 AND hidden=0');
+			$content .= '<ul>';
+			while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
+				$content .= '<li>'.$this->pi_linkTP(
+								$rowProgram['name'],
+								array (
+									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+									self::extKey.'[degreeprogram]' => $rowProgram['uid']
+								))
+							  .'</li>';
+			}
+			$content .= '</ul>';
+			return $content;
+		}
+
+		// thus a  degreepgrogram was chosen
+		$degreeprogramDB = t3lib_BEfunc::getRecord('tx_fsmiexams_degreeprogram', $this->degreeprogram);
+		$content .= '<div>'.$this->pi_linkTP(
+								$degreeprogramDB['name'],
+								array (
+									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+								)).'</div>';
+
+		/* next choice are the the field */
+		if (!$this->field) {
+			$resField = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+												FROM tx_fsmiexams_field
+												WHERE FIND_IN_SET('.$this->degreeprogram.',degreeprogram)
+													AND deleted=0 AND hidden=0');
+			$content .= '<ul>';
+			while ($resField && $rowField = mysql_fetch_assoc($resField)) {
+				$content .= '<li>'.$this->pi_linkTP(
+								$rowField['name'],
+								array (
+									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+									self::extKey.'[degreeprogram]' => $this->degreeprogram,
+									self::extKey.'[field]' => $rowField['uid'],
+								))
+							  .'</li>';
+			}
+			$content .= '</ul>';
+			return $content;
+		}
+		// thus a  degreepgrogram was chosen
+		$fieldDB = t3lib_BEfunc::getRecord('tx_fsmiexams_field', $this->field);
+		$content .= '<div>'.$this->pi_linkTP(
+								$fieldDB['name'],
+								array (
+									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+									self::extKey.'[degreeprogram]' => $this->degreeprogram,
+								)).'</div>';
+
+		/* next choice are the modules */
+		if (!$this->module) {
+			$resModule = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+												FROM tx_fsmiexams_module
+												WHERE FIND_IN_SET('.$this->field.',field)
+													AND deleted=0 AND hidden=0');
+			$content .= '<ul>';
+			while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
+				$content .= '<li>'.$this->pi_linkTP(
+								$rowModule['name'],
+								array (
+									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+									self::extKey.'[degreeprogram]' => $this->degreeprogram,
+									self::extKey.'[field]' => $this->field,
+									self::extKey.'[module]' => $rowModule['uid'],
+								))
+							  .'</li>';
+			}
+			$content .= '</ul>';
+			return $content;
+		}
+
+		// thus a  degreepgrogram was chosen
+		$moduleDB = t3lib_BEfunc::getRecord('tx_fsmiexams_module', $this->module);
+		$content .= '<div>'.$this->pi_linkTP(
+								$moduleDB['name'],
+								array (
+									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+									self::extKey.'[degreeprogram]' => $this->degreeprogram,
+									self::extKey.'[field]' => $this->field,
+								)).'</div>';
+
+		/* next choice are lectures */
+		$resLecture = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+												FROM tx_fsmiexams_lecture
+												WHERE FIND_IN_SET('.$this->module.',module)
+													AND deleted=0 AND hidden=0');
+		$content .= '<div>';
+		while ($resLecture && $rowLecture = mysql_fetch_assoc($resLecture)) {
+			$exams = tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $this->field, $this->module, $rowLecture['uid']);
+			$content .= '<div> -> '.$this->pi_linkTP(
+							$rowLecture['name'],
+							array (
+								self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+								self::extKey.'[degreeprogram]' => $this->degreeprogram,
+								self::extKey.'[field]' => $this->field,
+								self::extKey.'[module]' => $this->module,
+								self::extKey.'[lecture]' => $rowLecture['uid']
+							))
+						  .' <strong>('.count($exams).')</strong>
+						  </div>';
+			if ($rowLecture['uid'] == $this->lecture) {
+				if (count($exams)==0)
+					continue;
+				$content .= '<table>';
+				$content .= '<tr>';
+					$content .= '<th width="300px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';
+					$content .= '<th width="140px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecturer").'</th>';
+					$content .= '<th width="60px">'.$this->LANG->getLL("tx_fsmiexams_exam.term").'</th>';
+					$content .= '<th>Nr.</th>';
+					$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.exactdate").'</th>';
+				$content .= '</tr>';
+				foreach ($exams as $exam)  {
+					$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam);
+					$content .= '<tr>';
+					$content .= '<td>'.tx_fsmiexams_div::examToText($exam).'</td>';
+					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDB['lecturer']).'</td>';
+					$content .= '<td>'.tx_fsmiexams_div::examToTermdate($exam).'</td>';
+					if ($exam['number']!=0)
+						$content .= '<td>'.$examDB['number'].'</td>';
+					else
+						$content .= '<td>-</td>';
+					if ($exam['exactdate']!=0)
+						$content .= '<td>'.date('d.m.y',$examDB['exactdate']).'</td>';
+					else
+						$content .= '<td>-</td>';
+					$content .= '</tr>'."\n";
+				}
+				$content .= '</table>';
+			}
+		}
+		$content .= '</div>';
+
+		return $content;
 	}
 
 	/**
@@ -75,13 +224,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	function listMenuBreadcrumb() {
 		$content = '';
 
-		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-												FROM tx_fsmiexams_degreeprogram
-												WHERE deleted=0 AND hidden=0');
-		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
-			$content .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'#fsmiexams_degreeprogram_'.$rowProgram['uid'].'">'.$rowProgram['name'].'</a>';
-			$content .= ' / ';
-		}
+		$content .= '<div>Lecturer / Modules </div>';
 
 		return $content;
 	}

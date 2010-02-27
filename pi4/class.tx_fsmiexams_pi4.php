@@ -1424,8 +1424,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					return false;
 				if (intval($formData['lecturer0'])==0)
 					return false;
-				if ($formDataFiles['tmp_name']['file']=='')
-					return false;
+			  // TODO to test this we have problems with updates where this is not mandatory, need complete new file framework
+// 				if ($formDataFiles['tmp_name']['file']=='')
+// 					return false;
 
 				break;
 			}
