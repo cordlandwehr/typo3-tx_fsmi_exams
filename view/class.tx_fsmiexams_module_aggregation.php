@@ -76,14 +76,24 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	function listAllExams() {
 		$content = '';
 
+		$content .= '<div><strong>'.$this->pi_linkTP(
+								'<img src="'.self::imgPath.'arrow_br.png" alt="<" /> '.$this->LANG->getLL("tx_fsmiexams_degreeprograms"),
+								array (
+									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
+								)).'</strong></div>';
+
 		/* Idea: go as far as selections are given, then return */
 		if (!$this->degreeprogram) {
 			$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_degreeprogram
 												WHERE deleted=0 AND hidden=0');
-			$content .= '<ul>';
+			$content .= '<ul class="fsmiexams_aggregation_optionlist">';
 			while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
-				$content .= '<li>'.$this->pi_linkTP(
+				// do not show empty degree programs ('cause sometimes admins are to ambitious when designing the backend structure...)
+				if (count(tx_fsmiexams_div::getExamUIDs ($rowProgram['uid']))==0)
+					continue;
+
+				$content .= '<li class="fsmiexams_aggregation_optionlist">'.$this->pi_linkTP(
 								$rowProgram['name'],
 								array (
 									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
@@ -98,7 +108,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 		// thus a  degreepgrogram was chosen
 		$degreeprogramDB = t3lib_BEfunc::getRecord('tx_fsmiexams_degreeprogram', $this->degreeprogram);
 		$content .= '<div>'.$this->pi_linkTP(
-								$degreeprogramDB['name'],
+								'<img src="'.self::imgPath.'arrow_br.png" alt="<" /> '.$degreeprogramDB['name'],
 								array (
 									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
 								)).'</div>';
@@ -109,8 +119,12 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 												FROM tx_fsmiexams_field
 												WHERE FIND_IN_SET('.$this->degreeprogram.',degreeprogram)
 													AND deleted=0 AND hidden=0');
-			$content .= '<ul>';
+			$content .= '<ul class="fsmiexams_aggregation_optionlist">';
 			while ($resField && $rowField = mysql_fetch_assoc($resField)) {
+				// do not show empty fields
+				if (count(tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $rowField['uid']))==0)
+					continue;
+
 				$content .= '<li>'.$this->pi_linkTP(
 								$rowField['name'],
 								array (
@@ -126,7 +140,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 		// thus a  degreepgrogram was chosen
 		$fieldDB = t3lib_BEfunc::getRecord('tx_fsmiexams_field', $this->field);
 		$content .= '<div>'.$this->pi_linkTP(
-								$fieldDB['name'],
+								'<img src="'.self::imgPath.'arrow_br.png" alt="<" /> '.$fieldDB['name'],
 								array (
 									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
 									self::extKey.'[degreeprogram]' => $this->degreeprogram,
@@ -138,8 +152,12 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 												FROM tx_fsmiexams_module
 												WHERE FIND_IN_SET('.$this->field.',field)
 													AND deleted=0 AND hidden=0');
-			$content .= '<ul>';
+			$content .= '<ul class="fsmiexams_aggregation_optionlist">';
 			while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
+				// do not show empty modules
+				if (count(tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $this->field, $rowModule['uid']))==0)
+					continue;
+
 				$content .= '<li>'.$this->pi_linkTP(
 								$rowModule['name'],
 								array (
@@ -157,7 +175,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 		// thus a  degreepgrogram was chosen
 		$moduleDB = t3lib_BEfunc::getRecord('tx_fsmiexams_module', $this->module);
 		$content .= '<div>'.$this->pi_linkTP(
-								$moduleDB['name'],
+								'<img src="'.self::imgPath.'arrow_br.png" alt="<" /> '.$moduleDB['name'],
 								array (
 									self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
 									self::extKey.'[degreeprogram]' => $this->degreeprogram,
@@ -169,10 +187,16 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 												FROM tx_fsmiexams_lecture
 												WHERE FIND_IN_SET('.$this->module.',module)
 													AND deleted=0 AND hidden=0');
-		$content .= '<div>';
+		$content .= '<ul class="fsmiexams_aggregation_optionlist">';
+
+		$examTypes = $this->listExamTypes();
+
 		while ($resLecture && $rowLecture = mysql_fetch_assoc($resLecture)) {
 			$exams = tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $this->field, $this->module, $rowLecture['uid']);
-			$content .= '<div> -> '.$this->pi_linkTP(
+			$content .= '<li><div ';
+			if ($rowLecture['uid'] == $this->lecture)
+				$content .= 'style="font-weight:bold;"';
+			$content .= '>'.$this->pi_linkTP(
 							$rowLecture['name'],
 							array (
 								self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION,
@@ -181,22 +205,25 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 								self::extKey.'[module]' => $this->module,
 								self::extKey.'[lecture]' => $rowLecture['uid']
 							))
-						  .' <strong>('.count($exams).')</strong>
+						  .' ('.count($exams).')
 						  </div>';
 			if ($rowLecture['uid'] == $this->lecture) {
-				if (count($exams)==0)
+				if (count($exams)==0) {
+					$content .= '</li>';
 					continue;
-				$content .= '<table>';
-				$content .= '<tr>';
+				}
+				$content .= '<table class="fsmiexams_aggregation_view">';
+				$content .= '<tr class="fsmiexams_aggregation_view_tablehead">';
 					$content .= '<th width="300px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecture").'</th>';
 					$content .= '<th width="140px">'.$this->LANG->getLL("tx_fsmiexams_exam.lecturer").'</th>';
 					$content .= '<th width="60px">'.$this->LANG->getLL("tx_fsmiexams_exam.term").'</th>';
 					$content .= '<th>Nr.</th>';
-					$content .= '<th>'.$this->LANG->getLL("tx_fsmiexams_exam.exactdate").'</th>';
+					$content .= '<th colspan="2">'.$this->LANG->getLL("tx_fsmiexams_exam.exactdate").'</th>';
 				$content .= '</tr>';
+				$linecounter = 0;
 				foreach ($exams as $exam)  {
 					$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam);
-					$content .= '<tr>';
+					($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
 					$content .= '<td>'.tx_fsmiexams_div::examToText($exam).'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDB['lecturer']).'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::examToTermdate($exam).'</td>';
@@ -208,12 +235,13 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 						$content .= '<td>'.date('d.m.y',$examDB['exactdate']).'</td>';
 					else
 						$content .= '<td>-</td>';
+					$content .= '<td>'.$examTypes[$examDB['examtype']].'</td>';
 					$content .= '</tr>'."\n";
 				}
-				$content .= '</table>';
+				$content .= '</table></li>';
 			}
 		}
-		$content .= '</div>';
+		$content .= '</ul>';
 
 		return $content;
 	}
@@ -224,7 +252,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	function listMenuBreadcrumb() {
 		$content = '';
 
-		$content .= '<div>Lecturer / Modules </div>';
+		$content .= '<h3>'.$this->LANG->getLL("tt_content.list_type_pi1.aggregated").'</h3>';
 
 		return $content;
 	}

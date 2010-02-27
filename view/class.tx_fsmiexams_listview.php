@@ -67,6 +67,7 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 	 */
 	function listMenuBreadcrumb() {
 		$content = '';
+		$content .= '<h3>'.$this->LANG->getLL("tx_fsmiexams_degreeprograms").'</h3>';
 
 		$resProgram = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_degreeprogram
@@ -77,23 +78,6 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 		}
 
 		return $content;
-	}
-
-	/**
-	 * Creates an array with key UID and value description of exam type.
-	 * @return array
-	 */
-	function listExamTypes () {
-		$types = array ();
-
-		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
-													FROM tx_fsmiexams_examtype
-													WHERE deleted=0 AND hidden=0');
-
-		while ($res && $row = mysql_fetch_assoc($res))
-			$types[$row['uid']] = $row['description'];
-
-		return $types;
 	}
 
 	/**

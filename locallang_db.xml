@@ -8,6 +8,7 @@
 		<languageKey index="default" type="array">
 			<label index="tx_fsmiexams_general.message.sql_error">A database error occured. The operation did not succeed.</label>
 			<label index="tx_fsmiexams_degreeprogram">Degree Program</label>
+			<label index="tx_fsmiexams_degreeprograms">Degree Programs</label>
 			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
 			<label index="tx_fsmiexams_field">Part of degree program</label>
 			<label index="tx_fsmiexams_field.name">Name</label>
@@ -60,7 +61,9 @@
 			<label index="tx_fsmiexams_loan.withdrawaldate">Withdrawal Date</label>
 			<label index="tx_fsmiexams_loan.deposit">Deposit</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Lending Date</label>
-			<label index="tt_content.list_type_pi1">List View</label>
+			<label index="tt_content.list_type_pi1">Show Archive</label>
+			<label index="tt_content.list_type_pi1.aggregated">Aggregated View</label>
+			<label index="tt_content.list_type_pi1.list">List View</label>
 			<label index="tt_content.list_type_pi2">Edit Exams Folder</label>
 			<label index="tt_content.list_type_pi3">Lend it</label>
 			<label index="tt_content.list_type_pi4">Exam Input</label>
@@ -68,6 +71,7 @@
 		<languageKey index="de" type="array">
 			<label index="tx_fsmiexams_general.message.sql_error">Ein Datenbankfehler ist aufgetreten. Die Operation wurde nicht erfolgreich durchgeführt.</label>
 			<label index="tx_fsmiexams_degreeprogram">Studiengang</label>
+			<label index="tx_fsmiexams_degreeprograms">Studiengänge</label>
 			<label index="tx_fsmiexams_degreeprogram.name">Name</label>
 			<label index="tx_fsmiexams_field">Bereich/Fachrichtung</label>
 			<label index="tx_fsmiexams_field.name">Name</label>
@@ -120,7 +124,9 @@
 			<label index="tx_fsmiexams_loan.withdrawaldate">Rücknahme Datum</label>
 			<label index="tx_fsmiexams_loan.deposit">Pfand</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Ausleihe Datum</label>
-			<label index="tt_content.list_type_pi1">Listenansicht</label>
+			<label index="tt_content.list_type_pi1">Archiv anzeigen</label>
+			<label index="tt_content.list_type_pi1.aggregated">Moduleansicht</label>
+			<label index="tt_content.list_type_pi1.list">Listenansicht</label>
 			<label index="tt_content.list_type_pi2">Ausleiheordner bearbeiten</label>
 			<label index="tt_content.list_type_pi3">Ausleihen</label>
 			<label index="tt_content.list_type_pi4">Klausur Eingabe</label>

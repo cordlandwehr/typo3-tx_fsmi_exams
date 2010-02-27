@@ -59,11 +59,11 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
  		$this->cObj = t3lib_div::makeInstance('tslib_cObj');	// TODO need to check!
 		$content = '';
 
-		$content .= '<div style="text-align:right;">';
-		$content .= $this->pi_linkTP('List-View',
+		$content .= '<div style="text-align:right; font-weight:bold;">';
+		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_pi1.list"),
 						array (	self::extKey.'[type]' => self::kVIEW_TYPE_LIST));
 		$content .= ' / ';
-		$content .= $this->pi_linkTP('Menue-View',
+		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_pi1.aggregated"),
 				array (	self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION));
 		$content .= '</div>';
 

@@ -10,6 +10,18 @@
 			background-color: #ccc;
 		}
 
+		table.fsmiexams_aggregation_view {
+			text-align: left;
+		}
+		tr.fsmiexams_aggregation_view_tablehead {
+			background-color:#ccc;
+		}
+
+		.fsmiexams_aggregation_optionlist {
+			margin-top: 0px;
+			list-style-image: url(../typo3conf/ext/fsmi_exams/images/arrow_r.png);
+		}
+
 		/* notification messages */
 		div.fsmivkrit_notify_ok {
 			background-color: #d3efd3;
