@@ -90,7 +90,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 			$content .= '<ul class="fsmiexams_aggregation_optionlist">';
 			while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
 				// do not show empty degree programs ('cause sometimes admins are to ambitious when designing the backend structure...)
-				if (count(tx_fsmiexams_div::getExamUIDs ($rowProgram['uid']))==0)
+				if (count(tx_fsmiexams_div::getExamUIDs ($rowProgram['uid'],0,0,0,0,0,0))==0)
 					continue;
 
 				$content .= '<li class="fsmiexams_aggregation_optionlist">'.$this->pi_linkTP(
@@ -122,7 +122,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 			$content .= '<ul class="fsmiexams_aggregation_optionlist">';
 			while ($resField && $rowField = mysql_fetch_assoc($resField)) {
 				// do not show empty fields
-				if (count(tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $rowField['uid']))==0)
+				if (count(tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $rowField['uid'],0,0,0,0,0))==0)
 					continue;
 
 				$content .= '<li>'.$this->pi_linkTP(
@@ -155,7 +155,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 			$content .= '<ul class="fsmiexams_aggregation_optionlist">';
 			while ($resModule && $rowModule = mysql_fetch_assoc($resModule)) {
 				// do not show empty modules
-				if (count(tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $this->field, $rowModule['uid']))==0)
+				if (count(tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $this->field, $rowModule['uid'],0,0,0,0))==0)
 					continue;
 
 				$content .= '<li>'.$this->pi_linkTP(
@@ -192,7 +192,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 		$examTypes = $this->listExamTypes();
 
 		while ($resLecture && $rowLecture = mysql_fetch_assoc($resLecture)) {
-			$exams = tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $this->field, $this->module, $rowLecture['uid']);
+			$exams = tx_fsmiexams_div::getExamUIDs ($this->degreeprogram, $this->field, $this->module, $rowLecture['uid'],0,0,0);
 			$content .= '<li><div ';
 			if ($rowLecture['uid'] == $this->lecture)
 				$content .= 'style="font-weight:bold;"';
@@ -224,8 +224,8 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 				foreach ($exams as $exam)  {
 					$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam);
 					($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
-					$content .= '<td>'.tx_fsmiexams_div::examToText($exam).'</td>';
-					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDB['lecturer']).'</td>';
+					$content .= '<td>'.tx_fsmiexams_div::examToText($exam,$this->pidEditPage).'</td>';
+					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDB['lecturer'],$this->pidEditPage).'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::examToTermdate($exam).'</td>';
 					if ($exam['number']!=0)
 						$content .= '<td>'.$examDB['number'].'</td>';

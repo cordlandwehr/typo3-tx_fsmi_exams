@@ -125,7 +125,7 @@
 			<label index="tx_fsmiexams_loan.deposit">Pfand</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Ausleihe Datum</label>
 			<label index="tt_content.list_type_pi1">Archiv anzeigen</label>
-			<label index="tt_content.list_type_pi1.aggregated">Moduleansicht</label>
+			<label index="tt_content.list_type_pi1.aggregated">Modulansicht</label>
 			<label index="tt_content.list_type_pi1.list">Listenansicht</label>
 			<label index="tt_content.list_type_pi2">Ausleiheordner bearbeiten</label>
 			<label index="tt_content.list_type_pi3">Ausleihen</label>
