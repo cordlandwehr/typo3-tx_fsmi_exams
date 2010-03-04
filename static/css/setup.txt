@@ -1,4 +1,4 @@
- plugin.tx_fsmi_food {
+ plugin.tx_fsmi_exams {
 	_CSS_DEFAULT_STYLE (
 		div.fsmiexams_module {
 			background-color: #d5e5ff;
