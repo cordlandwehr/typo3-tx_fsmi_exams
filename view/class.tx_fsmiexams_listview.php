@@ -49,6 +49,9 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 	var $pidEditPage 		= 0;	// PID for edit functions
 	var $LANG;						// language object
 	var $cObj;
+	var $rightsEdit		= false;
+	var $rightsDownload	= false;
+	var $rightsPrint	= false;
 
 	function __construct () {
 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
@@ -57,8 +60,19 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 	}
 
-	function init($cObj, $pidEditPage) {
-		$this->pidEditPage = $pidEditPage;
+	function init($cObj, $pidEditPage, $allowedGroupsEdit, $allowedGroupsDownload, $allowedGroupsPrint) {
+		// edit rights
+		$this->rightsEdit = $this->isUserAllowedToEdit($allowedGroupsEdit);
+		if ($this->rightsEdit)
+			$this->pidEditPage = $pidEditPage;
+		else
+			$this->pidEditPage = 0;
+		// Download rights
+		$this->rightsDownload = $this->isUserAllowedToDownload($allowedGroupsDownload);
+
+		// Printing rights
+		$this->rightsPrint = $this->isUserAllowedToPrint($allowedGroupsPrint);
+
 		$this->cObj = $cObj;
 	}
 
@@ -158,15 +172,21 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 							else
 								$content .= '<td>-</td>';
 							if ($exam['exactdate']!=0)
-								$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
+ 								$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
 							else
 								$content .= '<td>-</td>';
 
-
-
-							$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">'.$examTypes[$exam['examtype']].'</a>';
-							if ($exam['material']!='')
-								$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmateriall</a>';
+							// download files
+							if ($this->rightsDownload==false)
+								$content .= '<td>'.$examTypes[$exam['examtype']].'';
+							else
+								$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">'.$examTypes[$exam['examtype']].'</a>';
+							if ($exam['material']!='') {
+								if ($this->rightsDownload==false)
+									$content .= '<br />Zusatzmaterial';
+								else
+									$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmaterial</a>';
+							}
 							$content .= '</td>';
 
 							$content .= '</tr>';

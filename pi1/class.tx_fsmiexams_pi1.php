@@ -46,8 +46,13 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 	var $prefixId      = 'tx_fsmiexams_pi1';		// Same as class name
 	var $scriptRelPath = 'pi1/class.tx_fsmiexams_pi1.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
-	var $pidEditPage   = 0;
 	var $viewObj;
+
+	// flexform values
+	var $pidEditPage   = 0;
+	var $allowedGroupsEdit 		= 0;
+	var $allowedGroupsDownload	= 0;
+	var $allowedGroupsPrint		= 0;
 
 	/**
 	 * The main method of the PlugIn
@@ -81,9 +86,12 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 
 		// get Edit information
 		$this->pidEditPage = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidEdit'));
+		$this->allowedGroupsEdit = htmlspecialchars($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'rightsEdit'));
+		$this->allowedGroupsDownload = htmlspecialchars($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'rightsDownload'));
+		$this->allowedGroupsPrint = htmlspecialchars($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'rightsPrint'));
 
 		// case of listview
-		$this->viewObj->init($this, $this->pidEditPage);
+		$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
 
 		$content .= $this->viewObj->switchViewMenu();
 		$content .= $this->viewObj->listMenuBreadcrumb();

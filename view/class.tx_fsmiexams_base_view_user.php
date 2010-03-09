@@ -124,6 +124,56 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 		return $content;
 	}
 
+// TODO next three functions can be merged
+
+	/**
+	 * This function confirms if a user is really allowed to edit files.
+	 * @param $allowedGroups directly from flexform (but escaped) as comma-separated list
+	 * @return boolean
+	 */
+	function isUserAllowedToEdit ($allowedGroups) {
+		$userGroups = $GLOBALS['TSFE']->fe_user->groupData['uid'];
+		$allowedGroups = explode(',',$allowedGroups);
+
+		foreach ($userGroups as $group) {
+			if (in_array($group, $allowedGroups))
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * This function confirms if a user is really allowed to download files.
+	 * @param $allowedGroups directly from flexform (but escaped) as comma-separated list
+	 * @return boolean
+	 */
+	function isUserAllowedToDownload ($allowedGroups) {
+		$userGroups = $GLOBALS['TSFE']->fe_user->groupData['uid'];
+		$allowedGroups = explode(',',$allowedGroups);
+
+		foreach ($userGroups as $group) {
+			if (in_array($group, $allowedGroups))
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * This function confirms if a user is really allowed to print files.
+	 * @param $allowedGroups directly from flexform (but escaped) as comma-separated list
+	 * @return boolean
+	 */
+	function isUserAllowedToPrint ($allowedGroups) {
+		$userGroups = $GLOBALS['TSFE']->fe_user->groupData['uid'];
+		$allowedGroups = explode(',',$allowedGroups);
+
+		foreach ($userGroups as $group) {
+			if (in_array($group, $allowedGroups))
+				return true;
+		}
+		return false;
+	}
+
 
 }
 
