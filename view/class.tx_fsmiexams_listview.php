@@ -132,9 +132,8 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 
 					while ($resLecture && $rowLecture = mysql_fetch_assoc($resLecture)) {
 
+						// get exams for this lecture
 						$examUIDs = tx_fsmiexams_div::getExamUIDs($rowProgram['uid'],$rowField['uid'],$rowModule['uid'],$rowLecture['uid'],0,0,0);
-						if (count($examUIDs)==0)
-							continue;
 
 						// lecture
 						$content .= '<tr class="sepline">
