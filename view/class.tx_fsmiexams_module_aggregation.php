@@ -47,6 +47,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	var $lecturer;
 	var $exam;
 	var $LANG;
+	var $pidEditPage	= 0;
 
 	function __construct() {
 		// select selectors
@@ -69,6 +70,13 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 	}
+
+
+	function init($cObj, $pidEditPage) {
+		$this->pidEditPage = $pidEditPage;
+		$this->cObj = $cObj;
+	}
+
 
 	/**
 	 * List function for selector menu and display

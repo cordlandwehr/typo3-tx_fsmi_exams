@@ -74,11 +74,11 @@ class tx_fsmiexams_div {
 		self::init();
 
 		$lectureList = explode(',',$uid);
-		$text = '';
+		$lectureArray = array();
 		foreach ($lectureList as $uid) {
 			$lecture = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
 			if ($editPage)
-				$text .= self::$pi_base->pi_linkTP(
+				$lectureArray[] = self::$pi_base->pi_linkTP(
 								$lecture['name'],
 								array (
 									self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURE,
@@ -86,11 +86,11 @@ class tx_fsmiexams_div {
 								),
 								0,
 								$editPage
-							  ). ' ';
+							  );
 			else
-				$text .= $lecture['name'];
+				$lectureArray[] = $lecture['name'];
 		}
-		return $text;
+		return implode('; ',$lectureArray);
 	}
 
 	/**
@@ -114,7 +114,7 @@ class tx_fsmiexams_div {
 							$editPage
 						  ). ' ';
 		else
-			$text .= $examDB['name'];
+			$text = $examDB['name'];
 		return $text;
 	}
 
@@ -128,11 +128,11 @@ class tx_fsmiexams_div {
 	static function lecturerToText ($uid, $editPage) {
 		self::init();
 		$lecturerList = explode(',',$uid);
-		$text = '';
+		$lecturerArray = array();
 		foreach ($lecturerList as $uid) {
 			$lecturer = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
 			if ($editPage)
-				$text .= self::$pi_base->pi_linkTP(
+				$lecturerArray[] = self::$pi_base->pi_linkTP(
 								$lecturer['lastname'].', '.$lecturer['firstname'],
 								array (
 									self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURER,
@@ -142,9 +142,9 @@ class tx_fsmiexams_div {
 								$editPage
 							  ). ' ';
 			else
-				$text .= $lecturer['lastname'].', '.$lecturer['firstname'].' ';
+				$lecturerArray[] = $lecturer['lastname'].', '.$lecturer['firstname'].' ';
 		}
-		return $text;
+		return implode('; ', $lecturerArray);
 	}
 
 	/**

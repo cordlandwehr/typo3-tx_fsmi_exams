@@ -1313,10 +1313,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 									'<h4>Exam data was saved</h4>
 									<ul>'.
 										'<li><strong>Name:</strong> '.$formData['name'].'</li>'.
-										'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT).'</li>'.
-										'<li><strong>Year/Term/No.:</strong> '.intval($formData['year']).'/'.intval($formData['term']).'/'.intval($formData['number']).'</li>'.
-										'<li><strong>Date:</strong> '.date('d.m.y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
-										'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT).'</li>'.
+										'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT,0).'</li>'.
+										'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT,0).'</li>'.
+										'<li><strong>Year/Term/No.:</strong> '.intval($formData['term']).' '.intval($formData['year']).' Nr. '.intval($formData['number']).'</li>'.
+										'<li><strong>Date:</strong> '.date('d.m.Y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
 									'</ul>'.
 								'</div>');
 					else

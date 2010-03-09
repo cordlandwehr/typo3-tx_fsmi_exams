@@ -76,7 +76,7 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 				break;
 			}
 			default:
-				$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_listview);
+				$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_module_aggregation);
 		}
 
 		// get Edit information

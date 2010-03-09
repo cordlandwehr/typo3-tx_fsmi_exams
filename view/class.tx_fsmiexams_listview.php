@@ -139,8 +139,7 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 						// lecture
 						$content .= '<tr class="sepline">
 										<td colspan="6"><strong>'.tx_fsmiexams_div::lectureToText($rowLecture['uid'],$this->pidEditPage).
-										' ('.count($examUIDs).')</strong><td>
-									</tr>';
+										' ('.count($examUIDs).')</strong></td></tr>';
 
 						// exams
 						foreach ($examUIDs as $uid) {
