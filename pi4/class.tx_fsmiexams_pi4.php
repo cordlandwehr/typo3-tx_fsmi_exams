@@ -214,7 +214,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["number"] = $formData['number'];
 				$this->piVars["term"] = $formData['term'];
 				for ($i=0; $i<3; $i++)
-					$this->piVars["lecture".$i] = $formData['lecture'.$i];
+					$this->piVars["lecture".$i] = substr($formData['lecture'.$i],0,strrchr($formData['lecture'.$i],'-'))  ;
 				$this->piVars["year"] = $formData['year'];
 				if ($formData['exactdate']!='')
 					$this->piVars["exactdate"] = strtotime($formData['exactdate']);
@@ -588,7 +588,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsModule"
 						searchAttr="name"
-						query="{uid:\'*\'}"
+						query="{uid:\'*\', master:1}"
 						style="width:300px;"
 						name="'.$this->extKey.'[module]"
 						id="'.$this->extKey.'_module"
@@ -612,10 +612,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					<input dojoType="dijit.form.FilteringSelect"
 						store="fsmiexamsLecture"
 						searchAttr="name"
-						query="{uid:\'*\'}"
-						style="width:300px;"
-						value="'.$this->piVars['lecture0'].'"
-						name="'.$this->extKey.'[lecture0]"
+						query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture0'])
+			$content .= ' value="'.$this->piVars['lecture0'].'-0" ';
+		$content .= '	name="'.$this->extKey.'[lecture0]"
 						id="'.$this->extKey.'_lecture0"
 						autocomplete="true"
 					/>
@@ -633,9 +634,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsLecture"
 						searchAttr="name" ';
 		if (!$this->piVars['lecture0']) $content .= 'disabled="disabled"';
-		$content .= '	query="{uid:\'*\'}"
-						style="width:300px;"
-						value="'.$this->piVars['lecture1'].'"
+		$content .= '	query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture1'])
+			$content .= ' value="'.$this->piVars['lecture1'].'-0" ';
+		$content .= '	name="'.$this->extKey.'[lecture1]"
 						name="'.$this->extKey.'[lecture1]"
 						id="'.$this->extKey.'_lecture1"
 						autocomplete="true"
@@ -654,10 +657,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 						store="fsmiexamsLecture"
 						searchAttr="name" ';
 		if (!$this->piVars['lecture1']) $content .= 'disabled="disabled"';
-		$content .= '	query="{uid:\'*\'}"
-						style="width:300px;"
-						value="'.$this->piVars['lecture2'].'"
-						name="'.$this->extKey.'[lecture2]"
+		$content .= '	query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture2'])
+			$content .= ' value="'.$this->piVars['lecture2'].'-0" ';
+		$content .= '	name="'.$this->extKey.'[lecture2]"
 						id="'.$this->extKey.'_lecture2"
 						autocomplete="true"
 					/>
@@ -962,7 +966,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// file opening
 		$fileContent  =
 			'{'."\n".
-				'identifier: "uid",'."\n".
+				'identifier: "line",'."\n".
 				'items: ['."\n";
 
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
@@ -970,10 +974,16 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 												WHERE deleted=0 AND hidden=0
 												ORDER BY name');
 
-		while ($res && $row = mysql_fetch_assoc($res))
-			$fileContent .= '{name:"'.$row['name'].'", uid:"'.$row['uid'].'", module:"'.$row['module'].'"},'."\n";
+		while ($res && $row = mysql_fetch_assoc($res)) {
+			$counter = 0;
+			$modules = explode(',',$row['module']);
+			$master = 1;
+			foreach ($modules as $module) {
+				$fileContent .= '{name:"'.$row['name'].'", uid:"'.$row['uid'].'", line:"'.$row['uid'].'-'.$counter++.'", module:"'.$module.'", master:"'.$master.'"},'."\n";
+				$master = 0;
+			}
+		}
 
-		// TODO workaround
 		// empty entry for each module
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_module
@@ -981,8 +991,15 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 												ORDER BY name');
 
 		$negativeCntr = -1;
-		while ($res && $row = mysql_fetch_assoc($res))
-			$fileContent .= '{name:"---", uid:"'.$negativeCntr--.'", module:"'.$row['uid'].'"},'."\n";
+		while ($res && $row = mysql_fetch_assoc($res)) {
+			// use master/client variable to determine that only this entry should be presented when no selection is done
+			if ($negativeCntr==-1)
+				$master=1;
+			else
+				$master=0;
+
+			$fileContent .= '{name:"---", uid:"0", line:"'.$negativeCntr--.'", module:"'.$row['uid'].'", master:"'.$master.'"},'."\n";
+		}
 
 
 		// file ending
@@ -1421,11 +1438,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		switch($type) {
 			case self::kEDIT_TYPE_EXAM: {
 
-				if (intval($formData['lecture0'])==0)
+				if (htmlspecialchars($formData['lecture0'])=='')
 					return false;
 				if ($formData['name']=='')
 					return false;
-				if (intval($formData['lecturer0'])==0)
+				if (htmlspecialchars($formData['lecturer0'])=='')
 					return false;
 			  // TODO to test this we have problems with updates where this is not mandatory, need complete new file framework
 // 				if ($formDataFiles['tmp_name']['file']=='')
