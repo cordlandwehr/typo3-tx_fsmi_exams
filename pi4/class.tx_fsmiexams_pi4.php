@@ -1238,7 +1238,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					if ($res)
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::kSTATUS_INFO,
-							'Lecture saved: '.htmlentities($formData['name']));
+							'Lecture saved: '.htmlentities(utf8_decode($formData['name'])));
 					else
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::kSTATUS_ERROR,
@@ -1332,7 +1332,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 								'<div>'.
 									'<h4>Exam data was saved</h4>
 									<ul>'.
-										'<li><strong>Name:</strong> '.$formData['name'].'</li>'.
+										'<li><strong>Name:</strong> '.htmlspecialchars(utf8_decode($formData['name'])).'</li>'.
 										'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT,0).'</li>'.
 										'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT,0).'</li>'.
 										'<li><strong>Year/Term/No.:</strong> '.intval($formData['term']).' '.intval($formData['year']).' Nr. '.intval($formData['number']).'</li>'.
