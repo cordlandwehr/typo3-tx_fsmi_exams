@@ -967,7 +967,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_lecture
-												WHERE deleted=0 AND hidden=0');
+												WHERE deleted=0 AND hidden=0
+												ORDER BY name');
 
 		while ($res && $row = mysql_fetch_assoc($res))
 			$fileContent .= '{name:"'.$row['name'].'", uid:"'.$row['uid'].'", module:"'.$row['module'].'"},'."\n";
@@ -976,7 +977,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// empty entry for each module
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_module
-												WHERE deleted=0 AND hidden=0');
+												WHERE deleted=0 AND hidden=0
+												ORDER BY name');
 
 		$negativeCntr = -1;
 		while ($res && $row = mysql_fetch_assoc($res))
@@ -1006,7 +1008,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 												FROM tx_fsmiexams_lecturer
-												WHERE deleted=0 AND hidden=0');
+												WHERE deleted=0 AND hidden=0
+												ORDER BY lastname');
 
 		while ($res && $row = mysql_fetch_assoc($res))
 			$fileContent .= '{name:"'.$row['lastname'].', '.$row['firstname'].'", uid:"'.$row['uid'].'"},'."\n";
