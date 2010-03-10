@@ -213,7 +213,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["name"] = $formData['name'];
 				$this->piVars["number"] = $formData['number'];
 				$this->piVars["term"] = $formData['term'];
-				for ($i=0; $i<3; $i++)
+				for ($i=0; $i<4; $i++)
 					$this->piVars["lecture".$i] = substr($formData['lecture'.$i],0,strrchr($formData['lecture'.$i],'-'))  ;
 				$this->piVars["year"] = $formData['year'];
 				if ($formData['exactdate']!='')
@@ -663,6 +663,28 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			$content .= ' value="'.$this->piVars['lecture2'].'-0" ';
 		$content .= '	name="'.$this->extKey.'[lecture2]"
 						id="'.$this->extKey.'_lecture2"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+
+		// Lecture 3
+		$content .=
+			'<tr>
+				<td><label for="'.$this->extKey.'_lecture3">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				' + 3:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecture"
+						searchAttr="name" ';
+		if (!$this->piVars['lecture1']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture3'])
+			$content .= ' value="'.$this->piVars['lecture3'].'-0" ';
+		$content .= '	name="'.$this->extKey.'[lecture3]"
+						id="'.$this->extKey.'_lecture3"
 						autocomplete="true"
 					/>
 				</td>

@@ -68,6 +68,7 @@ function init_update_select_exam() {
   			dijit.byId("fsmi_exams_lecture0").query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
   			dijit.byId("fsmi_exams_lecture1").query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
   			dijit.byId("fsmi_exams_lecture2").query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
+			dijit.byId("fsmi_exams_lecture3").query={module:(dijit.byId('fsmi_exams_module').attr('value'))};
    		});
 	});
 
@@ -90,6 +91,13 @@ function init_update_select_exam() {
 	dojo.addOnLoad(function(){
   		dojo.connect(dijit.byId("fsmi_exams_lecture1"),"onChange",function(){
   			dijit.byId("fsmi_exams_lecture2").setAttribute("disabled",false);
+   		});
+	});
+
+	// update lecture3
+	dojo.addOnLoad(function(){
+  		dojo.connect(dijit.byId("fsmi_exams_lecture2"),"onChange",function(){
+  			dijit.byId("fsmi_exams_lecture3").setAttribute("disabled",false);
    		});
 	});
 
