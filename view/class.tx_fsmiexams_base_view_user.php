@@ -45,11 +45,31 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
 	const extKey			= 'fsmi_exams';
 
-	var $pidEditPage 		= 0;	// PID for edit functions
 	var $LANG;						// language object
 	var $cObj;
 	var $examDiv;
 
+	protected $pidEditPage 		= 0;	// PID for edit functions
+	protected $rightsEdit		= false;
+	protected $rightsDownload	= false;
+	protected $rightsPrint		= false;
+
+	function init($cObj, $pidEditPage, $allowedGroupsEdit, $allowedGroupsDownload, $allowedGroupsPrint) {
+		// edit rights
+		$this->rightsEdit = $this->isUserAllowedToEdit($allowedGroupsEdit);
+		if ($this->rightsEdit)
+			$this->pidEditPage = $pidEditPage;
+		else
+			$this->pidEditPage = 0;
+		// Download rights
+		$this->rightsDownload = $this->isUserAllowedToDownload($allowedGroupsDownload);
+
+		// Printing rights
+		$this->rightsPrint = $this->isUserAllowedToPrint($allowedGroupsPrint);
+
+		// crucial point: set up cObj
+		$this->cObj = $cObj;
+	}
 
 	/**
 	 * This function provides a selector for the different views.
@@ -74,10 +94,6 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 		$this->LANG = t3lib_div::makeInstance('language');
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
-	}
-
-	function init() {
-		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 	}
 
 	/**

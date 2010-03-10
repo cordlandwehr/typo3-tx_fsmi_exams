@@ -47,8 +47,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	var $lecturer;
 	var $exam;
 	var $LANG;
-	var $pidEditPage	= 0;
-	var $downloadAllowed	= false;
+
 
 	function __construct() {
 		// select selectors
@@ -71,24 +70,6 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 	}
-
-
-	function init($cObj, $pidEditPage, $allowedGroupsEdit, $allowedGroupsDownload, $allowedGroupsPrint) {
-		// edit rights
-		$this->rightsEdit = $this->isUserAllowedToEdit($allowedGroupsEdit);
-		if ($this->rightsEdit)
-			$this->pidEditPage = $pidEditPage;
-		else
-			$this->pidEditPage = 0;
-		// Download rights
-		$this->rightsDownload = $this->isUserAllowedToDownload($allowedGroupsDownload);
-
-		// Printing rights
-		$this->rightsPrint = $this->isUserAllowedToPrint($allowedGroupsPrint);
-
-		$this->cObj = $cObj;
-	}
-
 
 	/**
 	 * List function for selector menu and display

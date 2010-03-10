@@ -46,34 +46,14 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 	const kSTATUS_OK 		= 3;
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
 
-	var $pidEditPage 		= 0;	// PID for edit functions
 	var $LANG;						// language object
 	var $cObj;
-	var $rightsEdit		= false;
-	var $rightsDownload	= false;
-	var $rightsPrint	= false;
 
 	function __construct () {
 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		$this->LANG = t3lib_div::makeInstance('language');
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
-	}
-
-	function init($cObj, $pidEditPage, $allowedGroupsEdit, $allowedGroupsDownload, $allowedGroupsPrint) {
-		// edit rights
-		$this->rightsEdit = $this->isUserAllowedToEdit($allowedGroupsEdit);
-		if ($this->rightsEdit)
-			$this->pidEditPage = $pidEditPage;
-		else
-			$this->pidEditPage = 0;
-		// Download rights
-		$this->rightsDownload = $this->isUserAllowedToDownload($allowedGroupsDownload);
-
-		// Printing rights
-		$this->rightsPrint = $this->isUserAllowedToPrint($allowedGroupsPrint);
-
-		$this->cObj = $cObj;
 	}
 
 	/**
