@@ -228,25 +228,25 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 					$content .= '<td>'.tx_fsmiexams_div::examToText($exam,$this->pidEditPage).'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDB['lecturer'],$this->pidEditPage).'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::examToTermdate($exam).'</td>';
-					if ($exam['number']!=0)
+					if ($examDB['number']!=0)
 						$content .= '<td>'.$examDB['number'].'</td>';
 					else
 						$content .= '<td>-</td>';
-					if ($exam['exactdate']!=0)
+					if ($examDB['exactdate']!=0)
 						$content .= '<td>'.date('d.m.y',$examDB['exactdate']).'</td>';
 					else
 						$content .= '<td>-</td>';
 
 					// download files
 					if ($this->rightsDownload==false)
-						$content .= '<td>'.$examTypes[$exam['examtype']].'';
+						$content .= '<td>'.$examTypes[$examDB['examtype']].'';
 					else
-						$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">'.$examTypes[$exam['examtype']].'</a>';
-					if ($exam['material']!='') {
+						$content .= '<td><a href="uploads/tx_fsmiexams/'.$examDB['file'].'">'.$examTypes[$examDB['examtype']].'</a>';
+					if ($examDB['material']!='') {
 						if ($this->rightsDownload==false)
 							$content .= '<br />Zusatzmaterial';
 						else
-							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmaterial</a>';
+							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$examDB['material'].'">Zusatzmaterial</a>';
 					}
 					$content .= '</td>';
 
