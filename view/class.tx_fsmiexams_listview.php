@@ -59,7 +59,7 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 	/**
 	 * This function outputs a list with anchors to all degree programs.
 	 */
-	function listMenuBreadcrumb() {
+	function listMenuBreadcrumb($type) {
 		$content = '';
 		$content .= '<h3>'.$this->LANG->getLL("tx_fsmiexams_degreeprograms").'</h3>';
 
@@ -67,7 +67,7 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 												FROM tx_fsmiexams_degreeprogram
 												WHERE deleted=0 AND hidden=0');
 		while ($resProgram && $rowProgram = mysql_fetch_assoc($resProgram)) {
-			$content .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'#fsmiexams_degreeprogram_'.$rowProgram['uid'].'">'.$rowProgram['name'].'</a>';
+			$content .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'&'.parent::extKey.'[type]='.parent::kVIEW_TYPE_LIST.'#fsmiexams_degreeprogram_'.$rowProgram['uid'].'">'.$rowProgram['name'].'</a>';
 			$content .= ' / ';
 		}
 

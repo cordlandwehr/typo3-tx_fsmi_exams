@@ -236,7 +236,20 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 						$content .= '<td>'.date('d.m.y',$examDB['exactdate']).'</td>';
 					else
 						$content .= '<td>-</td>';
-					$content .= '<td>'.$examTypes[$examDB['examtype']].'</td>';
+
+					// download files
+					if ($this->rightsDownload==false)
+						$content .= '<td>'.$examTypes[$exam['examtype']].'';
+					else
+						$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">'.$examTypes[$exam['examtype']].'</a>';
+					if ($exam['material']!='') {
+						if ($this->rightsDownload==false)
+							$content .= '<br />Zusatzmaterial';
+						else
+							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmaterial</a>';
+					}
+					$content .= '</td>';
+
 					$content .= '</tr>'."\n";
 				}
 				$content .= '</table></li>';
