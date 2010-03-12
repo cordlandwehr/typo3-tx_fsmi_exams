@@ -1357,7 +1357,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 										'<li><strong>Name:</strong> '.htmlspecialchars(utf8_decode($formData['name'])).'</li>'.
 										'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT,0).'</li>'.
 										'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT,0).'</li>'.
-										'<li><strong>Year/Term/No.:</strong> '.intval($formData['term']).' '.intval($formData['year']).' Nr. '.intval($formData['number']).'</li>'.
+										'<li><strong>Year/Term/No.:</strong> '.tx_fsmiexams_div::examToTermdate(intval($formData['term'])).' '.intval($formData['year']).' Nr. '.intval($formData['number']).'</li>'.
 										'<li><strong>Date:</strong> '.date('d.m.Y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
 									'</ul>'.
 								'</div>');
