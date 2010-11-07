@@ -693,8 +693,7 @@ $TCA['tx_fsmiexams_folder'] = array (
 				'allowed' => 'tx_fsmiexams_exam',
 				'size' => 10,
 				'minitems' => 0,
-				'maxitems' => 100,
-				"MM" => "tx_fsmiexams_folder_content_mm",
+				'maxitems' => 1000,
 			)
 		),
 		'associated_lectures' => array (
