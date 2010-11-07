@@ -697,9 +697,21 @@ $TCA['tx_fsmiexams_folder'] = array (
 				"MM" => "tx_fsmiexams_folder_content_mm",
 			)
 		),
+		'associated_lectures' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.associated_lectures',
+			'config' => array (
+				'type' => 'group',
+				'internal_type' => 'db',
+				'allowed' => 'tx_fsmiexams_lecture',
+				'size' => 10,
+				'minitems' => 0,
+				'maxitems' => 100,
+			)
+		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, barcode, state, content')
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, barcode, state, content, associated_lectures')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')

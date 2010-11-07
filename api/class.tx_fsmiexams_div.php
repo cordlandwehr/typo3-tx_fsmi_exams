@@ -70,7 +70,7 @@ class tx_fsmiexams_div {
 	 * @param UID $uid
 	 * @return text
 	 */
-	static function lectureToText ($uid, $editPage) {
+	static function lectureToText ($uid, $editPage=0) {
 		self::init();
 
 		$lectureList = explode(',',$uid);
@@ -99,7 +99,7 @@ class tx_fsmiexams_div {
 	 * @param UID $uid
 	 * @return text
 	 */
-	static function examToText ($uid, $editPage) {
+	static function examToText ($uid, $editPage=0) {
 		self::init();
 		$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
@@ -295,6 +295,23 @@ class tx_fsmiexams_div {
 
 
 		return $examUIDs;
+	}
+
+	/**
+	 * Get all exam UIDs that are present for specific lecture
+	 **/
+	function get_exam_uids ($lecture) {
+		$exam_uids = array();
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_exam.uid as uid, year, term, exactdate
+												FROM tx_fsmiexams_exam
+												WHERE FIND_IN_SET('.$lecture.',lecture)
+													AND deleted=0 AND hidden=0
+												ORDER BY year DESC, term ASC, number DESC, exactdate DESC, name');
+
+		while ($res && $row = mysql_fetch_assoc($res))
+			array_push($exam_uids, $row['uid']);
+
+		return $exam_uids;
 	}
 
 	/**

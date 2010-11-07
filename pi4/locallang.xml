@@ -8,28 +8,36 @@
 		<languageKey index="default" type="array">
 			<label index="back">Back</label>
 			<label index="submit_button_label">Click here to submit value</label>
+			<label index="submit_button_label_folder_detail">Next Step</label>
 			<label index="input_form_lecturer">Create new Lecturer</label>
 			<label index="input_form_lecture">Create new Lecture</label>
 			<label index="input_form_exam">Create new Exam</label>
+			<label index="input_form_folder">Create new Folder</label>
 			<label index="edit_form_lecturer">Edit existing Lecturer</label>
 			<label index="edit_form_lecture">Edit existing Lecture</label>
 			<label index="edit_form_exam">Edit existing Exam</label>
+			<label index="edit_form_folder">Edit existing Folder</label>
 			<label index="option_new-lecturer">Create Lecturer</label>
 			<label index="option_new-lecture">Create Lecture</label>
 			<label index="option_new-exam">Create Exam</label>
+			<label index="option_new-folder">Create Folder</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="back">Zurück</label>
 			<label index="submit_button_label">Daten eintragen</label>
+			<label index="submit_button_label_folder_detail">Nächster Schritt</label>
 			<label index="input_form_lecturer">Neuen Prüfer erstellen</label>
 			<label index="input_form_lecture">Neue Veranstaltung erstellen</label>
 			<label index="input_form_exam">Neue Prüfung erstellen</label>
+			<label index="input_form_folder">Neuen Ordner anlegen</label>
 			<label index="edit_form_lecturer">Bestehenden Prüfer bearbeiten</label>
 			<label index="edit_form_lecture">Bestehende Veranstaltung bearbeiten</label>
 			<label index="edit_form_exam">Bestehende Prüfung bearbeiten</label>
+			<label index="edit_form_folder">Bestehenden Ordner bearbeiten</label>
 			<label index="option_new-lecturer">Prüfer erstellen</label>
 			<label index="option_new-lecture">Vorlesung erstellen</label>
 			<label index="option_new-exam">Prüfung erstellen</label>
+			<label index="option_new-folder">Ordner anlegen</label>
 		</languageKey>
 	</data>
 </T3locallang>

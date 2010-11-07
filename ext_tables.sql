@@ -13,7 +13,7 @@ CREATE TABLE tx_fsmiexams_degreeprogram (
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	name varchar(64) DEFAULT '' NOT NULL,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -36,7 +36,7 @@ CREATE TABLE tx_fsmiexams_field (
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	name varchar(64) DEFAULT '' NOT NULL,
 	degreeprogram text,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -59,7 +59,7 @@ CREATE TABLE tx_fsmiexams_module (
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	name varchar(128) DEFAULT '' NOT NULL,
 	field text,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -82,7 +82,7 @@ CREATE TABLE tx_fsmiexams_lecture (
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	name varchar(128) DEFAULT '' NOT NULL,
 	module text,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -115,7 +115,7 @@ CREATE TABLE tx_fsmiexams_exam (
 	material text,
 	quality int(11) DEFAULT '0' NOT NULL,
 	examtype text,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -135,7 +135,7 @@ CREATE TABLE tx_fsmiexams_lecturer (
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	firstname varchar(255) DEFAULT '' NOT NULL,
 	lastname varchar(255) DEFAULT '' NOT NULL,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -154,7 +154,7 @@ CREATE TABLE tx_fsmiexams_examtype (
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	description tinytext,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -164,7 +164,7 @@ CREATE TABLE tx_fsmiexams_examtype (
 
 #
 # Table structure for table 'tx_fsmiexams_folder_content_mm'
-# 
+#
 #
 CREATE TABLE tx_fsmiexams_folder_content_mm (
   uid_local int(11) DEFAULT '0' NOT NULL,
@@ -196,7 +196,8 @@ CREATE TABLE tx_fsmiexams_folder (
 	barcode int(11) DEFAULT '0' NOT NULL,
 	state text,
 	content int(11) DEFAULT '0' NOT NULL,
-	
+	associated_lectures text,
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -219,7 +220,7 @@ CREATE TABLE tx_fsmiexams_state (
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	name varchar(255) DEFAULT '' NOT NULL,
 	description text,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
@@ -249,7 +250,7 @@ CREATE TABLE tx_fsmiexams_loan (
 	withdrawaldate int(11) DEFAULT '0' NOT NULL,
 	deposit varchar(255) DEFAULT '' NOT NULL,
 	lendingdate int(11) DEFAULT '0' NOT NULL,
-	
+
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );

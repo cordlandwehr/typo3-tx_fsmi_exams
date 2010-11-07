@@ -48,6 +48,7 @@
 			<label index="tx_fsmiexams_folder.barcode">Barcode</label>
 			<label index="tx_fsmiexams_folder.state">State</label>
 			<label index="tx_fsmiexams_folder.content">Content</label>
+			<label index="tx_fsmiexams_folder.associated_lectures">Associated Lectures</label>
 			<label index="tx_fsmiexams_state">State</label>
 			<label index="tx_fsmiexams_state.name">Name</label>
 			<label index="tx_fsmiexams_state.description">Description</label>
@@ -111,6 +112,7 @@
 			<label index="tx_fsmiexams_folder.barcode">Barcode</label>
 			<label index="tx_fsmiexams_folder.state">Status</label>
 			<label index="tx_fsmiexams_folder.content">Inhalt</label>
+			<label index="tx_fsmiexams_folder.associated_lectures">Assoziierte Vorlesungen</label>
 			<label index="tx_fsmiexams_state">Status</label>
 			<label index="tx_fsmiexams_state.name">Name</label>
 			<label index="tx_fsmiexams_state.description">Beschreibung</label>

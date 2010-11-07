@@ -44,11 +44,15 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $pi_checkCHash = true;
 
 	// constants
-//	const kEDIT_TYPE_NONE		= 0;
-//	const kEDIT_TYPE_MODULE		= 1;
-	const kEDIT_TYPE_EXAM		= 2;
-	const kEDIT_TYPE_LECTURE	= 3;
-	const kEDIT_TYPE_LECTURER	= 4;
+//	const kEDIT_TYPE_NONE				= 0;
+//	const kEDIT_TYPE_MODULE				= 1;
+	const kEDIT_TYPE_EXAM				= 2;
+	const kEDIT_TYPE_LECTURE			= 3;
+	const kEDIT_TYPE_LECTURER			= 4;
+	const kEDIT_TYPE_FOLDER_PRESELECT	= 5;
+	const kEDIT_TYPE_FOLDER				= 6;
+
+	//TODO constants are called contrary to their meanings
 
 	// storages
 	var $storageLecturer;
@@ -127,6 +131,25 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
 				break;
 			}
+			case self::kEDIT_TYPE_FOLDER_PRESELECT: {
+				if (intval($GETcommands['uid']))
+					$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
+				if (t3lib_div::_POST($this->extKey))	// if second step
+					$content .= $this->createFolderInputForm(intval($GETcommands['uid']));
+				else	// first step
+					$content .= $this->createFolderInputFormPreselect(intval($GETcommands['uid']));
+
+				break;
+			}
+			case self::kEDIT_TYPE_FOLDER: {
+				// save POST data if received
+				if (t3lib_div::_POST($this->extKey))
+					$content .= $this->saveFormData();
+				if (intval($GETcommands['uid']))
+					$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
+				$content .= $this->createFolderInputForm(intval($GETcommands['uid']));
+				break;
+			}
 			default:
 				break;
 		}
@@ -144,6 +167,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= ' | ';
 		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecturer"),
 								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURER));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-folder"),
+								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_FOLDER_PRESELECT));
 		$content .= '</div>';
 
 		return $content;
@@ -479,7 +505,274 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		return $content;
 	}
 
+	/**
+	 * This function provides a form to enter new folders or (if an editUID is given) to
+	 * change an existing one.
+	 */
+	function createFolderInputFormPreselect ($editUID) {
+		$content = '';
+		if ($editUID)
+			$content .= '<h2>'.$this->pi_getLL("edit_form_folder").'</h2>';
+		else
+			$content .= '<h2>'.$this->pi_getLL("input_form_folder").'</h2>';
+
+		// create JSON files
+		$this->createLectureListJSON();
+		$this->createModuleListJSON();
+		$this->createFieldListJSON();
+		$this->createDegreeprogramListJSON();
+
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+			'<script type="text/javascript">
+				dojo.require("dojo.parser");
+				dojo.require("dijit.form.FilteringSelect");
+				dojo.require("dojo.data.ItemFileReadStore");
+				dojo.require("dijit.form.DateTextBox");
+				dojo.require("dijit.form.CheckBox");
+			</script>'
+				.'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>'
+				.'<script type="text/javascript">
+					init_update_select_folder();
+				</script>'
+		;
+
+		// file storages
+		$content .=
+			'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsModule" url="typo3temp/fsmiexams_module.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsField" url="typo3temp/fsmiexams_field.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsLecture" url="typo3temp/fsmiexams_lecture.json"></div>'
+			.'<div dojoType="dojo.data.ItemFileReadStore" jsId="fsmiexamsDegreeprogram" url="typo3temp/fsmiexams_degreeprogram.json"></div>'
+		;
+
+		$content .= '
+			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
+			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER.'" />';
+
+		// hidden field for UID if editing existing folder
+		if ($editUID)
+			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
+
+		$content .= '
+			<fieldset><legend>Vorauswahl, nicht Bestandteil des Datensatzes</legend><table>';
+
+		// Degree Program
+		$content .= '
+			<tr>
+				<td><label for="'.$this->extKey.'_degreeprogram">'.
+					$this->LANG->getLL("tx_fsmiexams_field.degreeprogram").
+				':</label></td>
+				<td>
+				<input
+					dojoType="dijit.form.FilteringSelect"
+					store="fsmiexamsDegreeprogram"
+					searchAttr="name"
+					autocomplete="true"
+					style="width:300px;"
+					name="'.$this->extKey.'[degreeprogram]"
+					id="'.$this->extKey.'_degreeprogram"
+				/>
+				</td>
+			</tr>';
+
+		// Field
+		$content .= '
+			<tr>
+				<td><label for="'.$this->extKey.'_field">'.
+					$this->LANG->getLL("tx_fsmiexams_module.field").
+				':</label></td>
+				<td>
+				<input dojoType="dijit.form.FilteringSelect"
+					store="fsmiexamsField"
+					searchAttr="name"
+					autocomplete="true"
+					style="width:300px;"
+					name="'.$this->extKey.'[field]"
+					id="'.$this->extKey.'_field"
+				/>
+				</td>
+			</tr>';
+
+		// Modules
+		$content .=
+			'<tr>
+				<td><label for="'.$this->extKey.'_module">'.
+					$this->LANG->getLL("tx_fsmiexams_lecture.module").
+				':</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsModule"
+						searchAttr="name"
+						query="{uid:\'*\', master:1}"
+						style="width:300px;"
+						name="'.$this->extKey.'[module]"
+						id="'.$this->extKey.'_module"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+
+		$content .= '</table></fieldset>';
+
+		// database entry
+		$content .= '<fieldset><legend>Assoziierte Veranstaltungen</legend><table>';
+		// Lecture 0
+		$content .=
+			'<tr>
+				<td><label for="'.$this->extKey.'_lecture0">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				':</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecture"
+						searchAttr="name"
+						query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture0'])
+			$content .= ' value="'.$this->piVars['lecture0'].'" ';
+		$content .= '	name="'.$this->extKey.'[lecture0]"
+						id="'.$this->extKey.'_lecture0"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+
+		// Lecture 1
+		$content .=
+			'<tr>
+				<td><label for="'.$this->extKey.'_lecture1">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				' + 1:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecture"
+						searchAttr="name" ';
+		if (!$this->piVars['lecture0']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture1'])
+			$content .= ' value="'.$this->piVars['lecture1'].'" ';
+		$content .= '	name="'.$this->extKey.'[lecture1]"
+						name="'.$this->extKey.'[lecture1]"
+						id="'.$this->extKey.'_lecture1"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+
+		// Lecture 2
+		$content .=
+			'<tr>
+				<td><label for="'.$this->extKey.'_lecture2">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				' + 2:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecture"
+						searchAttr="name" ';
+		if (!$this->piVars['lecture1']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture2'])
+			$content .= ' value="'.$this->piVars['lecture2'].'" ';
+		$content .= '	name="'.$this->extKey.'[lecture2]"
+						id="'.$this->extKey.'_lecture2"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+
+		// Lecture 3
+		$content .=
+			'<tr>
+				<td><label for="'.$this->extKey.'_lecture3">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.lecture").
+				' + 3:</label></td>
+				<td>
+					<input dojoType="dijit.form.FilteringSelect"
+						store="fsmiexamsLecture"
+						searchAttr="name" ';
+		if (!$this->piVars['lecture1']) $content .= 'disabled="disabled"';
+		$content .= '	query="{uid:\'*\', master:\'1\'}"
+						style="width:300px;" ';
+		if ($this->piVars['lecture3'])
+			$content .= ' value="'.$this->piVars['lecture3'].'" ';
+		$content .= '	name="'.$this->extKey.'[lecture3]"
+						id="'.$this->extKey.'_lecture3"
+						autocomplete="true"
+					/>
+				</td>
+			</tr>';
+
+
+		$content .= '
+			</table></fieldset>
+			<input type="submit" name="'.$this->prefixId.'[submit_button]"
+				value="'.htmlspecialchars($this->pi_getLL("submit_button_label_folder_detail")).'">
+			</form>';
+
+		return $content;
+	}
+
+/**
+	 * This function provides a form to enter new folders or (if an editUID is given) to
+	 * change an existing one.
+	 */
+	function createFolderInputForm ($editUID) {
+		$content = '';
+		if ($editUID)
+			$content .= '<h2>'.$this->pi_getLL("edit_form_folder").'</h2>';
+		else
+			$content .= '<h2>'.$this->pi_getLL("input_form_folder").'</h2>';
+
+		$content .= '
+			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
+			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER.'" />';
+
+		// hidden field for UID if editing existing folder
+		if ($editUID)
+			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
+
+		// generate checkboxes for all containing exams
+		$preselection_data = t3lib_div::_POST($this->extKey);
+		for ($i=0; $i<4; $i++) {
+			$lectureUID = intval($preselection_data['lecture'.$i]);
+			if ($lectureUID==0)
+				continue;
+
+			$lectureDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $lectureUID);
+			$content .= '<fieldset><legend>Assoziierte Vorlesung: '.$lectureDATA['name'].'</legend><table>';
+			$content .= '<tr><td>abonnieren</td>
+				<td><input type="checkbox" checked="checked" name="'.$this->extKey."[$lectureUID]".'[subscribe]" /></td></tr>';
+			$content .= '<tr><td>Prüfungen</td>';
+			$examUIDs = tx_fsmiexams_div::get_exam_uids($lectureUID);
+			$content .= '<td>';
+			foreach ($examUIDs as $exam_uid) {
+				$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam_uid);
+				$content .= '<input type="checkbox" checked="checked" name="'.$this->extKey."[$lectureUID]".'[exam]'."[$exam_uid]".'" />'.
+					tx_fsmiexams_div::examToTermdate($exam_uid).' '.tx_fsmiexams_div::examToText($exam_uid).', '.
+					tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).'<br />';
+			}
+
+			$content .= '</td></tr>';
+
+			$content .= '</table></fieldset>';
+		}
+
+
+		$content .= '
+			</table></fieldset>
+			<input type="submit" name="'.$this->prefixId.'[submit_button]"
+				value="'.htmlspecialchars($this->pi_getLL("submit_button_label_folder_detail")).'">
+			</form>';
+
+		return $content;
+	}
+
+
 	function createExamInputForm ($editUID) {
+		$content = '';
 
 		if ($editUID)
 			$content .= '<h2>'.$this->pi_getLL("edit_form_exam").'</h2>';
