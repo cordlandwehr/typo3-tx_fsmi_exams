@@ -596,10 +596,12 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT MIN(tx_fsmiexams_folder.folder_id) as minimal_folder_id
 						FROM tx_fsmiexams_folder
 						WHERE deleted=0 AND hidden=0');
+
 		$new_folder_id = $this->minimal_folder_id_;
-		if ($res && $row = mysql_fetch_assoc($res) && $row['minimal_folder_id']>=$new_folder_id)
-			$new_folder_id = $row['minimal_folder_id']+1;
-		if ($this->piVars["folder_id"]==0)
+		if ($res && $row = mysql_fetch_assoc($res))
+			if (intval($row['minimal_folder_id'])>=intval($new_folder_id))
+				$new_folder_id = $row['minimal_folder_id']+1;
+		if (!$this->piVars["folder_id"])
 			$this->piVars["folder_id"] = $new_folder_id;
 
 		$content .= '<tr><td>Ordner ID:</td><td>
@@ -1823,7 +1825,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 										'folder_id' => intval($formData['folder_id']),
 										'color' => intval($formData['color']),
 										'content' => implode(',',$task_add_these_exams),
-										'status' => tx_fsmiexams_div::kFOLDER_STATUS_PRESENT,
+										'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT,
 										'associated_lectures' => implode(',',$task_subscribe_these_lectures),
 								));
 
