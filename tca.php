@@ -681,8 +681,6 @@ $TCA['tx_fsmiexams_folder'] = array (
 					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.1', '1'),
 					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.2', '2'),
 					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.3', '3'),
-					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.4', '4'),
-					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.5', '5'),
 				),
 			)
 		),
