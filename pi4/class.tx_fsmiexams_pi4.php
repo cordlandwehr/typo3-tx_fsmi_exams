@@ -51,6 +51,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	const kEDIT_TYPE_LECTURER			= 4;
 	const kEDIT_TYPE_FOLDER_PRESELECT	= 5;
 	const kEDIT_TYPE_FOLDER				= 6;
+	const kEDIT_TYPE_FOLDER_SAVE		= 7;
 
 	//TODO constants are called contrary to their meanings
 
@@ -58,6 +59,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $storageLecturer;
 	var $storageLecture;
 	var $storageExam;
+	var $storageFolder;
 	var $LANG;
 	var $colors = array();
 
@@ -89,6 +91,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->storageLecturer = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecturer'));
 		$this->storageLecture = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecture'));
 		$this->storageExam = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreExam'));
+		$this->storageFolder = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreFolder'));
 
 		// set color information
 		$this->colors[0]['name'] = "keine";
@@ -164,12 +167,15 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				break;
 			}
 			case self::kEDIT_TYPE_FOLDER: {
-				// save POST data if received
-				if (t3lib_div::_POST($this->extKey))
-					$content .= $this->saveFormData();
 				if (intval($GETcommands['uid']))
 					$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
 				$content .= $this->createFolderInputForm(intval($GETcommands['uid']));
+				break;
+			}
+			case self::kEDIT_TYPE_FOLDER_SAVE: {
+				// save POST data if received
+				if (t3lib_div::_POST($this->extKey))
+					$content .= $this->saveFormData();
 				break;
 			}
 			default:
@@ -478,6 +484,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	 * change an existing one.
 	 */
 	function createLecturerInputForm ($editUID) {
+		$content = '';
 
 		if ($editUID)
 			$content .= '<h2>'.$this->pi_getLL("edit_form_lecturer").'</h2>';
@@ -784,6 +791,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	 * change an existing one.
 	 */
 	function createFolderInputForm ($editUID) {
+		$preselection_data = t3lib_div::_POST($this->extKey);
+
 		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
 			'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>';
 
@@ -796,14 +805,16 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
-			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER.'" />';
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER_SAVE.'" />
+			<input type="hidden" name="'.$this->extKey.'[name]" value="'.htmlspecialchars($preselection_data['name']).'" />
+			<input type="hidden" name="'.$this->extKey.'[folder_id]" value="'.intval($preselection_data['folder_id']).'" />
+			<input type="hidden" name="'.$this->extKey.'[color]" value="'.intval($preselection_data['color']).'" />';
 
 		// hidden field for UID if editing existing folder
 		if ($editUID)
 			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
 
 		// generate checkboxes for all containing exams
-		$preselection_data = t3lib_div::_POST($this->extKey);
 		$content .= '<h3>Ordner: '.htmlspecialchars($preselection_data['name']).
 			' ['.intval($preselection_data['folder_id']).']</h3>';
 
@@ -815,7 +826,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			$lectureDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $lectureUID);
 			$content .= '<fieldset><legend>Assoziierte Vorlesung: '.$lectureDATA['name'].'</legend><table>';
 			$content .= '<tr><td style="border-width: 0px 0px 1px 0px; border-style: solid">abonnieren</td>
-				<td><input type="checkbox" checked="checked" name="'.$this->extKey."[$lectureUID]".'[subscribe]" /></td></tr>';
+				<td><input type="checkbox" checked="checked" name="'.$this->extKey."[lectures][$lectureUID]".'[subscribe]" /></td></tr>';
 			$content .= '<tr><td valign="top"><strong>Prüfungen</strong></td>';
 			$exam_uids_aggregated = tx_fsmiexams_div::get_exam_uids_grouped($lectureUID);
 			$content .= '<td>';
@@ -838,7 +849,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 							type="checkbox"
 							checked="checked"
 							id="'.$this->extKey."_$lectureUID".'_exam'."_$exam_uid".'"
-							name="'.$this->extKey."[$lectureUID]".'[exam]'."[$exam_uid]".'" />'.
+							name="'.$this->extKey."[lectures][$lectureUID]".'[exam]'."[$exam_uid]".'" />'.
 						tx_fsmiexams_div::examToTermdate($exam_uid).' '.tx_fsmiexams_div::examToText($exam_uid).', '.
 						tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).' '.
 						($examDATA['exactdate']!=0 ? '['.date('d.m.Y',$examDATA['exactdate']).']' : '').'<br />';
@@ -1790,6 +1801,44 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					tx_fsmiexams_div::kSTATUS_ERROR,
 					$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
 			} break;
+
+			case self::kEDIT_TYPE_FOLDER_SAVE: {
+				// schedule everything that shall be written
+				$task_subscribe_these_lectures = array ();
+				$task_add_these_exams = array ();
+				foreach ($formData['lectures'] as $lectureUID => $data) {
+					// schedule subscribe task
+					if ($data['subscribe'])
+						$task_subscribe_these_lectures[] = intval($lectureUID);
+					foreach ($data['exam'] as $examUID => $on)
+						$task_add_these_exams[] = intval($examUID);
+				}
+				// create folder
+				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+								'tx_fsmiexams_folder',
+								array (	'pid' => $this->storageFolder,
+										'crdate' => time(),
+										'tstamp' => time(),
+										'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_folder'),
+										'folder_id' => intval($formData['folder_id']),
+										'color' => intval($formData['color']),
+										'content' => implode(',',$task_add_these_exams),
+										'status' => tx_fsmiexams_div::kFOLDER_STATUS_PRESENT,
+										'associated_lectures' => implode(',',$task_subscribe_these_lectures),
+								));
+
+				// present messages if everything went ok
+				if ($res)
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::kSTATUS_INFO,
+						'Folder successfully created: '.htmlentities($formData['name']).', ID '.intval($formData['folder_id']));
+				else
+					return tx_fsmiexams_div::printSystemMessage(
+						tx_fsmiexams_div::kSTATUS_ERROR,
+						$this->LANG->getLL("tx_fsmiexams_general.message.sql_error"));
+
+				break;
+			}
 		}
 
 	}

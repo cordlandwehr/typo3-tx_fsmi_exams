@@ -53,6 +53,10 @@
 			<label index="tx_fsmiexams_folder.color.I.4">green</label>
 			<label index="tx_fsmiexams_folder.color.I.5">black</label>
 			<label index="tx_fsmiexams_folder.state">State</label>
+			<label index="tx_fsmiexams_folder.state.I.0">vorhanden</label>
+			<label index="tx_fsmiexams_folder.state.I.1">ausgeliehen</label>
+			<label index="tx_fsmiexams_folder.state.I.2">wird bearbeitet</label>
+			<label index="tx_fsmiexams_folder.state.I.3">verloren</label>
 			<label index="tx_fsmiexams_folder.content">Content</label>
 			<label index="tx_fsmiexams_folder.associated_lectures">Associated Lectures</label>
 			<label index="tx_fsmiexams_state">State</label>
@@ -123,11 +127,12 @@
 			<label index="tx_fsmiexams_folder.color.I.4">grün</label>
 			<label index="tx_fsmiexams_folder.color.I.5">schwarz</label>
 			<label index="tx_fsmiexams_folder.state">Status</label>
+			<label index="tx_fsmiexams_folder.state.I.0">vorhanden</label>
+			<label index="tx_fsmiexams_folder.state.I.1">ausgeliehen</label>
+			<label index="tx_fsmiexams_folder.state.I.2">wird bearbeitet</label>
+			<label index="tx_fsmiexams_folder.state.I.3">verloren</label>
 			<label index="tx_fsmiexams_folder.content">Inhalt</label>
 			<label index="tx_fsmiexams_folder.associated_lectures">Assoziierte Vorlesungen</label>
-			<label index="tx_fsmiexams_state">Status</label>
-			<label index="tx_fsmiexams_state.name">Name</label>
-			<label index="tx_fsmiexams_state.description">Beschreibung</label>
 			<label index="tx_fsmiexams_loan">Ausleihe</label>
 			<label index="tx_fsmiexams_loan.folder">Ordner</label>
 			<label index="tx_fsmiexams_loan.lender">Ausleiher</label>
