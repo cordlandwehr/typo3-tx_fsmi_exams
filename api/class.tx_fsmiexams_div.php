@@ -315,6 +315,28 @@ class tx_fsmiexams_div {
 	}
 
 	/**
+	 * Get all exam UIDs that are present for specific lecture
+	 * grouped by exam types.
+	 * \param $lecture UID of lecture
+	 **/
+	function get_exam_uids_grouped ($lecture) {
+		$exam_uids = array();
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT examtype, tx_fsmiexams_exam.uid as uid
+												FROM tx_fsmiexams_exam
+												WHERE FIND_IN_SET('.$lecture.',lecture)
+													AND deleted=0 AND hidden=0
+												ORDER BY year DESC, term ASC, number DESC, exactdate DESC, name');
+
+		while ($res && $row = mysql_fetch_assoc($res)) {
+			if (!is_array($exam_uids[$row['examtype']]))
+				$exam_uids[$row['examtype']] = array ();
+			$exam_uids[$row['examtype']][] = $row['uid'];
+		}
+
+		return $exam_uids;
+	}
+
+	/**
 	 *
 	 * @param integer $status from constants
 	 * @param string $text information text

@@ -583,7 +583,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					type="text"
 					name="'.$this->extKey.'[name]"
 					id="'.$this->extKey.'_name"
-					value="'.htmlspecialchars($this->piVars["name"]).'"></td></tr>';
+					value="'.htmlspecialchars($this->piVars["name"]).'" /></td></tr>';
 
 		// search for next free folder ID and set it if not editing existing folder
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT MIN(tx_fsmiexams_folder.folder_id) as minimal_folder_id
@@ -600,9 +600,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					type="text"
 					name="'.$this->extKey.'[folder_id]"
 					id="'.$this->extKey.'_folder_id"
-					disabled="disabled"
-					style="color: black"
-					value="'.htmlspecialchars($this->piVars["folder_id"]).'"></td></tr>';
+					readonly="readonly"
+					style="color: black;"
+					value="'.htmlspecialchars($this->piVars["folder_id"]).'"
+			/></td></tr>';
 		$content .= '<tr><td>Ordnerfarbe:</td><td>
 			<select
 					type="text"
@@ -783,6 +784,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	 * change an existing one.
 	 */
 	function createFolderInputForm ($editUID) {
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+			'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>';
+
 		$content = '';
 		if ($editUID)
 			$content .= '<h2>'.$this->pi_getLL("edit_form_folder").'</h2>';
@@ -800,13 +804,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		// generate checkboxes for all containing exams
 		$preselection_data = t3lib_div::_POST($this->extKey);
-
 		$content .= '<h3>Ordner: '.htmlspecialchars($preselection_data['name']).
 			' ['.intval($preselection_data['folder_id']).']</h3>';
-
-// 		$minimal_folder_id = $fConf['TCEforms']['config'];
-
-
 
 		for ($i=0; $i<4; $i++) {
 			$lectureUID = intval($preselection_data['lecture'.$i]);
@@ -818,16 +817,33 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			$content .= '<tr><td style="border-width: 0px 0px 1px 0px; border-style: solid">abonnieren</td>
 				<td><input type="checkbox" checked="checked" name="'.$this->extKey."[$lectureUID]".'[subscribe]" /></td></tr>';
 			$content .= '<tr><td valign="top"><strong>Prüfungen</strong></td>';
-			$examUIDs = tx_fsmiexams_div::get_exam_uids($lectureUID);
+			$exam_uids_aggregated = tx_fsmiexams_div::get_exam_uids_grouped($lectureUID);
 			$content .= '<td>';
-			if (count($examUIDs)!=0)
-				$content .= 'alle / keine TODO<br />';
-			foreach ($examUIDs as $exam_uid) {
-				$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam_uid);
-				$content .= '<input type="checkbox" checked="checked" name="'.$this->extKey."[$lectureUID]".'[exam]'."[$exam_uid]".'" />'.
-					tx_fsmiexams_div::examToTermdate($exam_uid).' '.tx_fsmiexams_div::examToText($exam_uid).', '.
-					tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).' '.
-					($examDATA['exactdate']!=0 ? '['.date('d.m.Y',$examDATA['exactdate']).']' : '').'<br />';
+			foreach ($exam_uids_aggregated as $examtype => $examUIDs) {
+				$examtypeDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_examtype', $examtype);
+
+				// create list of all exam checkbox ids for select-all/unselect-all
+				$list_all_exam_ids = array();
+				foreach ($examUIDs as $exam_uid)
+					$list_all_exam_ids[] = '\''.$this->extKey."_$lectureUID".'_exam'."_$exam_uid".'\'';
+				$list_all_exam_ids = implode(',',$list_all_exam_ids);
+
+				// print all checkboxes and descriptions
+				$content .= '<p><strong>'.$examtypeDATA['description'].' ';
+				$content .= '[<a onClick="check_all(new Array('.$list_all_exam_ids.'))">alle auswählen</a> /
+					<a onClick="uncheck_all(new Array('.$list_all_exam_ids.'))">keine auswählen</a>]</strong><br />';
+				foreach ($examUIDs as $exam_uid) {
+					$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam_uid);
+					$content .= '<input
+							type="checkbox"
+							checked="checked"
+							id="'.$this->extKey."_$lectureUID".'_exam'."_$exam_uid".'"
+							name="'.$this->extKey."[$lectureUID]".'[exam]'."[$exam_uid]".'" />'.
+						tx_fsmiexams_div::examToTermdate($exam_uid).' '.tx_fsmiexams_div::examToText($exam_uid).', '.
+						tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).' '.
+						($examDATA['exactdate']!=0 ? '['.date('d.m.Y',$examDATA['exactdate']).']' : '').'<br />';
+				}
+				$content .= '</p>';
 			}
 			if (count($examUIDs)==0)
 				$content .= '<i>keine Prüfungen vorhanden</i>';

@@ -166,5 +166,14 @@ function init_update_select_folder() {
   			dijit.byId("fsmi_exams_lecture3").setAttribute("disabled",false);
    		});
 	});
+}
 
+function check_all(field) {
+	for (i = 0; i < field.length; i++)
+		dojo.byId(field[i]).checked=true;
+}
+
+function uncheck_all(field) {
+	for (i = 0; i < field.length; i++)
+		dojo.byId(field[i]).checked = false;
 }
