@@ -179,7 +179,7 @@ CREATE TABLE tx_fsmiexams_folder (
 	folder_id int(11) DEFAULT '0' NOT NULL,
 	color int(11) DEFAULT '0' NOT NULL,
 	state text,
-	content int(11) DEFAULT '0' NOT NULL,
+	content text,
 	associated_lectures text,
 
 	PRIMARY KEY (uid),

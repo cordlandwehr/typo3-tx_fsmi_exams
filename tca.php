@@ -647,12 +647,7 @@ $TCA['tx_fsmiexams_folder'] = array (
 				'type'     => 'input',
 				'size'     => '5',
 				'max'      => '5',
-				'eval'     => 'int',
-				'checkbox' => '0',
-				'range'    => array (
-					'upper' => '10000',
-					'lower' => '1'
-				),
+				'eval'     => 'int,unique,required',
 				'default' => 0
 			)
 		),

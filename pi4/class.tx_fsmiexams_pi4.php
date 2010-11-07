@@ -593,7 +593,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					value="'.htmlspecialchars($this->piVars["name"]).'" /></td></tr>';
 
 		// search for next free folder ID and set it if not editing existing folder
-		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT MIN(tx_fsmiexams_folder.folder_id) as minimal_folder_id
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT MAX(tx_fsmiexams_folder.folder_id) as minimal_folder_id
 						FROM tx_fsmiexams_folder
 						WHERE deleted=0 AND hidden=0');
 
@@ -1815,6 +1815,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					foreach ($data['exam'] as $examUID => $on)
 						$task_add_these_exams[] = intval($examUID);
 				}
+
 				// create folder
 				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
 								'tx_fsmiexams_folder',
