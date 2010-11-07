@@ -59,6 +59,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $storageLecture;
 	var $storageExam;
 	var $LANG;
+	var $colors = array();
+
+	private $minimal_folder_id_;
 
 	/**
 	 * The main method of the PlugIn
@@ -78,10 +81,29 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 
+		// set global extension settings
+		$global_settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fsmi_exams']);
+		$this->minimal_folder_id_ = intval($global_settings['minimalFolderID']);
+
 		// set storages
 		$this->storageLecturer = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecturer'));
 		$this->storageLecture = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecture'));
 		$this->storageExam = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreExam'));
+
+		// set color information
+		$this->colors[0]['name'] = "keine";
+		$this->colors[0]['rgb'] = "#cccccc";
+		$this->colors[1]['name'] = "rot";
+		$this->colors[1]['rgb'] = "#f00";
+		$this->colors[2]['name'] = "blau";
+		$this->colors[2]['rgb'] = "#00f";
+		$this->colors[3]['name'] = "gelb";
+		$this->colors[3]['rgb'] = "#ff0";
+		$this->colors[4]['name'] = "grün";
+		$this->colors[4]['rgb'] = "#0f0";
+		$this->colors[5]['name'] = "schwarz";
+		$this->colors[5]['rgb'] = "#000";
+
 
 		// type selection head
 		$content .= $this->createTypeSelector();
@@ -553,6 +575,48 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		if ($editUID)
 			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
 
+		// Main Information
+		$content .= '
+			<fieldset><legend>Ordner-Details</legend><table>';
+		$content .= '<tr><td>Name:</td><td>
+			<input
+					type="text"
+					name="'.$this->extKey.'[name]"
+					id="'.$this->extKey.'_name"
+					value="'.htmlspecialchars($this->piVars["name"]).'"></td></tr>';
+
+		// search for next free folder ID and set it if not editing existing folder
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT MIN(tx_fsmiexams_folder.folder_id) as minimal_folder_id
+						FROM tx_fsmiexams_folder
+						WHERE deleted=0 AND hidden=0');
+		$new_folder_id = $this->minimal_folder_id_;
+		if ($res && $row = mysql_fetch_assoc($res) && $row['minimal_folder_id']>=$new_folder_id)
+			$new_folder_id = $row['minimal_folder_id']+1;
+		if ($this->piVars["folder_id"]==0)
+			$this->piVars["folder_id"] = $new_folder_id;
+
+		$content .= '<tr><td>Ordner ID:</td><td>
+			<input
+					type="text"
+					name="'.$this->extKey.'[folder_id]"
+					id="'.$this->extKey.'_folder_id"
+					disabled="disabled"
+					style="color: black"
+					value="'.htmlspecialchars($this->piVars["folder_id"]).'"></td></tr>';
+		$content .= '<tr><td>Ordnerfarbe:</td><td>
+			<select
+					type="text"
+					name="'.$this->extKey.'[color]"
+					id="'.$this->extKey.'_color"
+					value="'.htmlspecialchars($this->piVars["color"]).'">';
+		foreach ($this->colors as $id => $info) {
+			$content .= '<option value="'.$id.'" style="background:'.$info['rgb'].'">'.$info['name'].'</option>';
+		}
+		$content .= '</select>';
+		$content .= '</td></tr>';
+
+		$content .= '</table></fieldset>';
+
 		$content .= '
 			<fieldset><legend>Vorauswahl, nicht Bestandteil des Datensatzes</legend><table>';
 
@@ -736,6 +800,14 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		// generate checkboxes for all containing exams
 		$preselection_data = t3lib_div::_POST($this->extKey);
+
+		$content .= '<h3>Ordner: '.htmlspecialchars($preselection_data['name']).
+			' ['.intval($preselection_data['folder_id']).']</h3>';
+
+// 		$minimal_folder_id = $fConf['TCEforms']['config'];
+
+
+
 		for ($i=0; $i<4; $i++) {
 			$lectureUID = intval($preselection_data['lecture'.$i]);
 			if ($lectureUID==0)
@@ -743,17 +815,22 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 			$lectureDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $lectureUID);
 			$content .= '<fieldset><legend>Assoziierte Vorlesung: '.$lectureDATA['name'].'</legend><table>';
-			$content .= '<tr><td>abonnieren</td>
+			$content .= '<tr><td style="border-width: 0px 0px 1px 0px; border-style: solid">abonnieren</td>
 				<td><input type="checkbox" checked="checked" name="'.$this->extKey."[$lectureUID]".'[subscribe]" /></td></tr>';
-			$content .= '<tr><td>Prüfungen</td>';
+			$content .= '<tr><td valign="top"><strong>Prüfungen</strong></td>';
 			$examUIDs = tx_fsmiexams_div::get_exam_uids($lectureUID);
 			$content .= '<td>';
+			if (count($examUIDs)!=0)
+				$content .= 'alle / keine TODO<br />';
 			foreach ($examUIDs as $exam_uid) {
 				$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam_uid);
 				$content .= '<input type="checkbox" checked="checked" name="'.$this->extKey."[$lectureUID]".'[exam]'."[$exam_uid]".'" />'.
 					tx_fsmiexams_div::examToTermdate($exam_uid).' '.tx_fsmiexams_div::examToText($exam_uid).', '.
-					tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).'<br />';
+					tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).' '.
+					($examDATA['exactdate']!=0 ? '['.date('d.m.Y',$examDATA['exactdate']).']' : '').'<br />';
 			}
+			if (count($examUIDs)==0)
+				$content .= '<i>keine Prüfungen vorhanden</i>';
 
 			$content .= '</td></tr>';
 

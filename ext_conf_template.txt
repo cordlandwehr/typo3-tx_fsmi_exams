@@ -1,0 +1,2 @@
+# cat=basic; type=int+; label=Folder IDs starting with: The folder IDs of newly created folders will have at least the given number
+minimalFolderID = 1000

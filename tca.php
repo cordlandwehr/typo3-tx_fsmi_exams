@@ -589,7 +589,7 @@ $TCA['tx_fsmiexams_examtype'] = array (
 $TCA['tx_fsmiexams_folder'] = array (
 	'ctrl' => $TCA['tx_fsmiexams_folder']['ctrl'],
 	'interface' => array (
-		'showRecordFieldList' => 'sys_language_uid,l10n_parent,l10n_diffsource,hidden,name,number,barcode,state,content'
+		'showRecordFieldList' => 'sys_language_uid,l10n_parent,l10n_diffsource,hidden,name,folder_id,color,state,content'
 	),
 	'feInterface' => $TCA['tx_fsmiexams_folder']['feInterface'],
 	'columns' => array (
@@ -640,36 +640,35 @@ $TCA['tx_fsmiexams_folder'] = array (
 				'size' => '30',
 			)
 		),
-		'number' => array (
+		'folder_id' => array (
 			'exclude' => 0,
-			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.number',
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.folder_id',
 			'config' => array (
 				'type'     => 'input',
-				'size'     => '4',
-				'max'      => '4',
+				'size'     => '5',
+				'max'      => '5',
 				'eval'     => 'int',
 				'checkbox' => '0',
 				'range'    => array (
-					'upper' => '1000',
-					'lower' => '10'
+					'upper' => '10000',
+					'lower' => '1'
 				),
 				'default' => 0
 			)
 		),
-		'barcode' => array (
+		'color' => array (
 			'exclude' => 0,
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.barcode',
 			'config' => array (
-				'type'     => 'input',
-				'size'     => '4',
-				'max'      => '4',
-				'eval'     => 'int',
-				'checkbox' => '0',
-				'range'    => array (
-					'upper' => '1000',
-					'lower' => '10'
+				'type' => 'radio',
+				'items' => array (
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.0', '0'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.1', '1'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.2', '2'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.3', '3'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.4', '4'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.5', '5'),
 				),
-				'default' => 0
 			)
 		),
 		'state' => array (
@@ -711,7 +710,7 @@ $TCA['tx_fsmiexams_folder'] = array (
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, barcode, state, content, associated_lectures')
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, folder_id, color, state, content, associated_lectures')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')
