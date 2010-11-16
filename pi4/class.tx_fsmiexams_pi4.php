@@ -44,16 +44,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $pi_checkCHash = true;
 
 	// constants
-//	const kEDIT_TYPE_NONE				= 0;
-//	const kEDIT_TYPE_MODULE				= 1;
-	const kEDIT_TYPE_EXAM				= 2;
-	const kEDIT_TYPE_LECTURE			= 3;
-	const kEDIT_TYPE_LECTURER			= 4;
-	const kEDIT_TYPE_FOLDER_PRESELECT	= 5;
-	const kEDIT_TYPE_FOLDER				= 6;
-	const kEDIT_TYPE_FOLDER_SAVE		= 7;
+//	const kEDIT_TYPE_NONE						= 0;
+//	const kEDIT_TYPE_MODULE						= 1;
+	const kEDIT_TYPE_EXAM						= 4;
+	const kEDIT_TYPE_EXAM_CREATION_TRIGGERS		= 5;
+	const kEDIT_TYPE_LECTURE					= 6;
+	const kEDIT_TYPE_LECTURER					= 7;
+	const kEDIT_TYPE_FOLDER_PRESELECT			= 8;
+	const kEDIT_TYPE_FOLDER						= 9;
+	const kEDIT_TYPE_FOLDER_SAVE				= 10;
 
-	//TODO constants are called contrary to their meanings
+	//TODO some constants are called contrary to their meanings
 
 	// storages
 	var $storageLecturer;
@@ -107,7 +108,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->colors[5]['name'] = "schwarz";
 		$this->colors[5]['rgb'] = "#000";
 
-
 		// type selection head
 		$content .= $this->createTypeSelector();
 
@@ -135,8 +135,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 							);
 						$content .= $this->createExamInputForm();
 					}
-					else	// no input errors
+					else {	// no input errors
 						$content .= $this->saveFormData();
+					}
 				}
 				// output the input form
 				else {
@@ -145,6 +146,15 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					$content .= $this->createExamInputForm(intval($GETcommands['uid']));
 				}
 
+				break;
+			}
+			case self::kEDIT_TYPE_EXAM_CREATION_TRIGGERS: {
+				// save POST data if received
+				if (t3lib_div::_POST($this->extKey))
+					$content .= $this->saveFormData();
+				if (intval($GETcommands['uid']))
+					$content .= '<div>EDIT of exam creations in this direction not implemented, yet</div>';//TODO implement this
+				$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
 				break;
 			}
 			case self::kEDIT_TYPE_LECTURER: {
@@ -788,7 +798,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		return $content;
 	}
 
-/**
+	/**
 	 * This function provides a form to enter new folders or (if an editUID is given) to
 	 * change an existing one.
 	 */
@@ -822,7 +832,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		for ($i=0; $i<4; $i++) {
 			$lectureUID = intval($preselection_data['lecture'.$i]);
-			if ($lectureUID==0)
+			if ($lectureUID<=0)
 				continue;
 
 			$lectureDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $lectureUID);
@@ -1289,6 +1299,67 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		return $content;
 	}
 
+	/**
+	 * This method creates registration form an exam to corresponding folders that are associated
+	 * to any lecture, the exams is related to.
+	 * \param 	$examUID is the uid of the exam
+	 * \return  string that containts the HTML form
+	 */
+	function registerExamToFolderForm($examUID) {
+		if( $examUID<=0 ) {
+			return tx_fsmiexams_div::printSystemMessage(
+				tx_fsmiexams_div::kSTATUS_ERROR,
+				'The given ID for exam is invalid. No registration process for this exam can be triggered.'
+			);
+		}
+
+		$content = '';
+		$content .= '<h2>Register Exam to Folders</h2>';
+		$content .= '
+			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
+			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_EXAM_CREATION_TRIGGERS.'" />
+			<input type="hidden" name="'.$this->extKey.'[exam_uid]" value="'.$examUID.'" />';
+
+		$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $examUID);
+		$lectures = explode(',', $examDATA['lecture']);
+
+		// find all folders that contain lectures that contain the current exam
+		$folders = array();
+		foreach ($lectures as $lectureUID) {
+			$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_folder.uid as uid
+												FROM tx_fsmiexams_folder
+												WHERE FIND_IN_SET('.$lectureUID.',associated_lectures)
+													AND deleted=0 AND hidden=0
+												');
+			while ($res && $row = mysql_fetch_assoc($res))
+				$folders[] = $row['uid'];
+		}
+
+		// generate checkboxes for all containing exams
+		$content .= '<fieldset><legend>Prüfung in folgende Ordner hinzufügen</legend><table>';
+		foreach($folders as $folderUID) {
+			$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
+			$content .= '<tr><td><input
+					type="checkbox"
+					checked="checked"
+					id="'.$this->extKey.'_folder'."_$folderUID".'"
+					name="'.$this->extKey."[folders][$folderUID]".'" /></td>'.
+				'<td>'.$folderDATA['name']." [".$folderDATA['folder_id'].']</td></tr>';
+		}
+		if (count($folders)==0)
+			$content .= '<tr><td><i>keine Ordner mit Abbonnements vorhanden</i></td></tr>';
+		$content .= '</table></fieldset>';
+
+		$content .= '
+			</table></fieldset>
+			<input type="submit" name="'.$this->prefixId.'[submit_button]"
+				value="In Ordner hinzufügen">
+			</form>';
+
+		return $content;
+	}
+
 	function createModuleListJSON () {
 		$fileContent = '';
 
@@ -1747,8 +1818,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 										));
 
 					// output info, if ok
-					if ($res)
-						return tx_fsmiexams_div::printSystemMessage(
+					if ($res) {
+						$content = '';
+						$content .= tx_fsmiexams_div::printSystemMessage(
 								tx_fsmiexams_div::kSTATUS_OK,
 								'<div>'.
 									'<h4>Exam data was saved</h4>
@@ -1760,6 +1832,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 										'<li><strong>Date:</strong> '.date('d.m.Y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
 									'</ul>'.
 								'</div>');
+						//FIXME works, but problem with many connections at some time
+						$content .= $this->registerExamToFolderForm( mysql_insert_id());
+						return $content;
+					}
 					else
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::kSTATUS_ERROR,
@@ -1767,9 +1843,35 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				}
 			} break;
 
+			case self::kEDIT_TYPE_EXAM_CREATION_TRIGGERS: {
+				if ($formData['folders']!='') { // update existing one
+					foreach ($formData['folders'] as $folderUID => $on) {
+						$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
+						if ($folderDATA['content']!='')
+							$content = explode(',', $folderDATA['content']);
+						else
+							$content = array();
+ 						$content[] = intval($formData['exam_uid']);
+						$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+									'tx_fsmiexams_folder',
+									'uid = '.intval($folderUID),
+									array (
+										'content' => implode(',',$content)
+										)
+									);
+
+						if ($res) {
+							return tx_fsmiexams_div::printSystemMessage(
+								tx_fsmiexams_div::kSTATUS_OK,
+								'Erfolgreich in Ordner <b>'.$folderDATA['name'].'</b> hinzugefügt.');
+						}
+					}
+				}
+			} break;
+
 			case self::kEDIT_TYPE_LECTURER: {
 
-				if (intval($formData['uid'])!=0) { // update existing one
+				if( intval($formData['uid'])!=0 ) { // update existing one
 					$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 									'tx_fsmiexams_lecturer',
 									'uid = '.intval($formData['uid']),
