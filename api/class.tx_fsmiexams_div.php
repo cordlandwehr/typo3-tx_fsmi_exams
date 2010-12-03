@@ -381,6 +381,23 @@ class tx_fsmiexams_div {
 		return $content;
 	}
 
+	static function printColorHEXcode($color) {
+		// set color information
+		$colors[0]['name'] = "keine";
+		$colors[0]['rgb'] = "#cccccc";
+		$colors[1]['name'] = "rot";
+		$colors[1]['rgb'] = "#f00";
+		$colors[2]['name'] = "blau";
+		$colors[2]['rgb'] = "#00f";
+		$colors[3]['name'] = "gelb";
+		$colors[3]['rgb'] = "#ff0";
+		$colors[4]['name'] = "grün";
+		$colors[4]['rgb'] = "#0f0";
+		$colors[5]['name'] = "schwarz";
+		$colors[5]['rgb'] = "#000";
+
+		return $colors[$color]['rgb'];
+	}
 
 }
 

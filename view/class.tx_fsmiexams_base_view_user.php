@@ -42,6 +42,7 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php
 class tx_fsmiexams_base_view_user extends tslib_pibase {
 	const kVIEW_TYPE_LIST			= 1;
 	const kVIEW_TYPE_AGGREGATION	= 2;
+	const kVIEW_TYPE_FOLDERVIEW		= 3;
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
 	const extKey			= 'fsmi_exams';
 
@@ -85,6 +86,9 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 		$content .= ' / ';
 		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_pi1.aggregated"),
 				array (	self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION));
+		$content .= ' / ';
+		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_pi1.folderview"),
+				array (	self::extKey.'[type]' => self::kVIEW_TYPE_FOLDERVIEW));
 		$content .= '</div>';
 
 		return $content;

@@ -34,6 +34,7 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_listview.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_view_user.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_module_aggregation.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_folderview.php');
 
 /**
  * Plugin 'Exam List' for the 'fsmi_exams' extension.
@@ -78,6 +79,10 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 			}
 			case tx_fsmiexams_base_view_user::kVIEW_TYPE_AGGREGATION: {
 				$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_module_aggregation);
+				break;
+			}
+			case tx_fsmiexams_base_view_user::kVIEW_TYPE_FOLDERVIEW: {
+				$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_folderview);
 				break;
 			}
 			default:
