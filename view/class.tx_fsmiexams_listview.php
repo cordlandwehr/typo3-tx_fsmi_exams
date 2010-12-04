@@ -136,36 +136,38 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 
 						// exams
 						foreach ($examUIDs as $uid) {
-							$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
+							$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
 							// colorize odd lines
 							($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
 
 							$content .= '<td><img style="float:left;" src="typo3conf/ext/fsmi_exams/images/arrow_r.png" alt="->" title="Gleicher Vorlesungsname" /> '; //TODO change to symbol
-							$content .= '<div style="font-style:italic; margin-left:20px;">'.tx_fsmiexams_div::examToText($exam['uid'],$this->pidEditPage).'</div>';
+							$content .= '<div style="font-style:italic; margin-left:20px;">'.tx_fsmiexams_div::examToText($examDATA['uid'],$this->pidEditPage).'</div>';
 							$content .= '</td>';
 
-							$content .= '<td>'.tx_fsmiexams_div::lecturerToText($exam['lecturer'],$this->pidEditPage).'</td>';
+							$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDATA['lecturer'],$this->pidEditPage).'</td>';
 							$content .= '<td>'.tx_fsmiexams_div::examToTermdate($uid).'</td>';
-							if ($exam['number']!=0)
-								$content .= '<td>'.$exam['number'].'</td>';
+							if ($examDATA['number']!=0)
+								$content .= '<td>'.$examDATA['number'].'</td>';
 							else
 								$content .= '<td>-</td>';
-							if ($exam['exactdate']!=0)
- 								$content .= '<td>'.date('d.m.y',$exam['exactdate']).'</td>';
+							if ($examDATA['exactdate']!=0)
+ 								$content .= '<td>'.date('d.m.y',$examDATA['exactdate']).'</td>';
 							else
 								$content .= '<td>-</td>';
 
-							// download files
+							// download exam file
 							if ($this->rightsDownload==false)
-								$content .= '<td>'.$examTypes[$exam['examtype']].'';
-							else
-								$content .= '<td><a href="uploads/tx_fsmiexams/'.$exam['file'].'">'.$examTypes[$exam['examtype']].'</a>';
-							if ($exam['material']!='') {
+								$content .= '<td>'.$examTypes[$examDATA['examtype']].'';
+							elseif ($examDATA['file']!='')
+								$content .= '<td><a href="uploads/tx_fsmiexams/'.$examDATA['file'].'">'.$examTypes[$examDATA['examtype']].'</a>';
+
+							// download additional material
+							if ($examDATA['material']!='') {
 								if ($this->rightsDownload==false)
 									$content .= '<br />Zusatzmaterial';
 								else
-									$content .= '<br /><a href="uploads/tx_fsmiexams/'.$exam['material'].'">Zusatzmaterial</a>';
+									$content .= '<br /><a href="uploads/tx_fsmiexams/'.$examDATA['material'].'">Zusatzmaterial</a>';
 							}
 							$content .= '</td>';
 

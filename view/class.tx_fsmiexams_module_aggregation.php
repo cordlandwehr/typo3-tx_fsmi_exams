@@ -223,30 +223,30 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 				$content .= '</tr>';
 				$linecounter = 0;
 				foreach ($exams as $exam)  {
-					$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam);
+					$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam);
 					($lineCounter++ % 2) == 0 ? $content .= '<tr>': $content .= '<tr class="oddline">';
 					$content .= '<td>'.tx_fsmiexams_div::examToText($exam,$this->pidEditPage).'</td>';
-					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDB['lecturer'],$this->pidEditPage).'</td>';
+					$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDATA['lecturer'],$this->pidEditPage).'</td>';
 					$content .= '<td>'.tx_fsmiexams_div::examToTermdate($exam).'</td>';
-					if ($examDB['number']!=0)
-						$content .= '<td>'.$examDB['number'].'</td>';
+					if ($examDATA['number']!=0)
+						$content .= '<td>'.$examDATA['number'].'</td>';
 					else
 						$content .= '<td>-</td>';
-					if ($examDB['exactdate']!=0)
-						$content .= '<td>'.date('d.m.y',$examDB['exactdate']).'</td>';
+					if ($examDATA['exactdate']!=0)
+						$content .= '<td>'.date('d.m.y',$examDATA['exactdate']).'</td>';
 					else
 						$content .= '<td>-</td>';
 
 					// download files
 					if ($this->rightsDownload==false)
-						$content .= '<td>'.$examTypes[$examDB['examtype']].'';
-					else
-						$content .= '<td><a href="uploads/tx_fsmiexams/'.$examDB['file'].'">'.$examTypes[$examDB['examtype']].'</a>';
-					if ($examDB['material']!='') {
+						$content .= '<td>'.$examTypes[$examDATA['examtype']].'';
+					elseif ($examDATA['file']!='')
+						$content .= '<td><a href="uploads/tx_fsmiexams/'.$examDATA['file'].'">'.$examTypes[$examDATA['examtype']].'</a>';
+					if ($examDATA['material']!='') {
 						if ($this->rightsDownload==false)
 							$content .= '<br />Zusatzmaterial';
 						else
-							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$examDB['material'].'">Zusatzmaterial</a>';
+							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$examDATA['material'].'">Zusatzmaterial</a>';
 					}
 					$content .= '</td>';
 

@@ -119,7 +119,7 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 
 	/**
 	 * Creates an array with key UID and value description of exam type.
-	 * @return array
+	 * \return array
 	 */
 	function listExamTypes () {
 		$types = array ();
@@ -136,8 +136,7 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 
 	/**
 	 * This function lists all exams ordered by degree program, part etc.
-	 * @return HTML table
-	 *
+	 * \return HTML table
 	 */
 	function listAllExams () {
 		$content = '';
@@ -148,8 +147,8 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 
 	/**
 	 * This function confirms if a user is really allowed to edit files.
-	 * @param $allowedGroups directly from flexform (but escaped) as comma-separated list
-	 * @return boolean
+	 * \param $allowedGroups directly from flexform (but escaped) as comma-separated list
+	 * \return boolean
 	 */
 	function isUserAllowedToEdit ($allowedGroups) {
 		$userGroups = $GLOBALS['TSFE']->fe_user->groupData['uid'];
@@ -164,8 +163,8 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 
 	/**
 	 * This function confirms if a user is really allowed to download files.
-	 * @param $allowedGroups directly from flexform (but escaped) as comma-separated list
-	 * @return boolean
+	 * \param $allowedGroups directly from flexform (but escaped) as comma-separated list
+	 * \return boolean
 	 */
 	function isUserAllowedToDownload ($allowedGroups) {
 		$userGroups = $GLOBALS['TSFE']->fe_user->groupData['uid'];
@@ -180,8 +179,8 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 
 	/**
 	 * This function confirms if a user is really allowed to print files.
-	 * @param $allowedGroups directly from flexform (but escaped) as comma-separated list
-	 * @return boolean
+	 * \param $allowedGroups directly from flexform (but escaped) as comma-separated list
+	 * \return boolean
 	 */
 	function isUserAllowedToPrint ($allowedGroups) {
 		$userGroups = $GLOBALS['TSFE']->fe_user->groupData['uid'];
