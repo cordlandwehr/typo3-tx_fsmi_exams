@@ -242,6 +242,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["approved"] = $examDB['approved'];
 				$this->piVars["file"] = $examDB['file'];
 				$this->piVars["material"] = $examDB['material'];
+				$this->piVars["material_description"] = $examDB['material_description'];
 				$this->piVars["quality"] = $examDB['quality'];
 				$this->piVars["examtype"] = $examDB['examtype'];
 				break;
@@ -288,6 +289,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["approved"] = $approved;
 				$this->piVars["file"] = $formData['file'];
 				$this->piVars["material"] = $formData['material'];
+				$this->piVars["material_description"] = $formData['material_description'];
 				$this->piVars["quality"] = $formData['quality'];
 				$this->piVars["examtype"] = $formData['examtype'];
 				break;
@@ -1264,6 +1266,17 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					value="'.htmlspecialchars($this->piVars["material"]).'"></td>
 			</tr>
 			<tr>
+				<td><label for="'.$this->extKey.'_material_description">'.
+					$this->LANG->getLL("tx_fsmiexams_exam.material_description").
+				':</label></td>
+				<td>
+					<input dojoType="dijit.form.ValidationTextBox"
+					value="'.$this->piVars['material_description'].'"
+					name="'.$this->extKey.'[material_description]"
+					id="'.$this->extKey.'_material_description"
+				/></td>
+			</tr>
+			<tr>
 				<td><label for="'.$this->extKey.'_quality">'.
 					$this->LANG->getLL("tx_fsmiexams_exam.quality").
 				':</label></td>
@@ -1610,8 +1623,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 										PATH_site."typo3temp/".'fsmiexams_term.json',
 										$fileContent
 										);
-
-
 	}
 
 	function createNumberListJSON () {
@@ -1781,6 +1792,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 												'lecturer' => $GLOBALS['TYPO3_DB']->quoteStr($lecturerTXT, 'tx_fsmiexams_exam'),
 												'approved' => $approved,
 												'quality' => intval($formData['quality']),
+												'material_description' => $GLOBALS['TYPO3_DB']->quoteStr($formData['material_description'], 'tx_fsmiexams_exam'),
 												'examtype' => intval($formData['examtype']),
 										));
 					// output info, if ok
@@ -1813,6 +1825,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 												'approved' => $approved,
 												'file' => $examFileName,
 												'material' => $materialFileName,
+												'material_description' => $GLOBALS['TYPO3_DB']->quoteStr($formData['material_description'], 'tx_fsmiexams_exam'),
 												'quality' => intval($formData['quality']),
 												'examtype' => intval($formData['examtype']),
 										));
@@ -1828,8 +1841,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 										'<li><strong>Name:</strong> '.htmlspecialchars(utf8_decode($formData['name'])).'</li>'.
 										'<li><strong>Lecture(s):</strong> '.tx_fsmiexams_div::lectureToText($lectureTXT,0).'</li>'.
 										'<li><strong>Lecturer(s):</strong> '.tx_fsmiexams_div::lecturerToText($lecturerTXT,0).'</li>'.
-										'<li><strong>Year/Term/No.:</strong> '.tx_fsmiexams_div::examToTermdate(intval($formData['term'])).' '.intval($formData['year']).' Nr. '.intval($formData['number']).'</li>'.
-										'<li><strong>Date:</strong> '.date('d.m.Y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'.
+										(intval($formData['year'])==0?
+											'':
+											'<li><strong>Year/Term/No.:</strong> '.tx_fsmiexams_div::examToTermdate(intval($formData['term'])).' '.intval($formData['year']).' Nr. '.intval($formData['number']).'</li>'.
+											'<li><strong>Date:</strong> '.date('d.m.Y',strtotime(htmlspecialchars($formData['exactdate']))).'</li>'
+										).
 									'</ul>'.
 								'</div>');
 						//FIXME works, but problem with many connections at some time
@@ -1951,9 +1967,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	/**
 	 * This function saves files (from POST fileupload) into the 'uploads/fx_fsmiexams/' directory
 	 * At the moment no validation is done if this file really exists, please take care!
-	 * @param $tmpName the temporary name for the file uploaded by webserver
-	 * @param $fileName the name of the file it should be saved as
-	 * @return $fileName of the save file
+	 * \param $tmpName the temporary name for the file uploaded by webserver
+	 * \param $fileName the name of the file it should be saved as
+	 * \return $fileName of the save file
 	 */
 
 	function saveExamFiles($tmpName, $fileName) {
@@ -1989,8 +2005,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	 * This function validates input strings
 	 * TODO compare with ER diagram -> is everything asked?
 	 * TODO give hints were error could be ;-)
-	 * @param $type is constant for edit-type
-	 * @return boolean true iff everything is fine
+	 * \param $type is constant for edit-type
+	 * \return boolean true iff everything is fine
 	 */
 	function validateFormData($type) {
 

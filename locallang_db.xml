@@ -36,6 +36,7 @@
 			<label index="tx_fsmiexams_exam.quality.I.1">Scanned</label>
 			<label index="tx_fsmiexams_exam.quality.I.2">Handwritten</label>
 			<label index="tx_fsmiexams_exam.examtype">Exam Type</label>
+			<label index="tx_fsmiexams_exam.material_description">Material Description</label>
 			<label index="tx_fsmiexams_exam.exactdate">Date</label>
 			<label index="tx_fsmiexams_lecturer">Lecturer</label>
 			<label index="tx_fsmiexams_lecturer.firstname">First Name</label>
@@ -111,6 +112,7 @@
 			<label index="tx_fsmiexams_exam.quality.I.1">Scan</label>
 			<label index="tx_fsmiexams_exam.quality.I.2">Handschrift</label>
 			<label index="tx_fsmiexams_exam.examtype">Prüfungsart</label>
+			<label index="tx_fsmiexams_exam.material_description">Beschreibung Zusatzmaterial</label>
 			<label index="tx_fsmiexams_exam.exactdate">Prüfungsdatum</label>
 			<label index="tx_fsmiexams_lecturer">Prüfer</label>
 			<label index="tx_fsmiexams_lecturer.firstname">Vorname</label>

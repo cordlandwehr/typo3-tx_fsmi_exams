@@ -115,6 +115,7 @@ CREATE TABLE tx_fsmiexams_exam (
 	material text,
 	quality int(11) DEFAULT '0' NOT NULL,
 	examtype text,
+	material_description varchar(255) DEFAULT '' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)

@@ -242,11 +242,18 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 						$content .= '<td>'.$examTypes[$examDATA['examtype']].'';
 					elseif ($examDATA['file']!='')
 						$content .= '<td><a href="uploads/tx_fsmiexams/'.$examDATA['file'].'">'.$examTypes[$examDATA['examtype']].'</a>';
+
+					// download additional material
+					$material_descr = (
+						$examDATA['material_description']==''
+						?'Zusatzmaterial'
+						:$examDATA['material_description']
+					);
 					if ($examDATA['material']!='') {
 						if ($this->rightsDownload==false)
-							$content .= '<br />Zusatzmaterial';
+							$content .= '<br />'.$material_descr;
 						else
-							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$examDATA['material'].'">Zusatzmaterial</a>';
+							$content .= '<br /><a href="uploads/tx_fsmiexams/'.$examDATA['material'].'">'.$material_descr.'</a>';
 					}
 					$content .= '</td>';
 

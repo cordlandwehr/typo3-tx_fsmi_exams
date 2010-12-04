@@ -496,9 +496,19 @@ $TCA['tx_fsmiexams_exam'] = array (
 				'maxitems' => 1,
 			)
 		),
+		'material_description' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_exam.material_description',
+			'config' => array (
+				'type' => 'input',
+				'size' => '30',
+				'checkbox' => '',
+				'eval' => 'trim',
+			)
+		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, lecture, term, year, examtype, exactdate, lecturer, approved, file, material, quality')
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, number, lecture, term, year, examtype, exactdate, lecturer, approved, file, material, material_description, quality')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')
