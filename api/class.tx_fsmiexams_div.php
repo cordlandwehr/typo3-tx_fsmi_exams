@@ -399,6 +399,22 @@ class tx_fsmiexams_div {
 		return $colors[$color]['rgb'];
 	}
 
+	/**
+	 * converts given number into string with exactly $digits man digits,
+	 * if $number is not larger than 10 times $digits.
+	 * \param $number is to be displayed number
+	 * \param $digits is number of digits
+	 */
+	static function numberFixedDigits( $number, $digits ) {
+		if ($number>=10*$digits)
+			return $number;
+		$neededZeros = $digits - strlen($number.'');
+		//TODO pretty inefficient
+		for ($i=0; $i<$neededZeros; $i++)
+			$number = '0'.$number;
+		return $number;
+	}
+
 }
 
 // Include extension?
