@@ -882,7 +882,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			</table></fieldset>
 			<input type="submit" name="'.$this->prefixId.'[submit_button]"
-				value="'.htmlspecialchars($this->pi_getLL("submit_button_label_folder_detail")).'">
+				value="'.htmlspecialchars($this->pi_getLL("submit_button_label")).'">
 			</form>';
 
 		return $content;
