@@ -161,6 +161,7 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 								$content .= '<td>'.$examTypes[$examDATA['examtype']].'';
 							elseif ($examDATA['file']!='')
 								$content .= '<td><a href="uploads/tx_fsmiexams/'.$examDATA['file'].'">'.$examTypes[$examDATA['examtype']].'</a>';
+							else $content .= '<td>';
 
 							// download additional material
 							$material_descr = (
