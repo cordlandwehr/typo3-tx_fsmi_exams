@@ -22,17 +22,18 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 /**
-* This class provides a huge amount on utility functions, e.g. for database access...
-*
-* @author Andreas Cord-Landwehr <cola@uni-paderborn.de>
-*/
+ * This class provides a huge amount on utility functions, e.g. for database
+ * access...
+ *
+ * @author Andreas Cord-Landwehr <cola@uni-paderborn.de>
+ */
 
 
 
-require_once(PATH_t3lib.'class.t3lib_befunc.php');
-require_once(PATH_t3lib.'class.t3lib_tcemain.php');
-require_once(PATH_t3lib.'class.t3lib_iconworks.php');
-require_once(t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_pi4.php');
+require_once (PATH_t3lib.'class.t3lib_befunc.php');
+require_once (PATH_t3lib.'class.t3lib_tcemain.php');
+require_once (PATH_t3lib.'class.t3lib_iconworks.php');
+require_once (t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_pi4.php');
 
 
 /**
@@ -54,14 +55,6 @@ class tx_fsmiexams_div {
 
 	static private $pi_base;
 
-
-	static $kSTATUS_INFO = 0;		// deprecated, need to change!
-	static $kSTATUS_ERROR = 2;		// deprecated, need to change!
-
-// 	function __construct() {
-// 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
-// 	}
-
 	static function init () {
 		if (!self::$pi_base) {
 			self::$pi_base = t3lib_div::makeInstance('tslib_pibase');
@@ -72,10 +65,11 @@ class tx_fsmiexams_div {
 	/**
 	 * Translates given UID of lecture to name
 	 *
-	 * @param UID $uid
-	 * @return text
+	 * @param	integer	$uid	UID of lecture
+	 * @param	integer	$editPage	is optional page for FE-editing
+	 * @return	string	text
 	 */
-	static function lectureToText ($uid, $editPage=0) {
+	static function lectureToText ($uid, $editPage = 0) {
 		self::init();
 
 		$lectureList = explode(',',$uid);
@@ -101,10 +95,11 @@ class tx_fsmiexams_div {
 	/**
 	 * Translates given UID of exams to name
 	 *
-	 * @param UID $uid
-	 * @return text
+	 * \param $uid UID of exam
+	 * \param $editPage is optional page for FE-editing
+	 * \return text
 	 */
-	static function examToText ($uid, $editPage=0) {
+	static function examToText ($uid, $editPage = 0) {
 		self::init();
 		$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
@@ -126,11 +121,11 @@ class tx_fsmiexams_div {
 	/**
 	 * Prints name of the lecturer in order "lastname, firstname", but also links to edit page if any is given.
 	 *
-	 * @param UID $uid
-	 * @param INTEGER edit page id
-	 * @return text
+	 * \param $uid UID of lecturer
+	 * \param $editPage is optional page for FE-editing
+	 * \return text
 	 */
-	static function lecturerToText ($uid, $editPage) {
+	static function lecturerToText ($uid, $editPage = 0) {
 		self::init();
 		$lecturerList = explode(',',$uid);
 		$lecturerArray = array();
@@ -155,11 +150,11 @@ class tx_fsmiexams_div {
 	/**
 	 * Prints name of the folder in order, but also links to edit page if any is given.
 	 *
-	 * @param UID $uid
-	 * @param INTEGER edit page id
-	 * @return text
+	 * \param $uid UID of folder
+	 * \param $editPage is optional page for FE-editing
+	 * \return text
 	 */
-	static function folderToText ($uid, $editPage) {
+	static function folderToText ($uid, $editPage=0) {
 		self::init();
 		$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
 		if ($editPage)
@@ -179,10 +174,11 @@ class tx_fsmiexams_div {
 	/**
 	 * Translates given UID of exam to readable term date
 	 *
-	 * @param UID $uid
-	 * @return text
+	 * \param UID $uid
+	 * \return text
 	 */
-	static function examToTermdate ($uid) {//TODO no locallang yet
+	static function examToTermdate ($uid) {
+			//TODO no locallang yet
 		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
 		$text = '';
@@ -201,12 +197,13 @@ class tx_fsmiexams_div {
 	 * to get the UIDs for specific exams as requested.
 	 * Each parameter of optional -- If you do not set it (or set it to 0) a wildcard is used for database.
 	 *
-	 * @param UID $degreeprogram
-	 * @param UID $part
-	 * @param UID $module
-	 * @param UID $lecture
-	 * @param UID $lecturer
-	 * @param UID $folder
+	 * \param UID $degreeprogram
+	 * \param UID $part
+	 * \param UID $module
+	 * \param UID $lecture
+	 * \param UID $lecturer
+	 * \param UID $folder
+	 * \return array of uids
 	 */
 	function getExamUIDs ($degreeprogram, $field, $module, $lecture, $lecturer, $folder, $examtype) {
 		/*
@@ -252,7 +249,7 @@ class tx_fsmiexams_div {
 		else
 			array_push($fieldUIDs, intval($field));
 
-		// no module given, check field
+			// if no module given, check field
 		$moduleUIDs = array ();
 		if ($module == 0) {
 
@@ -274,7 +271,7 @@ class tx_fsmiexams_div {
 		}
 		else
 			array_push($moduleUIDs, intval($module));
-		if (count($moduleUIDs)==0)
+		if (count($moduleUIDs) == 0)
 			return array ();
 
 		// no lecture given, check modules
@@ -298,10 +295,10 @@ class tx_fsmiexams_div {
 		}
 		else
 			array_push($lectureUIDs, intval($lecture));
-		if (count($lectureUIDs)==0)
+		if (count($lectureUIDs) == 0)
 			return array ();
 
-		// finally get exams
+			// finally get exams
 		$examWhere = '';
 		$examUIDs = array ();
 		if ($lecturer != 0)
@@ -321,7 +318,6 @@ class tx_fsmiexams_div {
 			while ($res && $row = mysql_fetch_assoc($res))
 				array_push($examUIDs, $row['uid']);
 		}
-
 
 		return $examUIDs;
 	}
@@ -424,7 +420,7 @@ class tx_fsmiexams_div {
 	}
 
 	/**
-	 * converts given number into string with exactly $digits man digits,
+	 * Converts given number into string with exactly $digits man digits,
 	 * if $number is not larger than 10 times $digits.
 	 * \param $number is to be displayed number
 	 * \param $digits is number of digits
@@ -433,7 +429,8 @@ class tx_fsmiexams_div {
 		if ($number>=10*$digits)
 			return $number;
 		$neededZeros = $digits - strlen($number.'');
-		//TODO pretty inefficient
+
+			//TODO pretty inefficient
 		for ($i=0; $i<$neededZeros; $i++)
 			$number = '0'.$number;
 		return $number;
@@ -441,8 +438,8 @@ class tx_fsmiexams_div {
 
 }
 
-// Include extension?
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/api/class.tx_fsmiexams_div.php'])    {
-    include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/api/class.tx_fsmiexams_div.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/api/class.tx_fsmiexams_div.php'])
+{
+	required_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/api/class.tx_fsmiexams_div.php']);
 }
 ?>
