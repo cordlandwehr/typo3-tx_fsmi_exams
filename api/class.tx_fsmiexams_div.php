@@ -153,6 +153,30 @@ class tx_fsmiexams_div {
 	}
 
 	/**
+	 * Prints name of the folder in order, but also links to edit page if any is given.
+	 *
+	 * @param UID $uid
+	 * @param INTEGER edit page id
+	 * @return text
+	 */
+	static function folderToText ($uid, $editPage) {
+		self::init();
+		$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
+		if ($editPage)
+			return self::$pi_base->pi_linkTP(
+							$folderDATA['name'],
+							array (
+								self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_FOLDER,
+								self::extKey.'[uid]' => $folderDATA['uid']
+							),
+							0,
+							$editPage
+						). ' ';
+		else
+			return $folderDATA['name'];
+	}
+
+	/**
 	 * Translates given UID of exam to readable term date
 	 *
 	 * @param UID $uid

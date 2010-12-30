@@ -247,6 +247,18 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["examtype"] = $examDB['examtype'];
 				break;
 			}
+			case self::kEDIT_TYPE_FOLDER: {
+				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
+				$this->piVars["name"] = $folderDATA['name'];
+				$this->piVars['folder_id'] = $folderDATA['folder_id'];
+				$this->piVars['color'] = $folderDATA['color'];
+				$this->piVars['state'] = $folderDATA['state'];
+				$this->piVars['content'] = $folderDATA['content'];
+				$lectures = explode(',',$folderDATA['associated_lectures']);
+				for($i=0;$i<count($lectures);$i++)
+					$this->piVars['lecture'.$i] = $lectures[$i];
+				break;
+			}
 			case self::kEDIT_TYPE_LECTURER: {
 				$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
 				$this->piVars["firstname"] = $lecturerDB['firstname'];
@@ -292,6 +304,18 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["material_description"] = $formData['material_description'];
 				$this->piVars["quality"] = $formData['quality'];
 				$this->piVars["examtype"] = $formData['examtype'];
+				break;
+			}
+			case self::kEDIT_TYPE_FOLDER: {
+				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
+				$this->piVars["name"] = $formData['name'];
+				$this->piVars['folder_id'] = intval($formData['folder_id']);
+				$this->piVars['color'] = intval($formDATA['color']);
+				for ($i=0; $i<4; $i++)
+					$this->piVars['lecture'.$i] = intval($formData['lecture'.$i]);
+// 				$this->piVars['state'] = $folderDATA['state'];
+// 				$this->piVars['content'] = $folderDATA['content'];
+// 				$this->piVars['associated_lectures'] = $folderDATA['associated_lectures'];
 				break;
 			}
 // 			case self::kEDIT_TYPE_LECTURER: {
@@ -803,9 +827,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	/**
 	 * This function provides a form to enter new folders or (if an editUID is given) to
 	 * change an existing one.
+	 * Only use after preselection form.
 	 */
 	function createFolderInputForm ($editUID) {
-		$preselection_data = t3lib_div::_POST($this->extKey);
+// 		$preselection_data = t3lib_div::_POST($this->extKey);
 
 		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
 			'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>';
@@ -820,20 +845,20 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER_SAVE.'" />
-			<input type="hidden" name="'.$this->extKey.'[name]" value="'.htmlspecialchars($preselection_data['name']).'" />
-			<input type="hidden" name="'.$this->extKey.'[folder_id]" value="'.intval($preselection_data['folder_id']).'" />
-			<input type="hidden" name="'.$this->extKey.'[color]" value="'.intval($preselection_data['color']).'" />';
+			<input type="hidden" name="'.$this->extKey.'[name]" value="'.$this->piVars['name'].'" />
+			<input type="hidden" name="'.$this->extKey.'[folder_id]" value="'.$this->piVars['folder_id'].'" />
+			<input type="hidden" name="'.$this->extKey.'[color]" value="'.$this->piVars['color'].'" />';
 
 		// hidden field for UID if editing existing folder
 		if ($editUID)
 			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
 
 		// generate checkboxes for all containing exams
-		$content .= '<h3>Ordner: '.htmlspecialchars($preselection_data['name']).
-			' ['.intval($preselection_data['folder_id']).']</h3>';
+		$content .= '<h3>Ordner: '.$this->piVars['name'].
+			' ['.$this->piVars['folder_id'].']</h3>';
 
 		for ($i=0; $i<4; $i++) {
-			$lectureUID = intval($preselection_data['lecture'.$i]);
+			$lectureUID = $this->piVars['lecture'.$i];
 			if ($lectureUID<=0)
 				continue;
 
