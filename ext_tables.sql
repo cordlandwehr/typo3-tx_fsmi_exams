@@ -216,3 +216,13 @@ CREATE TABLE tx_fsmiexams_loan (
 	PRIMARY KEY (uid),
 	KEY parent (pid)
 );
+
+
+#
+# Table structure for extension to table 'fe_groups'
+#
+CREATE TABLE fe_groups (
+	tx_fsmiexams_fsmiexams_rights_edit tinyint(4) DEFAULT '0' NOT NULL,
+	tx_fsmiexams_fsmiexams_rights_download tinyint(4) DEFAULT '0' NOT NULL,
+	tx_fsmiexams_fsmiexams_rights_print tinyint(4) DEFAULT '0' NOT NULL
+);

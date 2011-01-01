@@ -178,6 +178,45 @@ $TCA['tx_fsmiexams_loan'] = array (
 );
 
 
+// add extension fields to frontend user groups
+$columnRightsEdit = array (
+    'tx_fsmiexams_fsmiexams_rights_edit' => array (
+		'exclude' => 0,
+		'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams.fsmiexams_rights_edit',
+		'config'  => array (
+			'type'    => 'check',
+			'default' => '0'
+		)
+    ),
+);
+$columnRightsDownload = array (
+    'tx_fsmiexams_fsmiexams_rights_download' => array (
+		'exclude' => 0,
+		'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams.fsmiexams_rights_download',
+		'config'  => array (
+			'type'    => 'check',
+			'default' => '0'
+		)
+    ),
+);
+$columnRightsPrint = array (
+    'tx_fsmiexams_fsmiexams_rights_print' => array (
+		'exclude' => 0,
+		'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams.fsmiexams_rights_print',
+		'config'  => array (
+			'type'    => 'check',
+			'default' => '0'
+		)
+    ),
+);
+t3lib_div::loadTCA('fe_groups');
+t3lib_extMgm::addTCAcolumns('fe_groups',$columnRightsEdit,1);
+t3lib_extMgm::addTCAcolumns('fe_groups',$columnRightsDownload,1);
+t3lib_extMgm::addTCAcolumns('fe_groups',$columnRightsPrint,1);
+t3lib_extMgm::addToAllTCAtypes('fe_groups','tx_fsmiexams_fsmiexams_rights_edit;;;;1-1-1');
+t3lib_extMgm::addToAllTCAtypes('fe_groups','tx_fsmiexams_fsmiexams_rights_download;;;;1-1-1');
+t3lib_extMgm::addToAllTCAtypes('fe_groups','tx_fsmiexams_fsmiexams_rights_print;;;;1-1-1');
+
 t3lib_div::loadTCA('tt_content');
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1']='layout,select_key';
 

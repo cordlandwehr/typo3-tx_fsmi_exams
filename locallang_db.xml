@@ -73,6 +73,9 @@
 			<label index="tx_fsmiexams_loan.withdrawaldate">Withdrawal Date</label>
 			<label index="tx_fsmiexams_loan.deposit">Deposit</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Lending Date</label>
+			<label index="tx_fsmiexams.fsmiexams_rights_edit">Exams Archive Edit Rights</label>
+			<label index="tx_fsmiexams.fsmiexams_rights_download">Exams Archive Download Rights</label>
+			<label index="tx_fsmiexams.fsmiexams_rights_print">Exams Archive Print Rights</label>
 			<label index="tt_content.list_type_pi1">Show Archive</label>
 			<label index="tt_content.list_type_pi1.aggregated">Aggregated View</label>
 			<label index="tt_content.list_type_pi1.list">List View</label>
@@ -146,6 +149,9 @@
 			<label index="tx_fsmiexams_loan.withdrawaldate">Rücknahme Datum</label>
 			<label index="tx_fsmiexams_loan.deposit">Pfand</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Ausleihe Datum</label>
+			<label index="tx_fsmiexams.fsmiexams_rights_edit">Klausurarchiv Bearbeitungsrechte</label>
+			<label index="tx_fsmiexams.fsmiexams_rights_download">Klausurarchiv Downloadrechte</label>
+			<label index="tx_fsmiexams.fsmiexams_rights_print">Klausurarchiv Druckrechte</label>
 			<label index="tt_content.list_type_pi1">Archiv anzeigen</label>
 			<label index="tt_content.list_type_pi1.aggregated">Modulansicht</label>
 			<label index="tt_content.list_type_pi1.list">Listenansicht</label>
