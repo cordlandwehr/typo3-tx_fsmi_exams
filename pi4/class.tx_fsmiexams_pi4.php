@@ -29,6 +29,10 @@
 
 require_once(PATH_tslib.'class.tslib_pibase.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_listview.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_view_user.php');
+// require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_module_aggregation.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_folderview.php');
 
 /**
  * Plugin 'Exam Input' for the 'fsmi_exams' extension.
@@ -61,6 +65,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $storageLecture;
 	var $storageExam;
 	var $storageFolder;
+	var $listViewsPage;
 	var $LANG;
 	var $colors = array();
 
@@ -93,6 +98,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->storageLecture = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreLecture'));
 		$this->storageExam = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreExam'));
 		$this->storageFolder = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidStoreFolder'));
+
+		// page with listing views
+		$this->listViewsPage = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'listViewsPage'));
 
 		// set color information
 		$this->colors[0]['name'] = "keine";
@@ -186,6 +194,12 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				// save POST data if received
 				if (t3lib_div::_POST($this->extKey))
 					$content .= $this->saveFormData();
+
+				$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_folderview);
+				$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
+
+				$content .= $this->viewObj->listAllExams();
+
 				break;
 			}
 			default:
