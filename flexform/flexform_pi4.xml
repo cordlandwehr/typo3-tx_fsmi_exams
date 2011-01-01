@@ -70,6 +70,21 @@
 						</config>
 					  </TCEforms>
 					</pidStoreFolder>
+					<pidListView>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>PID with listing views</label>
+							<config>
+								<type>group</type>
+								<internal_type>db</internal_type>
+								<allowed>pages</allowed>
+								<size>1</size>
+								<maxitems>1</maxitems>
+								<minitems>0</minitems>
+								<show_thumbs>1</show_thumbs>
+							</config>
+						</TCEforms>
+					</pidListView>
 				</el>
 			</ROOT>
 		</sDEF>
