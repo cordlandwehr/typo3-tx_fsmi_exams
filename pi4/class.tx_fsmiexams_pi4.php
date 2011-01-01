@@ -119,6 +119,12 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// type selection head
 		$content .= $this->createTypeSelector();
 
+		// get Edit information
+		$this->pidEditPage = $GLOBALS['TSFE']->id;
+		$this->allowedGroupsEdit = tx_fsmiexams_div::getGroupUIDsRightsEdit();
+		$this->allowedGroupsDownload = tx_fsmiexams_div::getGroupUIDsRightsDownload();
+		$this->allowedGroupsPrint = tx_fsmiexams_div::getGroupUIDsRightsPrint();
+
 		// select input type
 		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
 		switch (intval($GETcommands['type'])) {

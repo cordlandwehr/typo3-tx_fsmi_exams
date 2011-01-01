@@ -436,6 +436,50 @@ class tx_fsmiexams_div {
 		return $number;
 	}
 
+	/**
+	 * Returns array with all group UIDs whose members are allowed to edit entries
+	 * @return	array of UIDs
+	 */
+	static function getGroupUIDsRightsEdit() {
+		$uids = array();
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT uid
+												FROM fe_groups
+												WHERE tx_fsmiexams_fsmiexams_rights_edit=1');
+		while ($res && $row = mysql_fetch_assoc($res)) {
+			$uids[] = $row['uid'];
+		}
+		return $uids;
+	}
+
+	/**
+	 * Returns array with all group UIDs whose members are allowed to download exams
+	 * @return	array of UIDs
+	 */
+	static function getGroupUIDsRightsDownload() {
+		$uids = array();
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT uid
+												FROM fe_groups
+												WHERE tx_fsmiexams_fsmiexams_rights_download=1');
+		while ($res && $row = mysql_fetch_assoc($res)) {
+			$uids[] = $row['uid'];
+		}
+		return $uids;
+	}
+
+	/**
+	 * Returns array with all group UIDs whose members are allowed to download exams
+	 * @return	array of UIDs
+	 */
+	static function getGroupUIDsRightsPrint() {
+		$uids = array();
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT uid
+												FROM fe_groups
+												WHERE tx_fsmiexams_fsmiexams_rights_print=1');
+		while ($res && $row = mysql_fetch_assoc($res)) {
+			$uids[] = $row['uid'];
+		}
+		return $uids;
+	}
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/api/class.tx_fsmiexams_div.php'])

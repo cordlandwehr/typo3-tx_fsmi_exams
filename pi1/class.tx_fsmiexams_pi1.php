@@ -91,9 +91,9 @@ class tx_fsmiexams_pi1 extends tslib_pibase {
 
 		// get Edit information
 		$this->pidEditPage = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidEdit'));
-		$this->allowedGroupsEdit = htmlspecialchars($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'rightsEdit'));
-		$this->allowedGroupsDownload = htmlspecialchars($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'rightsDownload'));
-		$this->allowedGroupsPrint = htmlspecialchars($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'rightsPrint'));
+		$this->allowedGroupsEdit = tx_fsmiexams_div::getGroupUIDsRightsEdit();
+		$this->allowedGroupsDownload = tx_fsmiexams_div::getGroupUIDsRightsDownload();
+		$this->allowedGroupsPrint = tx_fsmiexams_div::getGroupUIDsRightsPrint();
 
 		// case of listview
 		$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
