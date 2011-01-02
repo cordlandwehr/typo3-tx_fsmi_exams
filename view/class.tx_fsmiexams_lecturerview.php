@@ -89,7 +89,6 @@ class tx_fsmiexams_lecturerview extends tx_fsmiexams_base_view_user {
 		$content .= '<table>';
 		$content .= '<tr>
 			<th>Name</th>
-			<th>Vorname</th>
 			</tr>';
 		while ($resLecturers && $lecturer = mysql_fetch_assoc($resLecturers)) {
 			$content .= '<tr>';

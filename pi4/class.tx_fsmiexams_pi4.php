@@ -127,9 +127,14 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// select input type
 		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
 
+		// switch to list view if UID is present
+		$fakeView = intval($GETcommands['view']);
+		if (intval($GETcommands['uid'])>0)
+			$fakeView = self::kVIEW_LIST;
+
 		// type selection head
-		$content .= $this->menuViewModes(intval($GETcommands['view']));
-		switch ($GETcommands['view']) {
+		$content .= $this->menuViewModes($fakeView);
+		switch ($fakeView) {
 			case self::kVIEW_CREATE:
 				$content .= $this->menuCreateTypes();
 				break;
@@ -998,7 +1003,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		// generate checkboxes for all containing exams
 		$content .= '<h3>Ordner: '.$this->piVars['name'].
-			' ['.$this->piVars['folder_id'].']</h3>';
+			' ['.tx_fsmiexams_div::numberFixedDigits($this->piVars['folder_id'],4).']</h3>';
 
 		for ($i=0; $i<4; $i++) {
 			$lectureUID = $this->piVars['lecture'.$i];
