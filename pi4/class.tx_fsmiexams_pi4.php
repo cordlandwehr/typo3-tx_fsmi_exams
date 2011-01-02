@@ -33,6 +33,7 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_listvi
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_view_user.php');
 // require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_module_aggregation.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_folderview.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_lecturerview.php');
 
 /**
  * Plugin 'Exam Input' for the 'fsmi_exams' extension.
@@ -47,6 +48,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $extKey        = 'fsmi_exams';	// The extension key.
 	var $pi_checkCHash = true;
 
+	// switch between views
+	const kVIEW_CREATE						= 1;
+	const kVIEW_LIST						= 2;
+
 	// constants
 //	const kEDIT_TYPE_NONE						= 0;
 //	const kEDIT_TYPE_MODULE						= 1;
@@ -58,6 +63,9 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	const kEDIT_TYPE_FOLDER						= 9;
 	const kEDIT_TYPE_FOLDER_SAVE				= 10;
 
+	const kLIST_TYPE_FOLDER						= 1;
+	const kLIST_TYPE_LECTURE					= 2;
+	const kLIST_TYPE_LECTURER					= 3;
 	//TODO some constants are called contrary to their meanings
 
 	// storages
@@ -116,8 +124,19 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->colors[5]['name'] = "schwarz";
 		$this->colors[5]['rgb'] = "#000";
 
+		// select input type
+		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
+
 		// type selection head
-		$content .= $this->createTypeSelector();
+		$content .= $this->menuViewModes(intval($GETcommands['view']));
+		switch ($GETcommands['view']) {
+			case self::kVIEW_CREATE:
+				$content .= $this->menuCreateTypes();
+				break;
+			case self::kVIEW_LIST:
+				$content .= $this->menuListTypes();
+				break;
+		}
 
 		// get Edit information
 		$this->pidEditPage = $GLOBALS['TSFE']->id;
@@ -125,113 +144,198 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$this->allowedGroupsDownload = tx_fsmiexams_div::getGroupUIDsRightsDownload();
 		$this->allowedGroupsPrint = tx_fsmiexams_div::getGroupUIDsRightsPrint();
 
-		// select input type
-		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
-		switch (intval($GETcommands['type'])) {
-			case self::kEDIT_TYPE_LECTURE: {
-				// save POST data if received
-				if (t3lib_div::_POST($this->extKey))
-					$content .= $this->saveFormData();
-				if (intval($GETcommands['uid']))
-					$this->setPiVarsFromDB(self::kEDIT_TYPE_LECTURE, intval($GETcommands['uid']));
-				$content .= $this->createLectureInputForm(intval($GETcommands['uid']));
-				break;
-			}
-			case self::kEDIT_TYPE_EXAM: {
-				// save POST data if received
-				if (t3lib_div::_POST($this->extKey)) {
-					$this->setPiVarsFromPOST(self::kEDIT_TYPE_EXAM);	// further operations are down only with piVars
-
-					if ($this->validateFormData(self::kEDIT_TYPE_EXAM)==false) {	// check content
-						$content .= tx_fsmiexams_div::printSystemMessage(
-							tx_fsmiexams_div::kSTATUS_ERROR,
-							'Error in input form! Nothing saved yet. Please modify and try again.'
-							);
-						$content .= $this->createExamInputForm();
-					}
-					else {	// no input errors
+		if (intval($GETcommands['view'])==self::kVIEW_CREATE) {
+			switch (intval($GETcommands['type'])) {
+				case self::kEDIT_TYPE_LECTURE: {
+					// save POST data if received
+					if (t3lib_div::_POST($this->extKey))
 						$content .= $this->saveFormData();
-					}
-				}
-				// output the input form
-				else {
 					if (intval($GETcommands['uid']))
-						$this->setPiVarsFromDB(self::kEDIT_TYPE_EXAM, intval($GETcommands['uid']));
-					$content .= $this->createExamInputForm(intval($GETcommands['uid']));
+						$this->setPiVarsFromDB(self::kEDIT_TYPE_LECTURE, intval($GETcommands['uid']));
+					$content .= $this->createLectureInputForm(intval($GETcommands['uid']));
+					break;
 				}
+				case self::kEDIT_TYPE_EXAM: {
+					// save POST data if received
+					if (t3lib_div::_POST($this->extKey)) {
+						$this->setPiVarsFromPOST(self::kEDIT_TYPE_EXAM);	// further operations are down only with piVars
 
-				break;
-			}
-			case self::kEDIT_TYPE_EXAM_CREATION_TRIGGERS: {
-				// save POST data if received
-				if (t3lib_div::_POST($this->extKey))
-					$content .= $this->saveFormData();
-				if (intval($GETcommands['uid']))
-					$content .= '<div>EDIT of exam creations in this direction not implemented, yet</div>';//TODO implement this
-				$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
-				break;
-			}
-			case self::kEDIT_TYPE_LECTURER: {
-				// save POST data if received
-				if (t3lib_div::_POST($this->extKey))
-					$content .= $this->saveFormData();
-				if (intval($GETcommands['uid']))
-					$this->setPiVarsFromDB(self::kEDIT_TYPE_LECTURER, intval($GETcommands['uid']));
-				$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
-				break;
-			}
-			case self::kEDIT_TYPE_FOLDER_PRESELECT: {
-				if (intval($GETcommands['uid']))
-					$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
-				if (t3lib_div::_POST($this->extKey))	// if second step
+						if ($this->validateFormData(self::kEDIT_TYPE_EXAM)==false) {	// check content
+							$content .= tx_fsmiexams_div::printSystemMessage(
+								tx_fsmiexams_div::kSTATUS_ERROR,
+								'Error in input form! Nothing saved yet. Please modify and try again.'
+								);
+							$content .= $this->createExamInputForm();
+						}
+						else {	// no input errors
+							$content .= $this->saveFormData();
+						}
+					}
+					// output the input form
+					else {
+						if (intval($GETcommands['uid']))
+							$this->setPiVarsFromDB(self::kEDIT_TYPE_EXAM, intval($GETcommands['uid']));
+						$content .= $this->createExamInputForm(intval($GETcommands['uid']));
+					}
+
+					break;
+				}
+				case self::kEDIT_TYPE_EXAM_CREATION_TRIGGERS: {
+					// save POST data if received
+					if (t3lib_div::_POST($this->extKey))
+						$content .= $this->saveFormData();
+					if (intval($GETcommands['uid']))
+						$content .= '<div>EDIT of exam creations in this direction not implemented, yet</div>';//TODO implement this
+					$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
+					break;
+				}
+				case self::kEDIT_TYPE_LECTURER: {
+					// save POST data if received
+					if (t3lib_div::_POST($this->extKey))
+						$content .= $this->saveFormData();
+					if (intval($GETcommands['uid']))
+						$this->setPiVarsFromDB(self::kEDIT_TYPE_LECTURER, intval($GETcommands['uid']));
+					$content .= $this->createLecturerInputForm(intval($GETcommands['uid']));
+					break;
+				}
+				case self::kEDIT_TYPE_FOLDER_PRESELECT: {
+					if (intval($GETcommands['uid']))
+						$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
+					if (t3lib_div::_POST($this->extKey))	// if second step
+						$content .= $this->createFolderInputForm(intval($GETcommands['uid']));
+					else	// first step
+						$content .= $this->createFolderInputFormPreselect(intval($GETcommands['uid']));
+
+					break;
+				}
+				case self::kEDIT_TYPE_FOLDER: {
+					if (intval($GETcommands['uid']))
+						$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
 					$content .= $this->createFolderInputForm(intval($GETcommands['uid']));
-				else	// first step
-					$content .= $this->createFolderInputFormPreselect(intval($GETcommands['uid']));
+					break;
+				}
+				case self::kEDIT_TYPE_FOLDER_SAVE: {
+					// save POST data if received
+					if (t3lib_div::_POST($this->extKey))
+						$content .= $this->saveFormData();
 
-				break;
+					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_folderview);
+					$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
+
+					$content .= $this->viewObj->listAllExams();
+
+					break;
+				}
+				default:
+					break;
 			}
-			case self::kEDIT_TYPE_FOLDER: {
-				if (intval($GETcommands['uid']))
-					$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
-				$content .= $this->createFolderInputForm(intval($GETcommands['uid']));
-				break;
+		}
+
+		if (intval($GETcommands['view'])==self::kVIEW_LIST) {
+			switch (intval($GETcommands['type'])) {
+				case self::kLIST_TYPE_FOLDER: {
+					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_folderview);
+					$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
+					$content .= $this->viewObj->listAllExams();
+					break;
+				}
+				case self::kLIST_TYPE_LECTURE: {
+					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_listview);
+					$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
+					$content .= $this->viewObj->listAllExams();
+					break;
+				}
+				case self::kLIST_TYPE_LECTURER: {
+					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_lecturerview);
+					$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
+					$content .= $this->viewObj->listAllExams();
+					break;
+				}
 			}
-			case self::kEDIT_TYPE_FOLDER_SAVE: {
-				// save POST data if received
-				if (t3lib_div::_POST($this->extKey))
-					$content .= $this->saveFormData();
-
-				$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_folderview);
-				$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
-
-				$content .= $this->viewObj->listAllExams();
-
-				break;
-			}
-			default:
-				break;
 		}
 
 		return $this->pi_wrapInBaseClass($content);
 	}
 
-	function createTypeSelector () {
+	/**
+	 * Creates menu to switch between
+	 * - create
+	 * - list
+	 * @param	integer	$view	preselected view mode
+	 * @return	string as HTML div
+	 */
+	function menuViewModes ($view = 0) {
 		$content = '<div>';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecture"),
-								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURE));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-exam"),
-								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_EXAM));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecturer"),
-								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURER));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-folder"),
-								array (	$this->extKey.'[type]' => self::kEDIT_TYPE_FOLDER_PRESELECT));
+		$content .= ($view==self::kVIEW_LIST
+			? '<span style="font-weight: bold">': '');
+		$content .= $this->pi_linkTP($this->pi_getLL("view_list"),
+								array (	$this->extKey.'[view]' => self::kVIEW_LIST));
+		$content .= '</span> | ';
+		$content .= ($view==self::kVIEW_CREATE
+			? '<span style="font-weight: bold">': '');
+		$content .= $this->pi_linkTP($this->pi_getLL("view_create"),
+								array (	$this->extKey.'[view]' => self::kVIEW_CREATE));
+		$content .= '</span>';
 		$content .= '</div>';
 
 		return $content;
 	}
+
+
+	function menuCreateTypes () {
+		$content = '<div>';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecture"),
+								array (
+									$this->extKey.'[view]' => self::kVIEW_CREATE,
+									$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURE
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-exam"),
+								array (
+									$this->extKey.'[view]' => self::kVIEW_CREATE,
+									$this->extKey.'[type]' => self::kEDIT_TYPE_EXAM
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecturer"),
+								array (
+									$this->extKey.'[view]' => self::kVIEW_CREATE,
+									$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURER,
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_new-folder"),
+								array (
+									$this->extKey.'[view]' => self::kVIEW_CREATE,
+									$this->extKey.'[type]' => self::kEDIT_TYPE_FOLDER_PRESELECT
+								));
+		$content .= '</div>';
+
+		return $content;
+	}
+
+	function menuListTypes () {
+		$content = '<div>';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-folder"),
+								array (
+									$this->extKey.'[view]' => self::kVIEW_LIST,
+									$this->extKey.'[type]' => self::kLIST_TYPE_FOLDER
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-lecture"),
+								array (
+									$this->extKey.'[view]' => self::kVIEW_LIST,
+									$this->extKey.'[type]' => self::kLIST_TYPE_LECTURE
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-lecturer"),
+								array (
+									$this->extKey.'[view]' => self::kVIEW_LIST,
+									$this->extKey.'[type]' => self::kLIST_TYPE_LECTURER
+								));
+		$content .= '</div>';
+
+		return $content;
+	}
+
 
 	function setPiVarsFromDB($type, $uid) {
 		switch($type) {
@@ -296,6 +400,10 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	function setPiVarsFromPOST($type) {
 		// get form data
 		$formData = t3lib_div::_POST($this->extKey);
+
+		// only set if view is create
+		if ($formData['view']!=self::kVIEW_CREATE)
+			return;
 
 		switch($type) {
 // 			case self::kEDIT_TYPE_LECTURE: {
@@ -388,6 +496,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_LECTURE.'" />';
 
 		// hidden field for UID if editing lecturer
@@ -564,6 +673,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		//TODO switch to USER_INT object
 		$content .= '
 			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_LECTURER.'" />
 			<fieldset><legend>Datensatz für Dozent</legend><table>';
 
@@ -640,6 +750,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER.'" />';
 
 		// hidden field for UID if editing existing folder
@@ -875,6 +986,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER_SAVE.'" />
 			<input type="hidden" name="'.$this->extKey.'[name]" value="'.$this->piVars['name'].'" />
 			<input type="hidden" name="'.$this->extKey.'[folder_id]" value="'.$this->piVars['folder_id'].'" />
@@ -1005,6 +1117,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		$content .= '
 			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_EXAM.'" />
 			';
 
@@ -1390,6 +1503,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
 			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_EXAM_CREATION_TRIGGERS.'" />
 			<input type="hidden" name="'.$this->extKey.'[exam_uid]" value="'.$examUID.'" />';
 

@@ -18,9 +18,14 @@
 			<label index="edit_form_exam">Edit existing Exam</label>
 			<label index="edit_form_folder">Edit existing Folder</label>
 			<label index="option_new-lecturer">Create Lecturer</label>
+			<label index="option_edit-lecturer">Edit Lecturer</label>
 			<label index="option_new-lecture">Create Lecture</label>
+			<label index="option_edit-lecture">Edit Lecture</label>
 			<label index="option_new-exam">Create Exam</label>
 			<label index="option_new-folder">Create Folder</label>
+			<label index="option_edit-folder">Edit Folder</label>
+			<label index="view_list">Modify Exams</label>
+			<label index="view_create">Create Exams</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="back">Zurück</label>
@@ -34,10 +39,15 @@
 			<label index="edit_form_lecture">Bestehende Veranstaltung bearbeiten</label>
 			<label index="edit_form_exam">Bestehende Prüfung bearbeiten</label>
 			<label index="edit_form_folder">Bestehenden Ordner bearbeiten</label>
-			<label index="option_new-lecturer">Prüfer erstellen</label>
+			<label index="option_new-lecturer">Dozenten erstellen</label>
+			<label index="option_edit-lecturer">Dozenten ändern</label>
 			<label index="option_new-lecture">Vorlesung erstellen</label>
+			<label index="option_edit-lecture">Prüfung/Vorlesung ändern</label>
 			<label index="option_new-exam">Prüfung erstellen</label>
 			<label index="option_new-folder">Ordner anlegen</label>
+			<label index="option_edit-folder">Ordner ändern</label>
+			<label index="view_list">Einträge ändern</label>
+			<label index="view_create">Neue Erstellen</label>
 		</languageKey>
 	</data>
 </T3locallang>

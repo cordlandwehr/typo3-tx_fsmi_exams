@@ -43,6 +43,7 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 	const kVIEW_TYPE_LIST			= 1;
 	const kVIEW_TYPE_AGGREGATION	= 2;
 	const kVIEW_TYPE_FOLDERVIEW		= 3;
+	const kVIEW_TYPE_LECTURERVIEW	= 4;
 	const imgPath			= 'typo3conf/ext/fsmi_exams/images/'; // absolute path to images
 	const extKey			= 'fsmi_exams';
 
