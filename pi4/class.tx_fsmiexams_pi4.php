@@ -34,6 +34,7 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_v
 // require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_module_aggregation.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_folderview.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_lecturerview.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_latex_export.php');
 
 /**
  * Plugin 'Exam Input' for the 'fsmi_exams' extension.
@@ -1001,9 +1002,16 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		if ($editUID)
 			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
 
+		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
+		$folderUID = intval($GETcommands['uid']);
+
 		// generate checkboxes for all containing exams
 		$content .= '<h3>Ordner: '.$this->piVars['name'].
 			' ['.tx_fsmiexams_div::numberFixedDigits($this->piVars['folder_id'],4).']</h3>';
+
+		$content .= '<div><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Folder Outline</a></div>';
+		$content .= '<div style="margin-bottom:10px"><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Download Folder Outline File</a></div>';
+		
 
 		for ($i=0; $i<4; $i++) {
 			$lectureUID = $this->piVars['lecture'.$i];
