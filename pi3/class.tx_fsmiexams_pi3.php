@@ -58,9 +58,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 	}
 	
-	
-		//Translation
-	var $trans = array('folder' => 'Ordner', 'lender' => 'Ausleiher', 'dispenser' => 'Ausgeber', 'lenderlogin' => 'Ausleiher Login', 'weight' => 'Gewicht (g)', 'withdrawal' => 'R&uuml;cknahme von', 'withdrawaldate' => 'R&uuml;cknahme Datum', 'deposit' => 'Pfand', 'lendingdate' => 'Ausleih-Datum');
 	/**
 	 * The main method of the PlugIn
 	 *
@@ -134,8 +131,12 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 					//Withdrawal Mode
 
 					//Steps
-					$content .= $this->renderTitle('R&uuml;cknehmen');
-					$content .= $this->renderSteps(4, array(0 => 'Ordner', 1 => 'R&uuml;cknahme', 2 => '&Uuml;bersicht'));
+					$content .= $this->renderTitle($this->pi_getLL("withdrawal"));
+					$content .= $this->renderSteps(	4, 
+													array(0 => $this->pi_getLL("folder"), 
+													1 => $this->pi_getLL("withdrawal"), 
+													2 => $this->pi_getLL("overview"))
+												  );
 
 
 					//TODO: Add Last Folder to folder_list
@@ -159,7 +160,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				} else {
 					//Lending Mode
 					//Steps
-					$content .= $this->renderTitle('Ausleihen');
+					$content .= $this->renderTitle($this->pi_getLL("lend_it"));
 					$content .= $this->renderSteps(4, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
 
 
@@ -507,7 +508,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	//DB_functions
 	private function getLentFolderInfo($folder_id, $tableStructure) {
 		//Example array
-		return array('folder' => '123', 'lender' => 'Studi', 'dispenser' => 'Fachschaftler', 'weight' => '200', 'deposit' => 'Rolex', 'lendingdate' => 'Gestern', 'withdrawal' => 'anderer Fachschaftler', 'withdrawaldate' => 'Heute');
+// 		return array('folder' => '123', 'lender' => 'Studi', 'dispenser' => 'Fachschaftler', 'weight' => '200', 'deposit' => 'Rolex', 'lendingdate' => 'Gestern', 'withdrawal' => 'anderer Fachschaftler', 'withdrawaldate' => 'Heute');
 		$retArray = array();
 		$query = '';
 		foreach ($tableStructure as $field)

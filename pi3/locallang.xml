@@ -2,15 +2,36 @@
 <T3locallang>
 	<meta type="array">
 		<type>module</type>
-		<description>Language labels for plugin &quot;tx_fsmiexams_pi3&quot;</description>
+		<description>Language labels for lending plugin of fsmi_exams</description>
 	</meta>
 	<data type="array">
 		<languageKey index="default" type="array">
-			<label index="list_mode_1">Mode 1</label>
-			<label index="list_mode_2">Mode 2</label>
-			<label index="list_mode_3">Mode 3</label>
-			<label index="back">Back</label>
-			<label index="submit_button_label">Click here to submit value</label>
+			<label index="folder">Folder</label>
+			<label index="lender">Lender</label>
+			<label index="lend_it">Lend it</label>
+			<label index="dispenser">Dispenser</label>
+			<label index="lenderlogin">Lender Login</label>
+			<label index="weight">Weight (g)</label>
+			<label index="withdrawal">Withdrawal</label>
+			<label index="withdrawal_of">Withdrawal of</label>
+			<label index="withdrawal-date">Withdrawal Date</label>
+			<label index="deposit">Deposit</label>
+			<label index="lending-date">Lending Date</label>
+			<label index="overview">Overview</label>
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="folder">Ordner</label>
+			<label index="lender">Ausleiher</label>
+			<label index="lend_it">Ausleihen</label>
+			<label index="dispenser">Ausgeber</label>
+			<label index="lenderlogin">Ausleiher Login</label>
+			<label index="weight">Gewicht (g)</label>
+			<label index="withdrawal">Rücknahme</label>
+			<label index="withdrawal_of">Rücknahme von</label>
+			<label index="withdrawal-date">Rücknahme Datum</label>
+			<label index="deposit">Pfand</label>
+			<label index="lending-date">Ausleihdatum</label>
+			<label index="overview">Übersicht</label>
 		</languageKey>
 	</data>
 </T3locallang>
