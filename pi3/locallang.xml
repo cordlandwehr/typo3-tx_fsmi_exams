@@ -7,6 +7,8 @@
 	<data type="array">
 		<languageKey index="default" type="array">
 			<label index="folder">Folder</label>
+			<label index="folder_id">Folder ID</label>
+			<label index="name">Name</label>
 			<label index="lender">Lender</label>
 			<label index="lend_it">Lend it</label>
 			<label index="dispenser">Dispenser</label>
@@ -21,6 +23,8 @@
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="folder">Ordner</label>
+			<label index="folder_id">Ordner Code</label>
+			<label index="name">Name</label>
 			<label index="lender">Ausleiher</label>
 			<label index="lend_it">Ausleihen</label>
 			<label index="dispenser">Ausgeber</label>

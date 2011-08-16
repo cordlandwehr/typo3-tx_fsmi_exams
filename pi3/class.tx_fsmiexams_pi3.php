@@ -72,13 +72,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$this->pi_USER_INT_obj = 1;	// Configuring so caching is not expected. This value means that no cHash params are ever set. We do this, because it's a USER_INT object!
 
 		$GETcommands = t3lib_div::_GP($this->extKey);
-
-
-		
-		
-		
-		//Variables Array
-		$piVars = array();
+		$this->piVars = array();
 		
 
 		//Table-Structure
@@ -86,30 +80,30 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$withdrawalInfoTable = array(0 => 'folder', 1 => 'lender', 2 => 'dispenser', 3 => 'weight', 4 => 'deposit', 5 => 'lendingdate', 6 => 'withdrawal', 7 => 'withdrawaldate');
 
         //Important variables //TODO: Escape and set variables
-		$piVars['type'] = intval($GETcommands['type']);
-		$piVars['mode'] = intval($GETcommands['mode']);
-		$piVars['buttonLeft'] = $this->escape($GETcommands['buttonLeft']);
-		$piVars['buttonCenter'] = $this->escape($GETcommands['buttonCenter']);
-		$piVars['buttonRight'] = $this->escape($GETcommands['buttonRight']);
+		$this->piVars['type'] = intval($GETcommands['type']);
+		$this->piVars['mode'] = intval($GETcommands['mode']);
+		$this->piVars['buttonLeft'] = $this->escape($GETcommands['buttonLeft']);
+		$this->piVars['buttonCenter'] = $this->escape($GETcommands['buttonCenter']);
+		$this->piVars['buttonRight'] = $this->escape($GETcommands['buttonRight']);
 
 
-		$piVars['lender_name'] = $this->escape($GETcommands['lender_name']);
-		$piVars['lender_imt'] = $this->escape($GETcommands['lender_imt']);
-		$piVars['deposit'] = $this->escape($GETcommands['deposit']);
-		$piVars['dispenser'] = $this->escape($GETcommands['dispenser']);
+		$this->piVars['lender_name'] = $this->escape($GETcommands['lender_name']);
+		$this->piVars['lender_imt'] = $this->escape($GETcommands['lender_imt']);
+		$this->piVars['deposit'] = $this->escape($GETcommands['deposit']);
+		$this->piVars['dispenser'] = $this->escape($GETcommands['dispenser']);
 
-		$piVars['folder_id'] = $this->escape($GETcommands['folder_id']);
-		$piVars['folder_weight'] = $this->escape($GETcommands['folder_weight']);
-		$piVars['folder_list'] = $GETcommands['folder_list']; // TODO: escaping destroys serializing
-		$piVars['folder_list_hash'] = $this->escape($GETcommands['folder_list_hash']);
+		$this->piVars['folder_id'] = intval($this->escape($GETcommands['folder_id']));
+		$this->piVars['folder_weight'] = $this->escape($GETcommands['folder_weight']);
+		$this->piVars['folder_list'] = $GETcommands['folder_list']; // TODO: escaping destroys serializing
+		$this->piVars['folder_list_hash'] = $this->escape($GETcommands['folder_list_hash']);
 
-		$piVars['folder_list_array'] = null;
+		$this->piVars['folder_list_array'] = null;
 		
 		
 		//Deserialize folder list
-		if (isset($piVars['folder_list']) && isset($piVars['folder_list_hash']) && (md5($piVars['folder_list'] . self::MAGIC) == $piVars['folder_list_hash']))
+		if (isset($this->piVars['folder_list']) && isset($this->piVars['folder_list_hash']) && (md5($this->piVars['folder_list'] . self::MAGIC) == $this->piVars['folder_list_hash']))
 		{
-		    $piVars['folder_list_array'] = unserialize($piVars['folder_list']);
+		    $this->piVars['folder_list_array'] = unserialize($this->piVars['folder_list']);
 		}
 	    //TODO: serialized arrays as strings contain " - xml attributes use "
 
@@ -120,14 +114,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		//Style
 		$content .= '<style type="text/css">.tx-fsmiexams-pi3 text{font-size:x-large;} .tx-fsmiexams-pi3 form{clear:both; padding-top:50px;} .tx-fsmiexams-pi3 textarea{font-size:x-large; margin-bottom:50px;} .tx-fsmiexams-pi3 input{font-size:large;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 #title{ color:Gainsboro; text-align:center; font-size:xx-large;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table{margin-left:auto; margin-right:auto; font-size:large;} .tx-fsmiexams-pi3 table td{background-color:AliceBlue;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
 		//main_container
-		$content .= '<div style="margin:0px 15px; padding-top:15px; text-align:center; width:700px; border:solid 1px #f00;">' . "\n";
+		$content .= '<div style="margin:0px 15px; padding-top:15px; width:700px; border:solid 1px #f00;">' . "\n";
 
-		switch ($piVars['type']) {
+		switch ($this->piVars['type']) {
 			case 4: {
-				if (isset($piVars['buttonLeft']))
+				if (isset($this->piVars['buttonLeft']))
 					$type=2;
 				else
-				if ($piVars['mode'] == self::MODE_WITHDRAW) {
+				if ($this->piVars['mode'] == self::MODE_WITHDRAW) {
 					//Withdrawal Mode
 
 					//Steps
@@ -140,18 +134,18 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 
 					//TODO: Add Last Folder to folder_list
-					if (!isset($piVars['folder_list_array']))
-						$piVars['folder_list_array'] = array();
+					if (!is_array($this->piVars['folder_list_array']))
+						$this->piVars['folder_list_array'] = array();
 
 					//TODO: Withdrawal DB update
 
 					/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
 
-					$piVars['folderInfoArray'] = array();
-					foreach ($piVars['folder_list_array'] as $folderInfo) {
-						array_push($piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $withdrawalInfoTable));
+					$this->piVars['folderInfoArray'] = array();
+					foreach ($this->piVars['folder_list_array'] as $folderInfo) {
+						array_push($this->piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $withdrawalInfoTable));
 					}
-					$content .= $this->renderLentFolderInfo($piVars['folderInfoArray'], $withdrawalInfoTable);
+					$content .= $this->renderLentFolderInfo($this->piVars['folderInfoArray'], $withdrawalInfoTable);
 
 					//Buttons
 					$content .= $this->renderButtons(null, null, null, $this->extKey);
@@ -166,20 +160,20 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 					//TODO: Finally write entrys to DB
 					//TODO: Add Last Folder to folder_list
-					if (!isset($piVars['folder_list_array']))
-						$piVars['folder_list_array'] = array();
+					if (!isset($this->piVars['folder_list_array']))
+						$this->piVars['folder_list_array'] = array();
 
-					$piVars['folder_list'] = serialize($piVars['folder_list_array']);
-					$piVars['folder_list_hash'] = md5($piVars['folder_list'] . self::MAGIC);
+					$this->piVars['folder_list'] = serialize($this->piVars['folder_list_array']);
+					$this->piVars['folder_list_hash'] = md5($this->piVars['folder_list'] . self::MAGIC);
 
 
 					/*** >> Liste der Entliehenen Ordner+Gewichte << ***/
-					if (isset($piVars['folder_list'])) {
+					if (isset($this->piVars['folder_list'])) {
 						//TODO: Render Already Chosen Folders
-						$piVars['renderArray'] = array();
-						foreach ($piVars['folder_list_array'] as $key => $value)
-							array_push($piVars['renderArray'], array('folder' => $key, 'weight' => $value));
-						$content .= $this->renderLentFolderInfo($piVars['renderArray'], array(0 => 'folder', 1 => 'weight'));
+						$this->piVars['renderArray'] = array();
+						foreach ($this->piVars['folder_list_array'] as $key => $value)
+							array_push($this->piVars['renderArray'], array('folder' => $key, 'weight' => $value));
+						$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder', 1 => 'weight'));
 					}
 
 
@@ -190,232 +184,17 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				}
 			}
 			case 3: {
-
-				if (isset($piVars['buttonCenter']))
-					$type=2;
-				else
-				if (isset($piVars['buttonLeft']))
-					$type=1;
-				else
-				if ($piVars['mode'] == self::MODE_WITHDRAW) {
-					//Withdrawal Mode
-
-					//Steps
-					$content .= $this->renderTitle('R&uuml;cknehmen');
-					$content .= $this->renderSteps(3, array(0 => 'Ordner', 1 => 'R&uuml;cknahme', 2 => '&Uuml;bersicht'));
-
-
-					//List
-		            //TODO: Add Last Folder to folder_list
-					if (!isset($piVars['folder_list_array']))
-						$piVars['folder_list_array'] = array();
-					if ($piVars['folder_id'] != "") {
-						array_push($piVars['folder_list_array'], $piVars['folder_id']); //TODO: does folder exist?
-						$piVars['folder_id'] = '';
-					}
-
-					$piVars['folder_list'] = serialize($piVars['folder_list_array']);
-					$piVars['folder_list_hash'] = md5($piVars['folder_list'] . self::MAGIC);
-
-					$content .= serialize($piVars['folder_list_array']);
-					/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
-					$piVars['folderInfoArray'] = array();
-					foreach ($piVars['folder_list_array'] as $folderInfo) {
-						array_push($piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $lentInfoTable));
-					}
-					$content .= $this->renderLentFolderInfo($piVars['folderInfoArray'], $lentInfoTable);
-
-					//Form
-					$content .= '<form method="GET" action="index.php">' . "\n";
-					$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="4"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="2"/>' . "\n";
-
-
-					$content .= (isset($piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $piVars['folder_list'] . '\'/>' . "\n" : '');
-					$content .= (isset($piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $piVars['folder_list_hash'] . '"/>' . "\n":'');
-		
-					$content .= '<text><b>R&uuml;cknahme von:</b></text><br/><textarea name="' . $this->extKey . '[withdrawal]"></textarea><br/>' . "\n";
-
-					//Buttons
-					$content .= $this->renderButtons(null, null, 'Fertig', $this->extKey);
-
-					break;
-				}
-				else{
-					//Lending Mode
-
-					//Steps
-					$content .= $this->renderTitle('Ausleihen');
-					$content .= $this->renderSteps(3, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
-
-
-
-					if (isset($piVars['folder_id']) && isset($piVars['folder_weight'])) {
-						//TODO: Add Last Folder to folder_list
-						if (!isset($piVars['folder_list_array']))
-							$piVars['folder_list_array'] = array();
-						$piVars['folder_list_array'][$piVars['folder_id']] = $piVars['folder_weight'];
-						$piVars['folder_id'] = '';
-						$piVars['folder_weight'] = '';
-						$piVars['folder_list'] = serialize($piVars['folder_list_array']);
-						$piVars['folder_list_hash'] = md5($piVars['folder_list'] . self::MAGIC);
-					}
-
-					/*** >> Liste der "bereits" Entliehenen Ordner+Gewichte ?!?! << ***/
-
-					if (isset($piVars['folder_list'])) {
-						//TODO: Render Already Chosen Folders
-						$content .= '<text><b>Bereits eingegeben: </b></text><br/>';
-						$piVars['renderArray'] = array();
-						foreach($piVars['folder_list_array'] as $key => $value)
-							array_push($piVars['renderArray'], array('folder' => $key, 'weight' => $value));
-						$content .= $this->renderLentFolderInfo($piVars['renderArray'], array(0 => 'folder', 1 => 'weight'));
-					}
-
-
-					$content .= '<form method="GET" action="index.php">' . "\n";
-					$content .= '<text><b>Name des Ausleihers: </b></text><br/><textarea name="'.$this->extKey.'[lender_name]" cols="30" rows="1">' .
-						(isset($piVars['lender_name']) ? $piVars['lender_name'] : '') . '</textarea><br/>' . "\n";
-					$content .= '<text><b>IMT-Login des Ausleihers: </b></text><br/><textarea name="' . $this->extKey . '[lender_imt]" cols="30" rows="1">' .
-						(isset($piVars['lender_imt']) ? $piVars['lender_imt'] : '') . '</textarea><br/>' . "\n";
-					$content .= '<text><b>Pfand: </b></text><br/><textarea name="' . $this->extKey . '[deposit]" cols="30" rows="1">' .
-						(isset($piVars['deposit']) ? $piVars['deposit'] : '') . '</textarea><br/>' . "\n";
-					$content .= '<hr/><br/>' . "\n";
-					$content .= '<text><b>Name des Ausgebers: </b></text><br/><textarea name="' . $this->extKey . '[dispenser]" cols="30" rows="1">' .
-					(isset($piVars['dispenser']) ? $piVars['dispenser'] : '') . '</textarea>' . "\n";
-					$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="4"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $piVars['folder_list'] . '\'/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $piVars['folder_list_hash'] . '"/>' . "\n";
-					//Buttons
-					$content .= $this->renderButtons('Zur&uuml;ck', null, 'Weiter', $this->extKey);
-
-					break;
-				}
-
-
+				$content .= $this->controllerAddLenderInformation();
+				break;
 			}
 			case 2: {
-
-				if ($this->isLent($piVars['folder_id'])) {
-					//Withdrawal Mode
-
-					//TODO: Liste von zurÃ¼ckgenommenen Ordnern erstellen (wie folder_list)
-
-
-					//Steps
-					$content .= $this->renderTitle('R&uuml;cknehmen');
-					$content .= $this->renderSteps(2, array(0 => 'Ordner', 1 => 'RÃ¼cknahme' ,2 => '&Uuml;bersicht'));
-
-
-					$content .= 'blaaa' . serialize($piVars['folder_list_array']);
-					//List
-		            //TODO: Add Last Folder to folder_list
-					if (!isset($piVars['folder_list_array']))
-						$piVars['folder_list_array'] = array();
-						
-					if ($piVars['folder_id'] != "") {
-						array_push($piVars['folder_list_array'], $piVars['folder_id']); //TODO: does folder exist?
-						$piVars['folder_id'] = '';
-					}
-					
-					$piVars['folder_list'] = serialize($piVars['folder_list_array']);
-					$piVars['folder_list_hash'] = md5($piVars['folder_list'] . self::MAGIC);
-	
-					$content .= serialize($piVars['folder_list_array']);
-					/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
-					$piVars['folderInfoArray'] = array();
-					foreach($piVars['folder_list_array'] as $folderInfo)
-						array_push($piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $lentInfoTable));
-
-					$content .= $this->renderLentFolderInfo($piVars['folderInfoArray'], $lentInfoTable);
-
-					//Form
-					$content .= '<form method="GET" action="index.php">' . "\n";
-					$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="3"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="2"/>' . "\n";
-
-
-					$content .= (isset($piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $piVars['folder_list'] . '\'/>' . "\n" : '');
-					$content .= (isset($piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $piVars['folder_list_hash'] . '"/>' . "\n" : '');
-	
-					$content .= '<text><b>Ordner:</b></text><br/><textarea name="' . $this->extKey . '[folder_id]">' . $piVars['folder_id'] . '</textarea><br/>' . "\n";
-
-					//Buttons
-					$content .= $this->renderButtons(null, 'Wiederholen', 'Weiter', $this->extKey);
-
-					break;
-				} else { 
-					//Lending Mode
-
-					//Steps
-					$content .= $this->renderTitle('Ausleihen');
-					$content .= $this->renderSteps(2, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
-
-
-
-					if (isset($piVars['folder_id']) && isset($piVars['folder_weight'])) {
-						//TODO: Add Last Folder to folder_list
-						if(!isset($piVars['folder_list_array']))
-							$piVars['folder_list_array'] = array();
-						$piVars['folder_list_array'][$piVars['folder_id']] = $piVars['folder_weight'];
-						$piVars['folder_id'] = '';
-						$piVars['folder_weight'] = '';
-						$piVars['folder_list'] = serialize($piVars['folder_list_array']);
-						$piVars['folder_list_hash'] = md5($piVars['folder_list'] . self::MAGIC);
-					}
-
-					if(isset($piVars['folder_list_array']))
-					{
-						//TODO: Render Already Chosen Folders
-						$content .= '<text><b>Bereits eingegeben: </b></text><br/>';
-						$piVars['renderArray'] = array();
-						foreach($piVars['folder_list_array'] as $key => $value)
-							array_push($piVars['renderArray'], array('folder' => $key, 'weight' => $value));
-						$content .= $this->renderLentFolderInfo($piVars['renderArray'], array(0 => 'folder', 1 => 'weight'));
-					}
-
-
-
-					$content .= '<form method="GET" action="index.php">' . "\n";
-					$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="3"/>' . "\n";
-					$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="1"/>' . "\n";
-
-					$content .= (isset($piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $piVars['folder_list'] . '\'/>'."\n":'');
-					$content .= (isset($piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $piVars['folder_list_hash'] . '"/>'."\n":'');
-					$content .= (isset($piVars['lender_name']) ? '<input type="hidden" name="' . $this->extKey . '[lender_name]" value="' . $piVars['lender_name'] . '"/>' . "\n" : '');
-					$content .= (isset($piVars['lender_imt']) ? '<input type="hidden" name="' . $this->extKey . '[lender_imt]" value="' . $piVars['lender_imt'] . '"/>' . "\n" : '');
-					$content .= (isset($piVars['deposit']) ? '<input type="hidden" name="' . $this->extKey . '[deposit]" value="' . $piVars['deposit'] . '"/>' . "\n" : '');
-					$content .= (isset($piVars['dispenser']) ? '<input type="hidden" name="' . $this->extKey . '[dispenser]" value="' . $piVars['dispenser'] . '"/>' . "\n" : '');
-
-					$content .= '<text><b>Ordner:</b></text><br/><textarea name="' . $this->extKey . '[folder_id]">' . $piVars['folder_id'] . '</textarea><br/>' . "\n";
-					$content .= '<text><b>Gewicht des Ordners:</b></text><br/><textarea name="' . $this->extKey . '[folder_weight]" cols="30" rows="3"></textarea>' . "\n";
-
-
-					//Buttons
-					$content .= $this->renderButtons(null, 'Wiederholen', 'Weiter', $this->extKey);
-				}
-
+				$content .= $this->controllerStartLendOrWithdrawal();
 				break;
 			};
 			
 		    default: {
 
-				//Steps
-				$content .= $this->renderTitle('FSMI-Ausleihtool');
-				$content .= $this->renderSteps(1, array());
-
-
-				$content .= '<form method="GET" action="index.php">' . "\n";
-				$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>';
-				$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="2"/>';
-				$content .= '<text><b>Ordnereingabe</b></text><br/><textarea name="' . $this->extKey . '[folder_id]" cols="30" rows="3"></textarea>';
-
-				//Buttons
-				$content .= $this->renderButtons(null, null, 'Weiter', $this->extKey);
+				$content .= $this->formStartEverything();
 			};
 		}
 
@@ -444,6 +223,261 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $this->pi_wrapInBaseClass($content);
 	}
 
+	private function controllerStartLendOrWithdrawal() {
+		if (!$this->folderExists($this->piVars['folder_id'])) {
+			return "<h3>Fehler: Kein Order mit dieser ID bekannt</h3>".
+					$this->formStartEverything();
+		}
+			
+		if ($this->isLent($this->piVars['folder_id'])) {
+			//Withdrawal Mode
+			
+			//TODO: Liste von zurückgenommenen Ordnern erstellen (wie folder_list)
+
+
+			//Steps
+			$content .= $this->renderTitle('R&uuml;cknehmen');
+			$content .= $this->renderSteps(2, array(0 => 'Ordner', 1 => 'R&uuml;cknahme' ,2 => '&Uuml;bersicht'));
+
+
+			$content .= 'blaaa' . serialize($this->piVars['folder_list_array']);
+			//List
+			//TODO: Add Last Folder to folder_list
+			if (!isset($this->piVars['folder_list_array']))
+				$this->piVars['folder_list_array'] = array();
+				
+			if ($this->piVars['folder_id'] != "") {
+				array_push($this->piVars['folder_list_array'], $this->piVars['folder_id']); //TODO: does folder exist?
+				$this->piVars['folder_id'] = '';
+			}
+			
+			$this->piVars['folder_list'] = serialize($this->piVars['folder_list_array']);
+			$this->piVars['folder_list_hash'] = md5($this->piVars['folder_list'] . self::MAGIC);
+
+			$content .= serialize($this->piVars['folder_list_array']);
+			/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
+			$this->piVars['folderInfoArray'] = array();
+			foreach($this->piVars['folder_list_array'] as $folderInfo)
+				array_push($this->piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $lentInfoTable));
+
+			$content .= $this->renderLentFolderInfo($this->piVars['folderInfoArray'], $lentInfoTable);
+
+			//Form
+			$content .= '<form method="GET" action="index.php">' . "\n";
+			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="3"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="2"/>' . "\n";
+
+
+			$content .= (isset($this->piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n" : '');
+			$content .= (isset($this->piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n" : '');
+
+			$content .= '<text><b>Ordner:</b></text><br/><textarea name="' . $this->extKey . '[folder_id]">' . $this->piVars['folder_id'] . '</textarea><br/>' . "\n";
+
+			//Buttons
+			$content .= $this->renderButtons(null, 'Wiederholen', 'Weiter', $this->extKey);
+
+			return $content;
+		} else { 
+			//Lending Mode
+			$resFolder = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' FROM tx_fsmiexams_folder WHERE folder_id = ' . $this->piVars['folder_id'] . ' AND hidden=0 AND deleted=0');
+			if ($resFolder && $res = mysql_fetch_assoc($resFolder)) {
+				$content = $this->lendFolderForm($res['uid']);
+			}
+			else {
+				return "FEHLER: konnte Ordner nicht finden.";
+			}
+			
+			return $content;
+		}
+
+	}
+
+	private function controllerAddLenderInformation() 
+	{
+		if (isset($this->piVars['buttonCenter']))
+			$type=2;
+		else
+		if (isset($this->piVars['buttonLeft']))
+			$type=1;
+		else
+		if ($this->piVars['mode'] == self::MODE_WITHDRAW) {
+			//Withdrawal Mode
+
+			//Steps
+			$content .= $this->renderTitle('R&uuml;cknehmen');
+			$content .= $this->renderSteps(3, array(0 => 'Ordner', 1 => 'R&uuml;cknahme', 2 => '&Uuml;bersicht'));
+
+			// put information to folder list
+			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
+
+			$content .= serialize($this->piVars['folder_list_array']);
+			/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
+			$this->piVars['folderInfoArray'] = array();
+			foreach ($this->piVars['folder_list_array'] as $folderInfo) {
+				array_push($this->piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $lentInfoTable));
+			}
+			$content .= $this->renderLentFolderInfo($this->piVars['folderInfoArray'], $lentInfoTable);
+
+			//Form
+			$content .= '<form method="GET" action="index.php">' . "\n";
+			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="4"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="2"/>' . "\n";
+
+
+			$content .= (isset($this->piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n" : '');
+			$content .= (isset($this->piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n":'');
+
+			$content .= '<text><b>R&uuml;cknahme von:</b></text><br/><textarea name="' . $this->extKey . '[withdrawal]"></textarea><br/>' . "\n";
+
+			//Buttons
+			$content .= $this->renderButtons(null, null, 'Fertig', $this->extKey);
+
+			return $content;
+		}
+		else{
+			//Lending Mode
+
+			//Steps
+			$content .= $this->renderTitle('Ausleihen');
+			$content .= $this->renderSteps(3, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
+
+			// put information to folder list
+			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
+
+			// list of scheduled folders
+			if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
+			{
+				$content .= '<h3>Folgende Ordner werden ausgeliehen</h3>';
+				$this->piVars['renderArray'] = array();
+				foreach($this->piVars['folder_list_array'] as $key => $value) {
+					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
+					array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
+				}
+				$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder_id', 1=> 'name', 2 => 'weight'));
+			}
+
+			$content .= '<form method="GET" action="index.php">' . "\n";
+			$content .= '<label><b>Name des Ausleihers:</b> </label><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
+				(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /><br/>' . "\n";
+			$content .= '<label><b>IMT-Login des Ausleihers:</b> </label><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
+				(isset($this->piVars['lender_imt']) ? $this->piVars['lender_imt'] : '') .'" /><br/>' . "\n";
+			$content .= '<label><b>Pfand: </b></label><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
+				(isset($this->piVars['deposit']) ? $this->piVars['deposit'] : '') . '" /><br/>' . "\n";
+			$content .= '<hr/><br/>' . "\n";
+			$content .= '<label><b>Name des Ausgebers: </b></label><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
+			(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" />' . "\n";
+			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="4"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
+			//Buttons
+			$content .= $this->renderButtons('Zur&uuml;ck', null, 'Ausleihen!', $this->extKey);
+
+			return $content;
+		}
+	}
+
+	private function formStartEverything() {
+		$content = '';
+		//Steps
+		$content .= $this->renderTitle('FSMI-Ausleihtool');
+		$content .= $this->renderSteps(1, array());
+
+
+		$content .= '<form method="GET" action="index.php">' . "\n";
+		$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>';
+		$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="2"/>';
+		$content .= '<div style="text-align:center"><h3>Ordnereingabe</h3><b>Der erste Ordner:</b> <input type="text" name="' . $this->extKey . '[folder_id]" size="8" maxlength="8" /></div></br>';
+		
+		$content .= '<p>So, das Ganze funktioniert wie folgt. Du gibst hier den ersten Ordner Barcode an von dem Ordner mit dem du etwas machen m&ouml;chtest. Danach machst du mit dem n&auml;chsten Ordner weiter etc. Wenn du alle Ordner durch hast (also Ausleihen oder Zur&uuml;cknehmen, dann gibst du die Daten vom dem Ausleiher an und schon bist du fertig.</p>';
+
+		//Buttons
+		$content .= $this->renderButtons(null, null, 'Weiter', $this->extKey);
+		
+		return $content; 
+	}
+
+	/**
+	 * This function gives you the lend-it interface for a specified and existing folder.
+	 * The function assumes plausibility checks of folder existance beforehand.
+	 * @param	$folderUID	UID of database entry
+	 */
+	private function lendFolderForm($folderUID) {
+		$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
+
+		//Steps
+		$content .= $this->renderTitle('Ausleihen');
+		$content .= $this->renderSteps(2, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
+
+		if (isset($this->piVars['folder_id']) && isset($this->piVars['folder_weight'])) {
+			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
+		}
+
+		if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
+		{
+			$content .= '<h3>Vorgemerkte Ordner f&uuml;r diesen Ausleihvorgang</h3>';
+			$this->piVars['renderArray'] = array();
+			foreach($this->piVars['folder_list_array'] as $key => $value) {
+				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
+				array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
+			}
+			$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder_id', 1=> 'name', 2 => 'weight'));
+		}
+
+
+
+		$content .= '<form method="GET" action="index.php">' . "\n";
+		$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
+		$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="3"/>' . "\n";
+		$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="1"/>' . "\n";
+
+		$content .= (isset($this->piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>'."\n":'');
+		$content .= (isset($this->piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>'."\n":'');
+		$content .= (isset($this->piVars['lender_name']) ? '<input type="hidden" name="' . $this->extKey . '[lender_name]" value="' . $this->piVars['lender_name'] . '"/>' . "\n" : '');
+		$content .= (isset($this->piVars['lender_imt']) ? '<input type="hidden" name="' . $this->extKey . '[lender_imt]" value="' . $this->piVars['lender_imt'] . '"/>' . "\n" : '');
+		$content .= (isset($this->piVars['deposit']) ? '<input type="hidden" name="' . $this->extKey . '[deposit]" value="' . $this->piVars['deposit'] . '"/>' . "\n" : '');
+		$content .= (isset($this->piVars['dispenser']) ? '<input type="hidden" name="' . $this->extKey . '[dispenser]" value="' . $this->piVars['dispenser'] . '"/>' . "\n" : '');
+
+		$content .= '<h3>Weitere Ordner ausleihen</h3>';
+		$content .= '<table>';
+		$content .= '<tr><td><label for="text_folder_id">Code:</label></td>';
+		$content .= '<td><input type="text" name="' . $this->extKey . '[folder_id]" size="8" value="'.$this->piVars['folder_id'].'" id="text_folder_id" /></td></tr>' . "\n";
+		$content .= '<tr><td><label>Einzelgewicht:</label></td>';
+		$content .= '<td><input type="text" name="'.$this->extKey.'[folder_weight]" size="8" /></td></tr>' . "\n";
+		$content .= '</table>';
+		$content .= $this->renderButtons(null, 'Ordner hinzufügen', 'Nutzerdaten eintragen/weiter', $this->extKey);
+
+		//Buttons
+		
+			
+		return $content;
+	}
+
+	/**
+	 * returns false if folder could not be added
+	 * deletes also all temp. vars
+	 */
+	private function addFolderToFolderArray($folder_id, $weight) {
+		if ($weight<=0)
+			return false;
+
+		if(!is_array($this->piVars['folder_list_array']))
+			$this->piVars['folder_list_array'] = array();
+			
+		$resFolder = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' FROM tx_fsmiexams_folder WHERE folder_id='.$folder_id.' AND hidden=0 AND deleted=0');
+		if ($resFolder && $res = mysql_fetch_assoc($resFolder)) {
+			$this->piVars['folder_list_array'][$res['uid']] = $weight;
+			$this->piVars['folder_id'] = '';
+			$this->piVars['folder_weight'] = '';
+			$this->piVars['folder_list'] = serialize($this->piVars['folder_list_array']);
+			$this->piVars['folder_list_hash'] = md5($this->piVars['folder_list'] . self::MAGIC);
+			return true;
+		}
+
+		return false;
+	}
 
 	private function renderButtons($buttonLeft, $buttonCenter, $buttonRight, $ext_key) {
 		$buttons = '<br/>';
@@ -457,7 +491,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	}
 
 	private function renderSteps($step, $titles) {
-		$steps = '<a href="index.php?id='.$GLOBALS['TSFE']->id.'">';
+		$steps = '<div style="text-align:center;>';
+		$steps .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'">';
 		$steps .= '<div class="step"><img src="typo3conf/ext/fsmi_exams/images/one_' .
 	         ($step==1 ? 'active' : 'inactive') .
 	         '.png"/><b>Startseite</b></div></a>'."\n";
@@ -474,7 +509,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$steps .= isset($titles[3]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'five_' .
 	                            ($step==5 ? 'active' : 'inactive') .
 								'.png"/><b>' . $titles[3] . '</b></div>' . "\n" : '';
-		return $steps . "<br/>";
+		return $steps . "</div>";
 	}
 
 	private function renderTitle($title) {
@@ -486,7 +521,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$infoTable .= '<table cellpadding="8" cellspacing="2"><tr>';
 
 		foreach( $tableStructure as $value)
-			$infoTable .= '<th>' . $this->LANG->getLL(self::PREFIX . '.' . $value) . '</th>';
+			$infoTable .= '<th>' . $this->pi_getLL($value) . '</th>';
 
 		$infoTable .= '</tr>' . "\n";
 
@@ -514,7 +549,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		foreach ($tableStructure as $field)
 			$query .= ($query=='' ? '' : ',') . $field;
 
-		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT ' . $query . ' FROM tx_fsmiexams_loan WHERE folder = ' . $folder_id . ' AND hidden=0');
+		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' FROM tx_fsmiexams_loan WHERE folder = ' . $folder_id . ' AND hidden=0');
 		while ($resLent && $res = mysql_fetch_assoc($resLent)) {
 			foreach ($tableStructure as $field)
 				$retArray[$field] = $res[$field];
@@ -523,15 +558,26 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $retArray;
 	}
 
+	/**
+	 * This function checks if a specific folder is lend or not.
+	 */
 	private function isLent($folder_id) {
-		//TODO:
-		return true;
-		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT COUNT(folder) FROM tx_fsmiexams_loan WHERE folder = ' . $folder_id . ' AND hidden=0');
-		while ($resLent && $res = mysql_fetch_assoc($resLent)) {
-			if ($res['COUNT(folder)'] != "0")
-				return true;
+		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_folder WHERE folder_id = ' . intval($folder_id) . ' AND hidden=0');
+		if ($resLent && $res = mysql_fetch_assoc($resLent) && $resLent['state']==self::MODE_LEND) {
+			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * This function checks whether a folder with specified $folder_id exists or not.
+	 */
+	private function folderExists($folder_id) {
+		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_folder WHERE folder_id = ' . intval($folder_id) . ' AND hidden=0');
+		if ($resLent && $res = mysql_fetch_assoc($resLent))
+			return true;
+		else 
+			return false;	
 	}
 
 	private function isEasterEgg($folder_id)
