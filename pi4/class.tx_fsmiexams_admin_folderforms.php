@@ -531,7 +531,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
             <td><input name="'.$this->extKey.'[name]" value="'.$this->piVars['name'].'" /></td></tr>';
         $content .= '<tr>
             <td>ID (nicht editierbar)</td>
-            <td><input disabled="disabled" name="'.$this->extKey.'[folder_id]" value="'.$this->piVars['folder_id'].'" /></td></tr>';
+            <td><input readonly="readonly" name="'.$this->extKey.'[folder_id]" value="'.$this->piVars['folder_id'].'" /></td></tr>';
         $content .= '</table></fieldset>';
 
         $content .= '<fieldset><legend>Download Links</legend><ul>';

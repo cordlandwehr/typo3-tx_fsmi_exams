@@ -224,7 +224,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_admin_folderforms);
 					if (intval($GETcommands['uid']))
 						$this->viewObj->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
-					$content .= $this->viewObj->createFolderInputForm(intval($GETcommands['uid']));
+					$content .= $this->viewObj->editFolderInputForm(intval($GETcommands['uid']));
 					break;
 				}
 				case self::kEDIT_TYPE_FOLDER_SAVE: {
