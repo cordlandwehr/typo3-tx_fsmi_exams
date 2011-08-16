@@ -35,6 +35,7 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_v
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_folderview.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_lecturerview.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_latex_export.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_admin_menu.php');
 
 /**
  * Plugin 'Exam Input' for the 'fsmi_exams' extension.
@@ -62,7 +63,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	const kEDIT_TYPE_LECTURER					= 7;
 	const kEDIT_TYPE_FOLDER_PRESELECT			= 8;
 	const kEDIT_TYPE_FOLDER						= 9;
-	const kEDIT_TYPE_FOLDER_SAVE				= 10;
+	const kCREATE_TYPE_FOLDER					= 10;
+	const kEDIT_TYPE_FOLDER_SAVE				= 11;
 
 	const kLIST_TYPE_FOLDER						= 1;
 	const kLIST_TYPE_LECTURE					= 2;
@@ -130,19 +132,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 		// switch to list view if UID is present
 		$fakeView = intval($GETcommands['view']);
-		if (intval($GETcommands['uid'])>0)
-			$fakeView = self::kVIEW_LIST;
+		if (intval($GETcommands['uid'])>0)	$fakeView = self::kVIEW_LIST;
 
 		// type selection head
-		$content .= $this->menuViewModes($fakeView);
-		switch ($fakeView) {
-			case self::kVIEW_CREATE:
-				$content .= $this->menuCreateTypes();
-				break;
-			case self::kVIEW_LIST:
-				$content .= $this->menuListTypes();
-				break;
-		}
+		$adminMenu = t3lib_div::makeInstance(tx_fsmiexams_admin_menu);
+		$content .= $adminMenu->createAdminMenu($fakeView);
 
 		// get Edit information
 		$this->pidEditPage = $GLOBALS['TSFE']->id;
@@ -214,6 +208,12 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 					break;
 				}
+				case self::kCREATE_TYPE_FOLDER: {
+					if (intval($GETcommands['uid']))
+						$this->setPiVarsFromDB(self::kCREATE_TYPE_FOLDER, intval($GETcommands['uid']));
+					$content .= $this->createFolderInputForm(intval($GETcommands['uid']));
+					break;
+				}
 				case self::kEDIT_TYPE_FOLDER: {
 					if (intval($GETcommands['uid']))
 						$this->setPiVarsFromDB(self::kEDIT_TYPE_FOLDER, intval($GETcommands['uid']));
@@ -263,84 +263,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		return $this->pi_wrapInBaseClass($content);
 	}
 
-	/**
-	 * Creates menu to switch between
-	 * - create
-	 * - list
-	 * @param	integer	$view	preselected view mode
-	 * @return	string as HTML div
-	 */
-	function menuViewModes ($view = 0) {
-		$content = '<div>';
-		$content .= ($view==self::kVIEW_LIST
-			? '<span style="font-weight: bold">': '');
-		$content .= $this->pi_linkTP($this->pi_getLL("view_list"),
-								array (	$this->extKey.'[view]' => self::kVIEW_LIST));
-		$content .= '</span> | ';
-		$content .= ($view==self::kVIEW_CREATE
-			? '<span style="font-weight: bold">': '');
-		$content .= $this->pi_linkTP($this->pi_getLL("view_create"),
-								array (	$this->extKey.'[view]' => self::kVIEW_CREATE));
-		$content .= '</span>';
-		$content .= '</div>';
-
-		return $content;
-	}
-
-
-	function menuCreateTypes () {
-		$content = '<div>';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecture"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURE
-								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-exam"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_EXAM
-								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecturer"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURER,
-								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-folder"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_FOLDER_PRESELECT
-								));
-		$content .= '</div>';
-
-		return $content;
-	}
-
-	function menuListTypes () {
-		$content = '<div>';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-folder"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_LIST,
-									$this->extKey.'[type]' => self::kLIST_TYPE_FOLDER
-								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-lecture"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_LIST,
-									$this->extKey.'[type]' => self::kLIST_TYPE_LECTURE
-								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-lecturer"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_LIST,
-									$this->extKey.'[type]' => self::kLIST_TYPE_LECTURER
-								));
-		$content .= '</div>';
-
-		return $content;
-	}
 
 
 	function setPiVarsFromDB($type, $uid) {
@@ -375,6 +297,23 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["material_description"] = $examDB['material_description'];
 				$this->piVars["quality"] = $examDB['quality'];
 				$this->piVars["examtype"] = $examDB['examtype'];
+				break;
+			}
+			case self::kCREATE_TYPE_FOLDER: {
+				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
+				$this->piVars["name"] = $folderDATA['name'];
+				$this->piVars['folder_id'] = $folderDATA['folder_id'];
+				$this->piVars['color'] = $folderDATA['color'];
+				$this->piVars['state'] = $folderDATA['state'];
+
+					// get exams, also delete duplicates
+				$exams = explode(',',$folderDATA['content']);
+				$this->piVars['content'] = array();
+				foreach ($exams as $exam)
+					$this->piVars['content'][$exam] = true;
+				$lectures = explode(',',$folderDATA['associated_lectures']);
+				for($i=0;$i<count($lectures);$i++)
+					$this->piVars['lecture'.$i] = $lectures[$i];
 				break;
 			}
 			case self::kEDIT_TYPE_FOLDER: {
@@ -443,6 +382,18 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["material_description"] = $formData['material_description'];
 				$this->piVars["quality"] = $formData['quality'];
 				$this->piVars["examtype"] = $formData['examtype'];
+				break;
+			}
+			case self::kCREATE_TYPE_FOLDER: {
+				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
+				$this->piVars["name"] = $formData['name'];
+				$this->piVars['folder_id'] = intval($formData['folder_id']);
+				$this->piVars['color'] = intval($formDATA['color']);
+				for ($i=0; $i<4; $i++)
+					$this->piVars['lecture'.$i] = intval($formData['lecture'.$i]);
+// 				$this->piVars['state'] = $folderDATA['state'];
+// 				$this->piVars['content'] = $folderDATA['content'];
+// 				$this->piVars['associated_lectures'] = $folderDATA['associated_lectures'];
 				break;
 			}
 			case self::kEDIT_TYPE_FOLDER: {
@@ -757,7 +708,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
 			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
-			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER.'" />';
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kCREATE_TYPE_FOLDER.'" />';
 
 		// hidden field for UID if editing existing folder
 		if ($editUID)
@@ -1009,9 +960,116 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		$content .= '<h3>Ordner: '.$this->piVars['name'].
 			' ['.tx_fsmiexams_div::numberFixedDigits($this->piVars['folder_id'],4).']</h3>';
 
-		$content .= '<div><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Folder Outline</a></div>';
-		$content .= '<div style="margin-bottom:10px"><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Download Folder Outline File</a></div>';
-		
+		for ($i=0; $i<4; $i++) {
+			$lectureUID = $this->piVars['lecture'.$i];
+			if ($lectureUID<=0)
+				continue;
+
+			$lectureDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $lectureUID);
+			$content .= '<fieldset><legend>Assoziierte Vorlesung: '.$lectureDATA['name'].'</legend><table>';
+			$content .= '<tr><td style="border-width: 0px 0px 1px 0px; border-style: solid">abonnieren</td>
+				<td><input type="checkbox" checked="checked" name="'.$this->extKey."[lectures][$lectureUID]".'[subscribe]" /></td></tr>';
+			$content .= '<tr><td valign="top"><strong>Prüfungen</strong></td>';
+			$exam_uids_aggregated = tx_fsmiexams_div::get_exam_uids_grouped($lectureUID);
+			$content .= '<td>';
+			foreach ($exam_uids_aggregated as $examtype => $examUIDs) {
+				$examtypeDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_examtype', $examtype);
+
+					// create list of all exam checkbox ids for select-all/unselect-all
+				$listOfAllExamIds = array();
+				foreach ($examUIDs as $exam_uid)
+					$listOfAllExamIds[] = '\''.$this->extKey."_$lectureUID".'_exam'."_$exam_uid".'\'';
+				$listOfAllExamIds = implode(',',$listOfAllExamIds);
+
+					// print all checkboxes and descriptions
+				$content .= '<p><strong>'.$examtypeDATA['description'].' ';
+				$content .= '[<a onClick="check_all(new Array('.$listOfAllExamIds.'))">alle auswählen</a> /
+					<a onClick="uncheck_all(new Array('.$listOfAllExamIds.'))">keine auswählen</a>]</strong><br />';
+				foreach ($examUIDs as $exam_uid) {
+					$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam_uid);
+					$content .= '<input
+							type="checkbox"
+							'.
+							(array_key_exists($exam_uid, $this->piVars['content']) == true ?
+								'checked="checked"' : ' '
+							).
+							'id="'.$this->extKey."_$lectureUID".'_exam'."_$exam_uid".'"
+							name="'.$this->extKey."[lectures][$lectureUID]".'[exam]'."[$exam_uid]".'" />'.
+						tx_fsmiexams_div::examToTermdate($exam_uid).' '.tx_fsmiexams_div::examToText($exam_uid).', '.
+						tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).' '.
+						($examDATA['exactdate']!=0 ? '['.date('d.m.Y',$examDATA['exactdate']).']' : '').'<br />';
+				}
+				$content .= '</p>';
+			}
+			if (count($examUIDs)==0)
+				$content .= '<i>keine Prüfungen vorhanden</i>';
+
+			$content .= '</td></tr>';
+
+			$content .= '</table></fieldset>';
+		}
+
+
+		$content .= '
+			</table></fieldset>
+			<input type="submit" name="'.$this->prefixId.'[submit_button]"
+				value="'.htmlspecialchars($this->pi_getLL("submit_button_label")).'">
+			</form>';
+
+		return $content;
+	}
+
+	/**
+	 * This function provides a form to enter new folders or (if an editUID is given) to
+	 * change an existing one.
+	 * Only use after preselection form.
+	 * If no UID is given, function assumes initial input for folder and presets some values
+	 *
+	 * @param	integer	$editUID	optional UID for folder
+	 */
+	function editFolderInputForm ($editUID = 0) {
+// 		$preselection_data = t3lib_div::_POST($this->extKey);
+
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+			'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>';
+
+		$content = '';
+		if ($editUID)
+			$content .= '<h2>'.$this->pi_getLL("edit_form_folder").'</h2>';
+		else
+			$content .= '<h2>'.$this->pi_getLL("input_form_folder").'</h2>';
+
+		$content .= '
+			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
+			<input type="hidden" name="no_cache" value="1" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.self::kVIEW_CREATE.'" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.self::kEDIT_TYPE_FOLDER_SAVE.'" />
+			<input type="hidden" name="'.$this->extKey.'[color]" value="'.$this->piVars['color'].'" />';
+
+		// hidden field for UID if editing existing folder
+		if ($editUID)
+			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
+
+		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
+		$folderUID = intval($GETcommands['uid']);
+
+		// generate checkboxes for all containing exams
+		$content .= '<h3>Ordner: '.$this->piVars['name'].
+			' ['.tx_fsmiexams_div::numberFixedDigits($this->piVars['folder_id'],4).']</h3>';
+
+        $content .= '<fieldset><legend>Ordnerdaten editieren</legend><table>';
+        $content .= '<tr>
+            <td>Name:</td>
+            <td><input name="'.$this->extKey.'[name]" value="'.$this->piVars['name'].'" /></td></tr>';
+        $content .= '<tr>
+            <td>ID (nicht editierbar)</td>
+            <td><input disabled="disabled" name="'.$this->extKey.'[folder_id]" value="'.$this->piVars['folder_id'].'" /></td></tr>';
+        $content .= '</table></fieldset>';
+
+        $content .= '<fieldset><legend>Download Links</legend><ul>';
+		$content .= '<li><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Inhaltsverzeichnis</a></li>';
+		$content .= '<li><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Deckblatt</a></li>';
+		$content .= '</ul></fieldset>';
 
 		for ($i=0; $i<4; $i++) {
 			$lectureUID = $this->piVars['lecture'.$i];
