@@ -1,8 +1,9 @@
-﻿<?php
+<?php
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Andreas Cord-Landwehr <fsmi@uni-paderborn.de>
+*  (c) 2009-2011  Andreas Cord-Landwehr <cola@uni-paderborn.de>
+*  (c) 2010-2011  Alexander Wiens <awiens@uni-paderborn.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
