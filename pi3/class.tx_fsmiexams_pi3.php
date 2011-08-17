@@ -1,4 +1,4 @@
-<?php
+ï»¿<?php
 /***************************************************************
 *  Copyright notice
 *
@@ -44,11 +44,18 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	var $extKey        = 'fsmi_exams';	// The extension key.
 	
 	//Constant Values
-	const MODE_LEND = 1;
-	const MODE_WITHDRAW = 2;	
+	const kMODE_LEND = 1;
+	const kMODE_WITHDRAW = 2;	
 	const MAGIC = 'magic';
 	const kGFX_PATH = 'typo3conf/ext/fsmi_exams/images/';
 	const PREFIX = 'tx_fsmiexams_loan';
+	
+	const kSTEP_START = 1;
+	const kSTEP_LEND_INPUT = 2;
+	
+	const kCTRL_NEXT = 1;		// next button
+	const kCTRL_RELOAD = 2;		// next button
+	const kCTRL_CANCEL = 5;		// cancel button
 	
 	var $LANG;						// language object
      
@@ -82,9 +89,9 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
         //Important variables //TODO: Escape and set variables
 		$this->piVars['type'] = intval($GETcommands['type']);
 		$this->piVars['mode'] = intval($GETcommands['mode']);
-		$this->piVars['buttonLeft'] = $this->escape($GETcommands['buttonLeft']);
-		$this->piVars['buttonCenter'] = $this->escape($GETcommands['buttonCenter']);
-		$this->piVars['buttonRight'] = $this->escape($GETcommands['buttonRight']);
+// 		$this->piVars['buttonLeft'] = $this->escape($GETcommands['buttonLeft']);
+// 		$this->piVars['buttonCenter'] = $this->escape($GETcommands['buttonCenter']);
+// 		$this->piVars['buttonRight'] = $this->escape($GETcommands['buttonRight']);
 
 
 		$this->piVars['lender_name'] = $this->escape($GETcommands['lender_name']);
@@ -112,12 +119,18 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 
 		//Style
-		$content .= '<style type="text/css">.tx-fsmiexams-pi3 text{font-size:x-large;} .tx-fsmiexams-pi3 form{clear:both; padding-top:50px;} .tx-fsmiexams-pi3 textarea{font-size:x-large; margin-bottom:50px;} .tx-fsmiexams-pi3 input{font-size:large;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 #title{ color:Gainsboro; text-align:center; font-size:xx-large;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table{margin-left:auto; margin-right:auto; font-size:large;} .tx-fsmiexams-pi3 table td{background-color:AliceBlue;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
+		$content .= '<style type="text/css"> .tx-fsmiexams-pi3 form{clear:both; padding-top:50px;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table{margin-left:auto; margin-right:auto; } .tx-fsmiexams-pi3 table td{background-color:AliceBlue;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
 		//main_container
 		$content .= '<div style="margin:0px 15px; padding-top:15px; width:700px; border:solid 1px #f00;">' . "\n";
 
+		// on cancel go to start
+		if (isset($GETcommands['control'.self::kCTRL_CANCEL])) {
+				return $content.$this->formStartpage().'</form></div>';;
+		}
+
 		switch ($this->piVars['type']) {
 			case 4: {
+			debug("type4");
 				if (isset($this->piVars['buttonLeft']))
 					$type=2;
 				else
@@ -127,9 +140,10 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 					//Steps
 					$content .= $this->renderTitle($this->pi_getLL("withdrawal"));
 					$content .= $this->renderSteps(	4, 
-													array(0 => $this->pi_getLL("folder"), 
-													1 => $this->pi_getLL("withdrawal"), 
-													2 => $this->pi_getLL("overview"))
+													array(
+														0 => array ('title' => $this->pi_getLL("folder")), 
+														1 => array ('title' => $this->pi_getLL("withdrawal")), 
+														2 => array ('title' => $this->pi_getLL("overview")))
 												  );
 
 
@@ -148,14 +162,19 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 					$content .= $this->renderLentFolderInfo($this->piVars['folderInfoArray'], $withdrawalInfoTable);
 
 					//Buttons
-					$content .= $this->renderButtons(null, null, null, $this->extKey);
+					$content .= $this->renderButtons(null, null, null);
 
 					break;
 				} else {
 					//Lending Mode
 					//Steps
 					$content .= $this->renderTitle($this->pi_getLL("lend_it"));
-					$content .= $this->renderSteps(4, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
+					$content .= $this->renderSteps(	4, 
+													array(
+														0 => array ('title' => 'Ordner'), 
+														1 => array ('title' => 'Ausleihe'), 
+														2 => array ('title' => 'Ausgabe')
+													));
 
 
 					//TODO: Finally write entrys to DB
@@ -193,8 +212,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			};
 			
 		    default: {
-
-				$content .= $this->formStartEverything();
+				$content .= $this->formStartpage();
 			};
 		}
 
@@ -210,8 +228,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			<label index="tx_fsmiexams_loan.dispenser">Ausgeber</label>
 			<label index="tx_fsmiexams_loan.lenderlogin">Ausleher IMT Login</label>
 			<label index="tx_fsmiexams_loan.weight">Gewicht (g)</label>
-			<label index="tx_fsmiexams_loan.withdrawal">Rückname von</label>
-			<label index="tx_fsmiexams_loan.withdrawaldate">Rücknahme Datum</label>
+			<label index="tx_fsmiexams_loan.withdrawal">RÃ¼ckname von</label>
+			<label index="tx_fsmiexams_loan.withdrawaldate">RÃ¼cknahme Datum</label>
 			<label index="tx_fsmiexams_loan.deposit">Pfand</label>
 			<label index="tx_fsmiexams_loan.lendingdate">Ausleihe Datum</label>
 		*/
@@ -224,20 +242,26 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	}
 
 	private function controllerStartLendOrWithdrawal() {
+	debug("controllerStartLendOrWithdrawal");
 		if (!$this->folderExists($this->piVars['folder_id'])) {
 			return "<h3>Fehler: Kein Order mit dieser ID bekannt</h3>".
-					$this->formStartEverything();
+					$this->formStartpage();
 		}
 			
 		if ($this->isLent($this->piVars['folder_id'])) {
 			//Withdrawal Mode
 			
-			//TODO: Liste von zurückgenommenen Ordnern erstellen (wie folder_list)
+			//TODO: Liste von zurÃ¼ckgenommenen Ordnern erstellen (wie folder_list)
 
 
 			//Steps
-			$content .= $this->renderTitle('R&uuml;cknehmen');
-			$content .= $this->renderSteps(2, array(0 => 'Ordner', 1 => 'R&uuml;cknahme' ,2 => '&Uuml;bersicht'));
+			$content .= $this->renderTitle('RÃ¼cknehmen');
+			$content .= $this->renderSteps(	2, 
+											array(
+												0 => array ('title' => 'Ordner'), 
+												1 => array ('title' => 'R&uuml;cknahme'),
+												2 => array ('title' => '&Uuml;bersicht')
+										));
 
 
 			$content .= 'blaaa' . serialize($this->piVars['folder_list_array']);
@@ -275,7 +299,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			$content .= '<text><b>Ordner:</b></text><br/><textarea name="' . $this->extKey . '[folder_id]">' . $this->piVars['folder_id'] . '</textarea><br/>' . "\n";
 
 			//Buttons
-			$content .= $this->renderButtons(null, 'Wiederholen', 'Weiter', $this->extKey);
+			$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "HinzufÃ¼gen" => self::kCTRL_RELOAD, "Weiter" => self::kCTRL_NEXT));
 
 			return $content;
 		} else { 
@@ -293,20 +317,18 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 	}
 
-	private function controllerAddLenderInformation() 
-	{
-		if (isset($this->piVars['buttonCenter']))
-			$type=2;
-		else
-		if (isset($this->piVars['buttonLeft']))
-			$type=1;
-		else
+	private function controllerAddLenderInformation() {
 		if ($this->piVars['mode'] == self::MODE_WITHDRAW) {
 			//Withdrawal Mode
 
 			//Steps
 			$content .= $this->renderTitle('R&uuml;cknehmen');
-			$content .= $this->renderSteps(3, array(0 => 'Ordner', 1 => 'R&uuml;cknahme', 2 => '&Uuml;bersicht'));
+			$content .= $this->renderSteps(	3, 
+											array(
+												0 => array ('title' => 'Ordner'), 
+												1 => array ('title' => 'R&uuml;cknahme'), 
+												2 => array ('title' => '&Uuml;bersicht')
+										   ));
 
 			// put information to folder list
 			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
@@ -341,7 +363,12 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 			//Steps
 			$content .= $this->renderTitle('Ausleihen');
-			$content .= $this->renderSteps(3, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
+			$content .= $this->renderSteps(	3, 
+											array(
+												0 => array ('title' => 'Ordner'), 
+												1 => array ('title' => 'Ausleihe'), 
+												2 => array ('title' => 'Ausgabe')
+											));
 
 			// put information to folder list
 			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
@@ -372,14 +399,15 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="4"/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
+
 			//Buttons
-			$content .= $this->renderButtons('Zur&uuml;ck', null, 'Ausleihen!', $this->extKey);
+			$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Weiter" => self::kCTRL_NEXT));
 
 			return $content;
 		}
 	}
 
-	private function formStartEverything() {
+	private function formStartpage() {
 		$content = '';
 		//Steps
 		$content .= $this->renderTitle('FSMI-Ausleihtool');
@@ -394,7 +422,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$content .= '<p>So, das Ganze funktioniert wie folgt. Du gibst hier den ersten Ordner Barcode an von dem Ordner mit dem du etwas machen m&ouml;chtest. Danach machst du mit dem n&auml;chsten Ordner weiter etc. Wenn du alle Ordner durch hast (also Ausleihen oder Zur&uuml;cknehmen, dann gibst du die Daten vom dem Ausleiher an und schon bist du fertig.</p>';
 
 		//Buttons
-		$content .= $this->renderButtons(null, null, 'Weiter', $this->extKey);
+		$content .= $this->renderButtons(array("Weiter" => self::kCTRL_NEXT));
 		
 		return $content; 
 	}
@@ -409,7 +437,13 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 		//Steps
 		$content .= $this->renderTitle('Ausleihen');
-		$content .= $this->renderSteps(2, array(0 => 'Ordner', 1 => 'Ausleihe', 2 => 'Ausgabe'));
+		
+		$content .= $this->renderSteps(	2, 
+										array(
+											0 => array ('title' => 'Ordner'), 
+											1 => array ('title' => 'Ausleihe'), 
+											2 => array ('title' => 'Ausgabe')
+										));
 
 		if (isset($this->piVars['folder_id']) && isset($this->piVars['folder_weight'])) {
 			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
@@ -447,10 +481,9 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$content .= '<tr><td><label>Einzelgewicht:</label></td>';
 		$content .= '<td><input type="text" name="'.$this->extKey.'[folder_weight]" size="8" /></td></tr>' . "\n";
 		$content .= '</table>';
-		$content .= $this->renderButtons(null, 'Ordner hinzufügen', 'Nutzerdaten eintragen/weiter', $this->extKey);
 
 		//Buttons
-		
+		$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "HinzufÃ¼gen" => self::kCTRL_RELOAD, "Weiter" => self::kCTRL_NEXT));
 			
 		return $content;
 	}
@@ -479,15 +512,19 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return false;
 	}
 
-	private function renderButtons($buttonLeft, $buttonCenter, $buttonRight, $ext_key) {
-		$buttons = '<br/>';
-		$buttons .= (!isset($buttonLeft)? '':
-	            '<input type="submit" name="' . $ext_key . '[buttonLeft]" value="' . $buttonLeft . '" style="float:left;"/>');
-		$buttons .= (!isset($buttonCenter)?'':
-				'<input type="submit" name="' . $ext_key . '[buttonCenter]" value="' . $buttonCenter . '" style=""/>');
-		$buttons .= (!isset($buttonRight)?'':
-				'<input type="submit" name="' . $ext_key . '[buttonRight]" value="' . $buttonRight . '"/ style="float:right;">');
-		return $buttons;
+	/**
+	 * renders given array of buttons. Each button-value is expected to be $label => $value.
+	 * name then is '.$this->extKey.'[control'.$value.']
+	 */
+	private function renderButtons($buttons) {
+		if (!is_array($buttons)) 
+			return '';
+			
+		$content = '<div>';
+		foreach ($buttons as $label => $value) {
+			$content .= '<input type="submit" name="'.$this->extKey.'[control'.$value.']" value="' . $label . '" style="float:left;"/>';
+		}
+		return $content;
 	}
 
 	private function renderSteps($step, $titles) {
@@ -499,21 +536,21 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 		$steps .= isset($titles[0]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'two_' .
 	                            ($step==2 ? 'active' : 'inactive') .
-								'.png"/><b>' . $titles[0] . '</b></div>' . "\n" : '';
+								'.png"/><b>' . $titles[0]['title'] . '</b></div>' . "\n" : '';
 		$steps .= isset($titles[1]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'three_'.
 	                            ($step==3 ? 'active':'inactive').
-								'.png"/><b>' . $titles[1] . '</b></div>' . "\n" : '';
+								'.png"/><b>' . $titles[1]['title'] . '</b></div>' . "\n" : '';
 		$steps .= isset($titles[2]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'four_' .
 	                            ($step==4 ? 'active' : 'inactive') .
-								'.png"/><b>' . $titles[2] . '</b></div>'."\n":'';
+								'.png"/><b>' . $titles[2]['title'] . '</b></div>'."\n":'';
 		$steps .= isset($titles[3]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'five_' .
 	                            ($step==5 ? 'active' : 'inactive') .
-								'.png"/><b>' . $titles[3] . '</b></div>' . "\n" : '';
+								'.png"/><b>' . $titles[3]['title'] . '</b></div>' . "\n" : '';
 		return $steps . "</div>";
 	}
 
 	private function renderTitle($title) {
-		return '<div id="title">' . $title . '</div>';
+		return '<h1 style="text-align:center; color:Gainsboro;">' . $title . '</h2>';
 	}
 
 	private function renderLentFolderInfo($folderArray, $tableStructure) {
@@ -542,8 +579,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 	//DB_functions
 	private function getLentFolderInfo($folder_id, $tableStructure) {
-		//Example array
-// 		return array('folder' => '123', 'lender' => 'Studi', 'dispenser' => 'Fachschaftler', 'weight' => '200', 'deposit' => 'Rolex', 'lendingdate' => 'Gestern', 'withdrawal' => 'anderer Fachschaftler', 'withdrawaldate' => 'Heute');
+
 		$retArray = array();
 		$query = '';
 		foreach ($tableStructure as $field)
