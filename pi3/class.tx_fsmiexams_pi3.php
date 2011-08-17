@@ -45,13 +45,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	
 	//Constant Values
 	const kMODE_LEND = 1;
-	const kMODE_WITHDRAW = 2;	
+	const kMODE_WITHDRAWAL = 2;	
 	const MAGIC = 'magic';
 	const kGFX_PATH = 'typo3conf/ext/fsmi_exams/images/';
 	const PREFIX = 'tx_fsmiexams_loan';
 	
 	const kSTEP_START = 1;
-	const kSTEP_LEND_INPUT = 2;
+	const kSTEP_SECOND_PAGE = 2;
+	const kSTEP_FINALIZE = 3;
 	
 	const kCTRL_NEXT = 1;		// next button
 	const kCTRL_RELOAD = 2;		// next button
@@ -87,12 +88,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$withdrawalInfoTable = array(0 => 'folder', 1 => 'lender', 2 => 'dispenser', 3 => 'weight', 4 => 'deposit', 5 => 'lendingdate', 6 => 'withdrawal', 7 => 'withdrawaldate');
 
         //Important variables //TODO: Escape and set variables
-		$this->piVars['type'] = intval($GETcommands['type']);
+		$this->piVars['step'] = intval($GETcommands['step']);
 		$this->piVars['mode'] = intval($GETcommands['mode']);
-// 		$this->piVars['buttonLeft'] = $this->escape($GETcommands['buttonLeft']);
-// 		$this->piVars['buttonCenter'] = $this->escape($GETcommands['buttonCenter']);
-// 		$this->piVars['buttonRight'] = $this->escape($GETcommands['buttonRight']);
-
 
 		$this->piVars['lender_name'] = $this->escape($GETcommands['lender_name']);
 		$this->piVars['lender_imt'] = $this->escape($GETcommands['lender_imt']);
@@ -125,114 +122,48 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 		// on cancel go to start
 		if (isset($GETcommands['control'.self::kCTRL_CANCEL])) {
-				return $content.$this->formStartpage().'</form></div>';;
+			$this->piVars['step'] = self::kSTEP_START;
 		}
 
-		switch ($this->piVars['type']) {
-			case 4: {
-			debug("type4");
-				if (isset($this->piVars['buttonLeft']))
-					$type=2;
+		switch ($this->piVars['step']) {
+			
+		    case self::kSTEP_START: {
+				// if next-button, need to change mode:
+				if (isset($GETcommands['control'.self::kCTRL_NEXT]))
+					$content .= $this->formSecondPage();
 				else
-				if ($this->piVars['mode'] == self::MODE_WITHDRAW) {
-					//Withdrawal Mode
-
-					//Steps
-					$content .= $this->renderTitle($this->pi_getLL("withdrawal"));
-					$content .= $this->renderSteps(	4, 
-													array(
-														0 => array ('title' => $this->pi_getLL("folder")), 
-														1 => array ('title' => $this->pi_getLL("withdrawal")), 
-														2 => array ('title' => $this->pi_getLL("overview")))
-												  );
-
-
-					//TODO: Add Last Folder to folder_list
-					if (!is_array($this->piVars['folder_list_array']))
-						$this->piVars['folder_list_array'] = array();
-
-					//TODO: Withdrawal DB update
-
-					/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
-
-					$this->piVars['folderInfoArray'] = array();
-					foreach ($this->piVars['folder_list_array'] as $folderInfo) {
-						array_push($this->piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $withdrawalInfoTable));
-					}
-					$content .= $this->renderLentFolderInfo($this->piVars['folderInfoArray'], $withdrawalInfoTable);
-
-					//Buttons
-					$content .= $this->renderButtons(null, null, null);
-
-					break;
-				} else {
-					//Lending Mode
-					//Steps
-					$content .= $this->renderTitle($this->pi_getLL("lend_it"));
-					$content .= $this->renderSteps(	4, 
-													array(
-														0 => array ('title' => 'Ordner'), 
-														1 => array ('title' => 'Ausleihe'), 
-														2 => array ('title' => 'Ausgabe')
-													));
-
-
-					//TODO: Finally write entrys to DB
-					//TODO: Add Last Folder to folder_list
-					if (!isset($this->piVars['folder_list_array']))
-						$this->piVars['folder_list_array'] = array();
-
-					$this->piVars['folder_list'] = serialize($this->piVars['folder_list_array']);
-					$this->piVars['folder_list_hash'] = md5($this->piVars['folder_list'] . self::MAGIC);
-
-
-					/*** >> Liste der Entliehenen Ordner+Gewichte << ***/
-					if (isset($this->piVars['folder_list'])) {
-						//TODO: Render Already Chosen Folders
-						$this->piVars['renderArray'] = array();
-						foreach ($this->piVars['folder_list_array'] as $key => $value)
-							array_push($this->piVars['renderArray'], array('folder' => $key, 'weight' => $value));
-						$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder', 1 => 'weight'));
-					}
-
-
-					//Buttons
-					$content .= $this->renderButtons(null, null, null, $this->extKey);
-
-					break;
-				}
-			}
-			case 3: {
-				$content .= $this->controllerAddLenderInformation();
+					$content .= $this->formStartpage();
 				break;
 			}
-			case 2: {
-				$content .= $this->controllerStartLendOrWithdrawal();
-				break;
-			};
 			
 		    default: {
 				$content .= $this->formStartpage();
-			};
+				break;
+			}
+			
+			case self::kSTEP_SECOND_PAGE: {
+				// if next-button, need to change mode:
+				if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
+					$content .= $this->formFinalizeLendOrWithdrawal();
+				} else {
+					// first: check if folder even exists
+					if (!$this->folderExists($this->piVars['folder_id']))
+						$content .= "<h3>Fehler: Kein Order mit dieser ID bekannt</h3>".
+					$content .= $this->formSecondPage();
+				}
+				break;
+			}
+			
+			case self::kSTEP_FINALIZE: {
+				$content .= '<h3>TODO</h3> hier muss die Datenbank geändert werden und Ergebnis des Befehles angezeigt werden.';
+				break;
+			}
 		}
 
 
 	    $content .= '</form>';
 
 		$content .= '</div>';
-
-		/*
-			<label index="tx_fsmiexams_loan">Ausleihe</label>
-			<label index="tx_fsmiexams_loan.folder">Ordner</label>
-			<label index="tx_fsmiexams_loan.lender">Ausleiher</label>
-			<label index="tx_fsmiexams_loan.dispenser">Ausgeber</label>
-			<label index="tx_fsmiexams_loan.lenderlogin">Ausleher IMT Login</label>
-			<label index="tx_fsmiexams_loan.weight">Gewicht (g)</label>
-			<label index="tx_fsmiexams_loan.withdrawal">Rückname von</label>
-			<label index="tx_fsmiexams_loan.withdrawaldate">Rücknahme Datum</label>
-			<label index="tx_fsmiexams_loan.deposit">Pfand</label>
-			<label index="tx_fsmiexams_loan.lendingdate">Ausleihe Datum</label>
-		*/
 
 
 //static t3lib_div::cmpIP
@@ -241,12 +172,29 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $this->pi_wrapInBaseClass($content);
 	}
 
-	private function controllerStartLendOrWithdrawal() {
-	debug("controllerStartLendOrWithdrawal");
-		if (!$this->folderExists($this->piVars['folder_id'])) {
-			return "<h3>Fehler: Kein Order mit dieser ID bekannt</h3>".
-					$this->formStartpage();
-		}
+
+	private function formStartpage() {
+		$content = '';
+		//Steps
+		$content .= $this->renderTitle('FSMI-Ausleihtool');
+		$content .= $this->renderSteps(1, array());
+
+
+		$content .= '<form method="GET" action="index.php">' . "\n";
+		$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>';
+		$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_START.'"/>';
+		$content .= '<div style="text-align:center"><h3>Ordnereingabe</h3><b>Der erste Ordner:</b> <input type="text" name="' . $this->extKey . '[folder_id]" size="8" maxlength="8" /></div></br>';
+		
+		$content .= '<p>So, das Ganze funktioniert wie folgt. Du gibst hier den ersten Ordner Barcode an von dem Ordner mit dem du etwas machen m&ouml;chtest. Danach machst du mit dem n&auml;chsten Ordner weiter etc. Wenn du alle Ordner durch hast (also Ausleihen oder Zur&uuml;cknehmen, dann gibst du die Daten vom dem Ausleiher an und schon bist du fertig.</p>';
+
+		//Buttons
+		$content .= $this->renderButtons(array("Weiter" => self::kCTRL_NEXT));
+		
+		return $content; 
+	}
+
+	private function formSecondPage() {
+		// this page gets the initial folder ID and estimates what to do with it.
 			
 		if ($this->isLent($this->piVars['folder_id'])) {
 			//Withdrawal Mode
@@ -289,8 +237,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			//Form
 			$content .= '<form method="GET" action="index.php">' . "\n";
 			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="3"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="2"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_SECOND_PAGE.'"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kMODE_WITHDRAWAL.'"/>' . "\n";
 
 
 			$content .= (isset($this->piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n" : '');
@@ -309,7 +257,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				$content = $this->lendFolderForm($res['uid']);
 			}
 			else {
-				return "FEHLER: konnte Ordner nicht finden.";
+				$content .= "<h3>FEHLER: konnte Ordner nicht finden</h3>";
+				$content .= $this->formStartpage();
 			}
 			
 			return $content;
@@ -317,8 +266,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 	}
 
-	private function controllerAddLenderInformation() {
-		if ($this->piVars['mode'] == self::MODE_WITHDRAW) {
+	private function formFinalizeLendOrWithdrawal() {
+		if ($this->piVars['mode'] == self::kMODE_WITHDRAWAL) {
 			//Withdrawal Mode
 
 			//Steps
@@ -344,8 +293,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			//Form
 			$content .= '<form method="GET" action="index.php">' . "\n";
 			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="4"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="2"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="'.self::kMODE_WITHDRAWAL.'"/>' . "\n";
 
 
 			$content .= (isset($this->piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n" : '');
@@ -396,7 +345,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			$content .= '<label><b>Name des Ausgebers: </b></label><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
 			(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" />' . "\n";
 			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="4"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
 
@@ -407,25 +356,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		}
 	}
 
-	private function formStartpage() {
-		$content = '';
-		//Steps
-		$content .= $this->renderTitle('FSMI-Ausleihtool');
-		$content .= $this->renderSteps(1, array());
-
-
-		$content .= '<form method="GET" action="index.php">' . "\n";
-		$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>';
-		$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="2"/>';
-		$content .= '<div style="text-align:center"><h3>Ordnereingabe</h3><b>Der erste Ordner:</b> <input type="text" name="' . $this->extKey . '[folder_id]" size="8" maxlength="8" /></div></br>';
-		
-		$content .= '<p>So, das Ganze funktioniert wie folgt. Du gibst hier den ersten Ordner Barcode an von dem Ordner mit dem du etwas machen m&ouml;chtest. Danach machst du mit dem n&auml;chsten Ordner weiter etc. Wenn du alle Ordner durch hast (also Ausleihen oder Zur&uuml;cknehmen, dann gibst du die Daten vom dem Ausleiher an und schon bist du fertig.</p>';
-
-		//Buttons
-		$content .= $this->renderButtons(array("Weiter" => self::kCTRL_NEXT));
-		
-		return $content; 
-	}
 
 	/**
 	 * This function gives you the lend-it interface for a specified and existing folder.
@@ -464,8 +394,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 		$content .= '<form method="GET" action="index.php">' . "\n";
 		$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
-		$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="3"/>' . "\n";
-		$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="1"/>' . "\n";
+		$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_SECOND_PAGE.'"/>' . "\n";
+		$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="'.self::kMODE_LEND.'"/>' . "\n";
 
 		$content .= (isset($this->piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>'."\n":'');
 		$content .= (isset($this->piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>'."\n":'');
@@ -527,24 +457,24 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $content;
 	}
 
-	private function renderSteps($step, $titles) {
+	private function renderSteps($currentStep, $titles) {
 		$steps = '<div style="text-align:center;>';
 		$steps .= '<a href="index.php?id='.$GLOBALS['TSFE']->id.'">';
 		$steps .= '<div class="step"><img src="typo3conf/ext/fsmi_exams/images/one_' .
-	         ($step==1 ? 'active' : 'inactive') .
+	         ($currentStep==1 ? 'active' : 'inactive') .
 	         '.png"/><b>Startseite</b></div></a>'."\n";
 
 		$steps .= isset($titles[0]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'two_' .
-	                            ($step==2 ? 'active' : 'inactive') .
+	                            ($currentStep==2 ? 'active' : 'inactive') .
 								'.png"/><b>' . $titles[0]['title'] . '</b></div>' . "\n" : '';
 		$steps .= isset($titles[1]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'three_'.
-	                            ($step==3 ? 'active':'inactive').
+	                            ($currentStep==3 ? 'active':'inactive').
 								'.png"/><b>' . $titles[1]['title'] . '</b></div>' . "\n" : '';
 		$steps .= isset($titles[2]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'four_' .
-	                            ($step==4 ? 'active' : 'inactive') .
+	                            ($currentStep==4 ? 'active' : 'inactive') .
 								'.png"/><b>' . $titles[2]['title'] . '</b></div>'."\n":'';
 		$steps .= isset($titles[3]) ? '<div class="step"><img src="' . self::kGFX_PATH . 'five_' .
-	                            ($step==5 ? 'active' : 'inactive') .
+	                            ($currentStep==5 ? 'active' : 'inactive') .
 								'.png"/><b>' . $titles[3]['title'] . '</b></div>' . "\n" : '';
 		return $steps . "</div>";
 	}
@@ -599,7 +529,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	 */
 	private function isLent($folder_id) {
 		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_folder WHERE folder_id = ' . intval($folder_id) . ' AND hidden=0');
-		if ($resLent && $res = mysql_fetch_assoc($resLent) && $resLent['state']==self::MODE_LEND) {
+		if ($resLent && $res = mysql_fetch_assoc($resLent) && $resLent['state']==self::kMODE_LEND) {
 			return true;
 		}
 		return false;
