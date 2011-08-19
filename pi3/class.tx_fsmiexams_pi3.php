@@ -331,7 +331,11 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
 					array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
 				}
-				$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder_id', 1=> 'name', 2 => 'weight'));
+				$content .= $this->renderLentFolderInfo(
+															$this->piVars['renderArray'], 
+															array(0 => 'folder_id', 1=> 'name', 2 => 'weight'),
+															array(0 => 20, 1=> 50, 2 => 30)
+														);
 			}
 
 			$content .= '<form method="GET" action="index.php">' . "\n";
@@ -483,12 +487,19 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return '<h1 style="text-align:center; color:Gainsboro;">' . $title . '</h2>';
 	}
 
-	private function renderLentFolderInfo($folderArray, $tableStructure) {
+	private function renderLentFolderInfo($folderArray, $tableStructure, $relativeSizes=null) {
 		$infoTable = '';
-		$infoTable .= '<table cellpadding="8" cellspacing="2"><tr>';
+		$infoTable .= '<table cellpadding="8" cellspacing="2" style="width: 90%; text-align:center"><tr>';
 
-		foreach( $tableStructure as $value)
-			$infoTable .= '<th>' . $this->pi_getLL($value) . '</th>';
+		if(!isset($relativeSizes) || !is_array($relativeSizes) || count($relativeSizes)!=count($tableStructure)) {
+			for($i=0; $i<count($tableStructure); $i++)
+				$relativeSizes[$i] = 100/count($tableStructure);
+		}
+
+		$counter = 0;
+		foreach( $tableStructure as $value) {
+			$infoTable .= '<th style="width:'.$relativeSizes[$counter++].'%">' . $this->pi_getLL($value) . '</th>';
+		}
 
 		$infoTable .= '</tr>' . "\n";
 
@@ -496,7 +507,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			if(isset($folderRow))
 			{
 				$infoTable .= '<tr>';
-
 				foreach($tableStructure as $value)
 					$infoTable .= '<td>' . $folderRow[$value] . '</td>';
 				$infoTable .= '</tr>';
