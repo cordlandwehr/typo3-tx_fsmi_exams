@@ -116,7 +116,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 
 		//Style
-		$content .= '<style type="text/css"> .tx-fsmiexams-pi3 form{clear:both; padding-top:50px;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table{margin-left:auto; margin-right:auto; } .tx-fsmiexams-pi3 table td{background-color:AliceBlue;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
+		$content .= '<style type="text/css"> .tx-fsmiexams-pi3 form{clear:both;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table{margin-left:auto; margin-right:auto; } .tx-fsmiexams-pi3 table td{background-color:AliceBlue;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
 		//main_container
 		$content .= '<div style="margin:0px 15px; padding-top:15px; width:700px; border:solid 1px #f00;">' . "\n";
 
@@ -148,7 +148,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				} else {
 					// first: check if folder even exists
 					if (!$this->folderExists($this->piVars['folder_id']))
-						$content .= "<h3>Fehler: Kein Order mit dieser ID bekannt</h3>".
+						$content .= "<h3>Fehler: Kein Ordner mit dieser ID bekannt!</h3>";
 					$content .= $this->formSecondPage();
 				}
 				break;
@@ -195,10 +195,9 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 	private function formSecondPage() {
 		// this page gets the initial folder ID and estimates what to do with it.
-			
 		if ($this->isLent($this->piVars['folder_id'])) {
 			//Withdrawal Mode
-			
+
 			//TODO: Liste von zurückgenommenen Ordnern erstellen (wie folder_list)
 
 
@@ -257,8 +256,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				$content = $this->lendFolderForm($res['uid']);
 			}
 			else {
-				$content .= "<h3>FEHLER: konnte Ordner nicht finden</h3>";
-				$content .= $this->formStartpage();
+				$content .= $this->lendFolderForm();
 			}
 			
 			return $content;
@@ -325,7 +323,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			// list of scheduled folders
 			if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
 			{
-				$content .= '<h3>Folgende Ordner werden ausgeliehen</h3>';
+				$content .= '<h3 style="text-align:center">Folgende Ordner werden ausgeliehen</h3>';
 				$this->piVars['renderArray'] = array();
 				foreach($this->piVars['folder_list_array'] as $key => $value) {
 					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
@@ -339,20 +337,25 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			}
 
 			$content .= '<form method="GET" action="index.php">' . "\n";
-			$content .= '<label><b>Name des Ausleihers:</b> </label><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
-				(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /><br/>' . "\n";
-			$content .= '<label><b>IMT-Login des Ausleihers:</b> </label><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
-				(isset($this->piVars['lender_imt']) ? $this->piVars['lender_imt'] : '') .'" /><br/>' . "\n";
-			$content .= '<label><b>Pfand: </b></label><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
+			$content .= '<h3 style="text-align:center">Ausleihdaten</h3>';
+			$content .= '<table cellpadding="5">';
+			$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
+					<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
+				(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /></td></tr>' . "\n";
+			$content .= '<tr><td><label><b>IMT-Login des Ausleihers:</b></label></td>
+					<td><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
+				(isset($this->piVars['lender_imt']) ? $this->piVars['lender_imt'] : '') .'" /></td></tr>' . "\n";
+			$content .= '<tr><td><label><b>Pfand: </b></label></td>
+					<td><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
 				(isset($this->piVars['deposit']) ? $this->piVars['deposit'] : '') . '" /><br/>' . "\n";
-			$content .= '<hr/><br/>' . "\n";
-			$content .= '<label><b>Name des Ausgebers: </b></label><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
-			(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" />' . "\n";
+			$content .= '<tr><td><label><b>Name des Ausgebers: </b></label></td>
+					<td><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
+			(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" /></td></tr>' . "\n";
 			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
-
+			$content .= '</table>';
 			//Buttons
 			$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Weiter" => self::kCTRL_NEXT));
 
@@ -408,16 +411,17 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$content .= (isset($this->piVars['deposit']) ? '<input type="hidden" name="' . $this->extKey . '[deposit]" value="' . $this->piVars['deposit'] . '"/>' . "\n" : '');
 		$content .= (isset($this->piVars['dispenser']) ? '<input type="hidden" name="' . $this->extKey . '[dispenser]" value="' . $this->piVars['dispenser'] . '"/>' . "\n" : '');
 
-		$content .= '<h3>Weitere Ordner ausleihen</h3>';
-		$content .= '<table>';
-		$content .= '<tr><td><label for="text_folder_id">Code:</label></td>';
+		$content .= '<h3 style="text-align:center">Ordner zu Ausleihvorgang hinzufügen</h3>';
+		$content .= '<table cellpadding="5" cellspacing="0" width="60%">';
+		$content .= '<tr><td><label for="text_folder_id">Ordner-Code:</label></td>';
 		$content .= '<td><input type="text" name="' . $this->extKey . '[folder_id]" size="8" value="'.$this->piVars['folder_id'].'" id="text_folder_id" /></td></tr>' . "\n";
-		$content .= '<tr><td><label>Einzelgewicht:</label></td>';
+		$content .= '<tr><td><label>Einzelgewicht (g):</label></td>';
 		$content .= '<td><input type="text" name="'.$this->extKey.'[folder_weight]" size="8" /></td></tr>' . "\n";
+		$content .= '<tr><td> </td><td><input type="submit" name="'.$this->extKey.'[control'.self::kCTRL_RELOAD.']" value="Hinzufügen" "/></td></tr>';
 		$content .= '</table>';
 
 		//Buttons
-		$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Hinzufügen" => self::kCTRL_RELOAD, "Weiter" => self::kCTRL_NEXT));
+		$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Weiter" => self::kCTRL_NEXT));
 			
 		return $content;
 	}
@@ -512,7 +516,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				$infoTable .= '</tr>';
 			}
 		}
-		$infoTable .= '</table>' . "\n";
+		$infoTable .= '</table>';
 
 		return $infoTable;
 	}
