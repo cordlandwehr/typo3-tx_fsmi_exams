@@ -813,16 +813,8 @@ $TCA['tx_fsmiexams_loan'] = array (
 			'exclude' => 0,
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_loan.weight',
 			'config' => array (
-				'type'     => 'input',
-				'size'     => '4',
-				'max'      => '4',
-				'eval'     => 'int',
-				'checkbox' => '0',
-				'range'    => array (
-					'upper' => '1000',
-					'lower' => '10'
-				),
-				'default' => 0
+				'type' => 'input',
+				'size' => '1000',
 			)
 		),
 		'withdrawal' => array (

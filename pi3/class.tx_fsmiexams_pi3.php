@@ -29,7 +29,7 @@
  */
 
 require_once(PATH_tslib.'class.tslib_pibase.php');
-
+require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
 
 /**
  * Plugin 'Lend it' for the 'fsmi_exams' extension.
@@ -42,6 +42,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	var $prefixId      = 'tx_fsmiexams_pi3';		// Same as class name
 	var $scriptRelPath = 'pi3/class.tx_fsmiexams_pi3.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
+	
+	var $loanStoragePID		= 1;
 	
 	//Constant Values
 	const kMODE_LEND = 1;
@@ -97,12 +99,13 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$this->piVars['dispenser'] = $this->escape($GETcommands['dispenser']);
 
 		$this->piVars['folder_id'] = intval($this->escape($GETcommands['folder_id']));
-		$this->piVars['folder_weight'] = $this->escape($GETcommands['folder_weight']);
+		$this->piVars['folder_weight'] = intval($GETcommands['folder_weight']);
 		$this->piVars['folder_list'] = $GETcommands['folder_list']; // TODO: escaping destroys serializing
 		$this->piVars['folder_list_hash'] = $this->escape($GETcommands['folder_list_hash']);
 
 		$this->piVars['folder_list_array'] = null;
 		
+
 		
 		//Deserialize folder list
 		if (isset($this->piVars['folder_list']) && isset($this->piVars['folder_list_hash']) && (md5($this->piVars['folder_list'] . self::MAGIC) == $this->piVars['folder_list_hash']))
@@ -110,7 +113,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		    $this->piVars['folder_list_array'] = unserialize($this->piVars['folder_list']);
 		}
 	    //TODO: serialized arrays as strings contain " - xml attributes use "
-
 
 		//Listen : <input type="hidden" value="ordner1;ordner2"
 
@@ -155,7 +157,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			}
 			
 			case self::kSTEP_FINALIZE: {
-				$content .= '<h3>TODO</h3> hier muss die Datenbank geändert werden und Ergebnis des Befehles angezeigt werden.';
+				$content .= $this->transactionLendFolders();
 				break;
 			}
 		}
@@ -352,7 +354,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 					<td><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
 			(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" /></td></tr>' . "\n";
 			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[type]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
 			$content .= '</table>';
@@ -519,6 +521,80 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$infoTable .= '</table>';
 
 		return $infoTable;
+	}
+	
+	/**
+	 *
+	 */
+	private function transactionLendFolders() {
+		$content = '';	// the transaction log
+	
+		// first: get all interesting values
+		$formValues = t3lib_div::_GP($this->extKey);
+		$lender_name = $this->escape($formValues['lender_name']);
+		$lender_imt = $this->escape($formValues['lender_imt']);
+		$deposit = $this->escape($formValues['deposit']);
+		$dispenser = $this->escape($formValues['dispenser']);
+		$folders = $this->piVars['folder_list_array'];
+
+		if ($formValues=='' || $lender_name=='' || $lender_imt=='' || $deposit=='' || $dispenser=='' || count($folders)<1 ) {
+			// TODO give more feedback
+			$content .= '<h3>FEHLER: Es wurden nicht alle Felder ausgefüllt.</h3>';
+			$content .= $this->formFinalizeLendOrWithdrawal();
+			return $content;
+		}
+		
+		// second: database transformations, and there first secure all folders
+		$lendFolders = array ();
+		$lendWeights = array ();
+		foreach ($folders as $folderUID => $weight) {
+			$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						'tx_fsmiexams_folder',
+						'uid = '.intval($folderUID),
+						array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_LEND )
+						);
+
+			if ($res) {
+				$lendFolders[] = $folderUID;
+				$lendWeights[] = $weight;
+			} else {
+				$content .= 'ERROR: Mutex on folder UID '.$folderUID.' could not be set, aboarding this folder.';
+			}
+		}
+		
+		// third: store actual transaction into database
+		$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+						'tx_fsmiexams_loan',
+						array (	'pid' => $this->loanStoragePID,
+								'crdate' => time(),
+								'tstamp' => time(),
+								'deleted' => 0,
+								'hidden' => 0,
+								'dispenser' => $GLOBALS['TYPO3_DB']->quoteStr($dispenser, 'tx_fsmiexams_loan'),
+								'lenderlogin' => $GLOBALS['TYPO3_DB']->quoteStr($lender_imt, 'tx_fsmiexams_loan'),
+								'lender' => $GLOBALS['TYPO3_DB']->quoteStr($lender_name, 'tx_fsmiexams_loan'),
+								'deposit' => $GLOBALS['TYPO3_DB']->quoteStr($deposit, 'tx_fsmiexams_loan'),
+								'folder' => implode(',',$lendFolders),
+								'weight' => implode(',',$lendWeights),
+								'lendingdate' => time()
+						));
+
+		if ($res) {
+			$content .= '<h3>Ausleihe erfolgreich!</h3>';
+			$content .= '<p>Folgende Ordner wurden gebucht:</p><ul>';
+			foreach ($lendFolders as $folder) {
+				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folder);
+				$content .= '<li>'.$folderDATA['name'].'</li>';
+			}
+			$content .= '</ul>';
+			$content .= '<p>Ausgeliehen auf Nutzer <b>'.$lender_name.'</b> 
+				mit Mailadresse <a href="mailto:'.$lender_imt.'@campus.upb.de">'.$lender_imt.'@campus.upb.de</a>.</p>';
+		} else {
+			$content .= 'ERROR: Could not enter database information!';
+		}
+		$content .= '<div style="text-align:center; font-size: 20px; padding-top: 30px">'.$this->pi_linkToPage('Zurück zur Startseite',$GLOBALS['TSFE']->id).'</div>';
+		
+		return $content;
 	}
 
 	//DB_functions

@@ -207,7 +207,7 @@ CREATE TABLE tx_fsmiexams_loan (
 	lender tinytext,
 	dispenser tinytext,
 	lenderlogin tinytext,
-	weight int(11) DEFAULT '0' NOT NULL,
+	weight text,
 	withdrawal varchar(255) DEFAULT '' NOT NULL,
 	withdrawaldate int(11) DEFAULT '0' NOT NULL,
 	deposit varchar(255) DEFAULT '' NOT NULL,
