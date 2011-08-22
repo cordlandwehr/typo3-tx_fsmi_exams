@@ -208,6 +208,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	}
 
 	private function formSecondPage() {
+
 		// this page gets the initial folder ID and estimates what to do with it.
 		if ($this->isLent($this->piVars['folder_id'])) {
 			//Withdrawal Mode
@@ -659,9 +660,12 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	 * This function checks if a specific folder is lend or not.
 	 */
 	private function isLent($folder_id) {
-		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_folder WHERE folder_id = ' . intval($folder_id) . ' AND hidden=0');
-		if ($resLent && $res = mysql_fetch_assoc($resLent) && $resLent['state']==self::kMODE_LEND) {
-			return true;
+	debug($folder_id);
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_folder WHERE folder_id = ' . intval($folder_id) . ' AND hidden=0');
+		if ($res && $folderDATA = mysql_fetch_assoc($res)){
+			if ($folderDATA['state']==tx_fsmiexams_div::kFOLDER_STATE_LEND) {
+				return true;
+			}
 		}
 		return false;
 	}
