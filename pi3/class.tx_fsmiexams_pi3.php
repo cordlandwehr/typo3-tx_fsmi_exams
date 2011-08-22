@@ -131,10 +131,19 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			
 		    case self::kSTEP_START: {
 				// if next-button, need to change mode:
-				if (isset($GETcommands['control'.self::kCTRL_NEXT]))
-					$content .= $this->formSecondPage();
-				else
+				if(!$this->piVars['folder_id'] && isset($GETcommands['control'.self::kCTRL_NEXT])) {
+					$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										"<b>Fehler:</b><br />Um hier weiter zu kommen musst du schon einen Ordner-Barcode eingeben."
+										);
 					$content .= $this->formStartpage();
+					break;
+				}
+				if (isset($GETcommands['control'.self::kCTRL_NEXT])) {						
+					$content .= $this->formSecondPage();
+				} else {
+					$content .= $this->formStartpage();
+				}
 				break;
 			}
 			
@@ -150,7 +159,10 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				} else {
 					// first: check if folder even exists
 					if (!$this->folderExists($this->piVars['folder_id']))
-						$content .= "<h3>Fehler: Kein Ordner mit dieser ID bekannt!</h3>";
+						$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										"<b>Fehler:</b><br />Den eingegebenen Ordner-Barcode haben wir leider nicht im Archiv."
+										);
 					$content .= $this->formSecondPage();
 				}
 				break;
@@ -252,14 +264,15 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 			return $content;
 		} else { 
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0);
 			//Lending Mode
-			$resFolder = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' FROM tx_fsmiexams_folder WHERE folder_id = ' . $this->piVars['folder_id'] . ' AND hidden=0 AND deleted=0');
-			if ($resFolder && $res = mysql_fetch_assoc($resFolder)) {
-				$content = $this->lendFolderForm($res['uid']);
-			}
-			else {
+// 			$resFolder = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' FROM tx_fsmiexams_folder WHERE folder_id = ' . $this->piVars['folder_id'] . ' AND hidden=0 AND deleted=0');
+// 			if ($resFolder && $res = mysql_fetch_assoc($resFolder)) {
+// 				$content .= $this->lendFolderForm($res['uid']);
+// 			}
+// 			else {
 				$content .= $this->lendFolderForm();
-			}
+// 			}
 			
 			return $content;
 		}
@@ -280,7 +293,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 										   ));
 
 			// put information to folder list
-			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
 
 			$content .= serialize($this->piVars['folder_list_array']);
 			/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
@@ -320,7 +333,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 											));
 
 			// put information to folder list
-			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
 
 			// list of scheduled folders
 			if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
@@ -385,12 +398,12 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 										));
 
 		if (isset($this->piVars['folder_id']) && isset($this->piVars['folder_weight'])) {
-			$this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight']);
 		}
 
 		if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
 		{
-			$content .= '<h3>Vorgemerkte Ordner f&uuml;r diesen Ausleihvorgang</h3>';
+			$content .= '<h3 style="text-align:center">Vorgemerkte Ordner f&uuml;r diesen Ausleihvorgang</h3>';
 			$this->piVars['renderArray'] = array();
 			foreach($this->piVars['folder_list_array'] as $key => $value) {
 				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
@@ -416,7 +429,9 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$content .= '<h3 style="text-align:center">Ordner zu Ausleihvorgang hinzufügen</h3>';
 		$content .= '<table cellpadding="5" cellspacing="0" width="60%">';
 		$content .= '<tr><td><label for="text_folder_id">Ordner-Code:</label></td>';
-		$content .= '<td><input type="text" name="' . $this->extKey . '[folder_id]" size="8" value="'.$this->piVars['folder_id'].'" id="text_folder_id" /></td></tr>' . "\n";
+		$content .= '<td><input type="text" name="' . $this->extKey . '[folder_id]" size="8" value="'.
+			($this->piVars['folder_id']==0 ? '' : $this->piVars['folder_id']).
+			'" id="text_folder_id" /></td></tr>' . "\n";
 		$content .= '<tr><td><label>Einzelgewicht (g):</label></td>';
 		$content .= '<td><input type="text" name="'.$this->extKey.'[folder_weight]" size="8" /></td></tr>' . "\n";
 		$content .= '<tr><td> </td><td><input type="submit" name="'.$this->extKey.'[control'.self::kCTRL_RELOAD.']" value="Hinzufügen" "/></td></tr>';
@@ -433,23 +448,46 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	 * deletes also all temp. vars
 	 */
 	private function addFolderToFolderArray($folder_id, $weight) {
-		if ($weight<=0)
-			return false;
+		$content = '';
 
 		if(!is_array($this->piVars['folder_list_array']))
 			$this->piVars['folder_list_array'] = array();
 			
 		$resFolder = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' FROM tx_fsmiexams_folder WHERE folder_id='.$folder_id.' AND hidden=0 AND deleted=0');
 		if ($resFolder && $res = mysql_fetch_assoc($resFolder)) {
+
+			if ($res['state'] == tx_fsmiexams_div::kFOLDER_STATE_LEND) {
+				$this->piVars['folder_id']='0';
+				return tx_fsmiexams_div::printSystemMessage(
+												tx_fsmiexams_div::kSTATUS_ERROR,
+												'<b>Fehler</b><br /> Der Ordner &quot;'.$res['name'].'&quot; ist bereits verliehen. Ausleihen geht also nicht.'
+												);
+			}
+			
+			if ($weight<=0)
+				return '';
+
+			if ($res['state'] == tx_fsmiexams_div::kFOLDER_STATE_LOST) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+												tx_fsmiexams_div::kSTATUS_INFO,
+												'<b>Für Dich zur Info</b><br /> Dieser Ordner ist LOST... aber anscheinend wiedergefunden worden. Lassen wir es mal dabei und machen den Ausleihvorang weiter.'
+												);
+			}
+			if ($res['state'] == tx_fsmiexams_div::kFOLDER_STATE_MAINTENANCE) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+												tx_fsmiexams_div::kSTATUS_INFO,
+												'<b>Für Dich zur Info</b><br /> Für das System ist der Ordner gerade in der händischen Überarbeitung/Wartung und sein Status wurde  nicht auf &quot;verfügbar&quot; zurück gesetzt. Mit dem Abschluss der Ausleihe nehmen wir ihn nun wieder in das System.'
+												);
+			}
 			$this->piVars['folder_list_array'][$res['uid']] = $weight;
 			$this->piVars['folder_id'] = '';
 			$this->piVars['folder_weight'] = '';
 			$this->piVars['folder_list'] = serialize($this->piVars['folder_list_array']);
 			$this->piVars['folder_list_hash'] = md5($this->piVars['folder_list'] . self::MAGIC);
-			return true;
+			return $content;
 		}
 
-		return false;
+		return $content;
 	}
 
 	/**
@@ -539,7 +577,10 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 		if ($formValues=='' || $lender_name=='' || $lender_imt=='' || $deposit=='' || $dispenser=='' || count($folders)<1 ) {
 			// TODO give more feedback
-			$content .= '<h3>FEHLER: Es wurden nicht alle Felder ausgefüllt.</h3>';
+			$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_WARNING,
+										"<b>Achtung:</b><br />Weiter geht es erst, wenn du alle Felder ausgefüllt hast."
+										);
 			$content .= $this->formFinalizeLendOrWithdrawal();
 			return $content;
 		}
