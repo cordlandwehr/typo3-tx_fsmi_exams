@@ -195,7 +195,12 @@ debug($GETcommands);
 			}
 			
 			case self::kSTEP_FINALIZE: {
-				$content .= $this->transactionLendFolders();
+				if ($this->piVars['mode'] == self::kMODE_WITHDRAWAL) {
+					$content .= $this->transactionWithdrawFolders();
+				}
+				else {
+					$content .= $this->transactionLendFolders();
+				}
 				break;
 			}
 		}
@@ -294,7 +299,6 @@ debug($GETcommands);
 				$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder_id', 1=> 'name', 2 => 'weight'));
 			}
 
-			//TODO an dieser Stelle ausgeben in welchen Ausleihevorgängen die Ordner feststecken
 			if (count($foldersToLoans)==0) {
 				tx_fsmiexams_div::printSystemMessage(
 										tx_fsmiexams_div::kSTATUS_ERROR,
@@ -302,41 +306,92 @@ debug($GETcommands);
 										);
 			}
 			else {
-				$content .= '<div><h3>Beteiligte Ausleihvorgänge</h3>';
+				$content .= '<div><h3>Rücknahmeplan</h3>';
 				foreach ($foldersToLoans as $folderUID => $loanUID) {
 					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
-					$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $loanUID);
+					$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', $loanUID);
 					$content .= '<div>';
 					$content .= $this->printLoanInfo($loanUID);
 					$content .= '</div>';
 				}
 				$content .= '</div>';
 			}
+			
+			// calculate which loans can be closed
+			$closeLoans = array();				// array of loans that shall be closed
+			$pendingFolders = array();			// array of folders that must be put into new loan
+			$pendingFoldersLoan = array (); 	// information for new loan in case this loan is needed
+			$pledges = array();					// pledges that could be given back
+			
+			foreach ($foldersToLoans as $folderUID => $loanUID) {
+				$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', $loanUID);
+				$loanFolders = explode(',', $loanDATA['folder']);
+				$clean = true;
+				foreach ($loanFolders as $folder) {
+					if (!array_key_exists($folder, $foldersToLoans) ) { // case there is a folder that is not taken back
+						$pendingFolders[] = $folder;
+						if (!array_key_exists($loanDATA['uid'],$pendingFoldersLoan)) 
+							$pendingFoldersLoan[] = $loanDATA['uid'];
+						$clean = false;
+					}
+				}
+				if ($clean) {
+					$closeLoans[] = $loanDATA['uid'];
+				}
+				$pledges[] = array ( 'deposit' => $loanDATA['deposit'], 'lender' => $loanDATA['lender']);
+			}
+			
+			// give form depending on which folders we get back
+			if ( count($pendingFolders)==0 ) {
+				
+				$content .= '<form method="GET" action="index.php">' . "\n";
+				$content .= '<h3 style="text-align:center">Rücknahme</h3>';
+				$content .= '<table cellpadding="5">';
+				$content .= '<tr><td><label><b>Zurückgenommen von:</b></label></td>
+						<td><input type="text" name="'.$this->extKey.'[withdrawal]" size="30" value="'.
+					(isset($this->piVars['withdrawal']) ? $this->piVars['withdrawal'] : '') . '" /></td></tr>' . "\n";
+				$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="'.self::kMODE_WITHDRAWAL.'"/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
+				$content .= '</table>';
+				$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Rücknahme abschließen" => self::kCTRL_NEXT));
+				// JETZT zur DB Aktualisierung
+			}
+			else {
+				// folgende ordner sind noch offen und können unter einem neuen pfandstück definiert werden,
+				// welches?
+				// auswahl + input feld
+				// danach DB updates
+						
+				$content .= 'TODO: THIS CASE IS NOT MODELED, YET';
+			
 
-			//TODO das hier korrigieren
-			$content .= '<form method="GET" action="index.php">' . "\n";
-			$content .= '<h3 style="text-align:center">Ausleihdaten</h3>';
-			$content .= '<table cellpadding="5">';
-			$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
-					<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
-				(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /></td></tr>' . "\n";
-			$content .= '<tr><td><label><b>IMT-Login des Ausleihers:</b></label></td>
-					<td><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
-				(isset($this->piVars['lender_imt']) ? $this->piVars['lender_imt'] : '') .'" /></td></tr>' . "\n";
-			$content .= '<tr><td><label><b>Pfand: </b></label></td>
-					<td><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
-				(isset($this->piVars['deposit']) ? $this->piVars['deposit'] : '') . '" /><br/>' . "\n";
-			$content .= '<tr><td><label><b>Name des Ausgebers: </b></label></td>
-					<td><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
-			(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" /></td></tr>' . "\n";
-			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
-			$content .= '</table>';
-			//Buttons
-			$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Weiter" => self::kCTRL_NEXT));
-
+				//TODO das hier korrigieren
+				$content .= '<form method="GET" action="index.php">' . "\n";
+				$content .= '<h3 style="text-align:center">Ausleihdaten</h3>';
+				$content .= '<table cellpadding="5">';
+				$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
+						<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
+					(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /></td></tr>' . "\n";
+				$content .= '<tr><td><label><b>IMT-Login des Ausleihers:</b></label></td>
+						<td><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
+					(isset($this->piVars['lender_imt']) ? $this->piVars['lender_imt'] : '') .'" /></td></tr>' . "\n";
+				$content .= '<tr><td><label><b>Pfand: </b></label></td>
+						<td><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
+					(isset($this->piVars['deposit']) ? $this->piVars['deposit'] : '') . '" /><br/>' . "\n";
+				$content .= '<tr><td><label><b>Name des Ausgebers: </b></label></td>
+						<td><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
+				(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" /></td></tr>' . "\n";
+				$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
+				$content .= '</table>';
+				//Buttons
+				$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Weiter" => self::kCTRL_NEXT));
+			}
 			return $content;
 		}
 		else{
@@ -634,11 +689,11 @@ debug($GETcommands);
 		return $infoTable;
 	}
 	
-	function printLoanInfo($loanUID) {
+	function printLoanInfo($loanUID, $state=true) {
 		$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', $loanUID);
 		debug($loanDATA);
 		$content = '<div><tt>';
-		$content .= "<strong>Leihvorgang ID $loanUID</strong><br /> erstellt am ".date('d.m.Y h:i',$loanDATA['lendingdate']).", Pfand: ".$loanDATA['deposit'].'<br />';
+		$content .= "<strong>Leihvorgang ID $loanUID</strong> erstellt am ".date('d.m.Y h:i',$loanDATA['lendingdate']).", Pfand: ".$loanDATA['deposit'].'<br />';
 		$folders = explode(",", $loanDATA['folder']);
 		$weights = explode(",", $loanDATA['weight']);
 		debug($weights);
@@ -649,23 +704,118 @@ debug($GETcommands);
 				$returnWeight = $this->piVars['folder_list_array'][$folderDATA['uid']]['weight'];
 				$content .= ' ----> Rückgabe mit '.$returnWeight.'g';
 				if ($weights[$id]*1.0/$returnWeight > 1.05) {
-					$content .= ' <strong style="color:red"> (Achtung: &gt;5% Abweichung)</strong>';
+					if ($state) $content .= ' <strong style="color:red"> (Achtung: &gt;5% Abweichung)</strong>';
 				}
 				else {
-					$content .= ' <strong style="color:green"> (alles gut)</strong>';
+					if ($state) $content .= ' <strong style="color:green"> (alles gut)</strong>';
 				}
 			}
 			else {
 			    $content .= ' ----> <strong style="color:orange">keine Rückgabe</strong>';
 			}
-			
-// 			$this->piVars['folder_list_array'][$res['uid']]['weight']
 			$content .= '<br />';
 		}
 		$content .= '</tt></div>';
 		return $content;
 	}
 	
+	
+	private function transactionWithdrawFolders() {
+		$content = '';
+		
+		// transaction information
+		$formValues = t3lib_div::_GP($this->extKey);
+		$withdrawal = $this->escape($formValues['withdrawal']);
+		$new_deposit = $this->escape($formValues['new_deposit']);
+	
+		$foldersToLoans = array();
+		foreach($this->piVars['folder_list_array'] as $key => $value) {
+			$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
+
+			// now find corresponding loan
+			$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT uid FROM tx_fsmiexams_loan 
+										WHERE deleted=0 AND hidden=0 AND withdrawaldate=0 AND FIND_IN_SET('.$key.',folder)');
+			if($res && $loan = mysql_fetch_array($res)) {
+				$foldersToLoans[$key] = $loan['uid'];
+			}
+			else {
+				tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										'<b>Fehler</b><br /> Der Ordner ist in keinem offenen Ausleihvorgang gebucht.'
+										);
+			}
+		}
+	
+		// calculate which loans can be closed
+		$closeLoans = array();				// array of loans that shall be closed
+		$pendingFolders = array();			// array of folders that must be put into new loan
+		$pendingFoldersLoan = array (); 	// information for new loan in case this loan is needed
+		$pledges = array();					// pledges that could be given back
+		
+		foreach ($foldersToLoans as $folderUID => $loanUID) {
+			$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', $loanUID);
+			$loanFolders = explode(',', $loanDATA['folder']);
+			$clean = true;
+			foreach ($loanFolders as $folder) {
+				if (!array_key_exists($folder, $foldersToLoans) ) { // case there is a folder that is not taken back
+					$pendingFolders[] = $folder;
+					if (!array_key_exists($loanDATA['uid'],$pendingFoldersLoan)) 
+						$pendingFoldersLoan[] = $loanDATA['uid'];
+					$clean = false;
+				}
+			}
+			if ($clean) {
+				$closeLoans[] = $loanDATA['uid'];
+			}
+			$pledges[] = array ( 'deposit' => $loanDATA['deposit'], 'lender' => $loanDATA['lender']);
+		}
+		
+		if (count($foldersToLoans)==0) {
+			tx_fsmiexams_div::printSystemMessage(
+									tx_fsmiexams_div::kSTATUS_ERROR,
+									'<b>Fehler</b><br /> Der Ordner ist in keinem offenen Ausleihvorgang gebucht.'
+									);
+		}
+		else {
+			foreach ($closeLoans as $loan) {
+				$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+							'tx_fsmiexams_loan',
+							'uid = '.intval($loan),
+							array ( 'withdrawal' => $withdrawal, 'withdrawaldate' => time(), 'tstamp' => time() )
+							);
+
+				if (!$res)
+					$content .= 'ERROR: Fehler beim Schließen von Leihvorgang '.$loan.'. Bitte diese Seite ausdrucken und dem Admin überreichen.';
+			}
+			// first: we update the database
+			$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						'tx_fsmiexams_folder',
+						'uid = '.intval($folderUID),
+						array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT )
+						);
+			if (!res)
+				$content .= 'ERROR: Konnte Zustand von Ordner '.$folderUID.' nicht freigeben.';
+		
+			$content .= '<div><h3>Abgeschlossene Ausleihvorgänge</h3>';
+			foreach ($closeLoans as $loanUID) {
+				$content .= '<div>';
+				$content .= $this->printLoanInfo($loanUID, false);
+				$content .= '</div>';
+			}
+			$content .= '</div>';
+
+		}
+		if (count($pendingFolders)==0) {
+			$content .= '<h4>Folgende Pfandstücke können zurückgegeben werden:</h4>';
+			$content .= '<ul>';
+			foreach ($pledges as $pledge)
+				$content .= '<li>'.$pledge['lender'].': '.$pledge['deposit'].'</li>';
+			$content .= '</ul>';
+		}
+
+		$content .= '<div style="text-align:center; font-size: 20px; padding-top: 30px">'.$this->pi_linkToPage('Zurück zur Startseite',$GLOBALS['TSFE']->id).'</div>';
+		return $content;
+	}
 	
 	/**
 	 *
