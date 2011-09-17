@@ -275,7 +275,7 @@ debug($GETcommands);
 				$this->piVars['renderArray'] = array();
 				foreach($this->piVars['folder_list_array'] as $key => $value) {
 					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
-					array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
+					array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value['weight']));
 					
 					// now find corresponding loan
 					$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT uid FROM tx_fsmiexams_loan 
@@ -307,7 +307,6 @@ debug($GETcommands);
 					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
 					$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $loanUID);
 					$content .= '<div>';
-					$content .= "[".$folderDATA['folder_id']."]".$folderDATA['name'].'<br />';
 					$content .= $this->printLoanInfo($loanUID);
 					$content .= '</div>';
 				}
@@ -362,7 +361,7 @@ debug($GETcommands);
 				$this->piVars['renderArray'] = array();
 				foreach($this->piVars['folder_list_array'] as $key => $value) {
 					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
-					array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
+					array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value['weight']));
 				}
 				$content .= $this->renderLentFolderInfo(
 															$this->piVars['renderArray'], 
@@ -427,7 +426,7 @@ debug($GETcommands);
 			$this->piVars['renderArray'] = array();
 			foreach($this->piVars['folder_list_array'] as $key => $value) {
 				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
-				array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
+				array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value['weight']));
 			}
 			$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder_id', 1=> 'name', 2 => 'weight'));
 		}
@@ -482,7 +481,7 @@ debug($GETcommands);
 			$this->piVars['renderArray'] = array();
 			foreach($this->piVars['folder_list_array'] as $key => $value) {
 				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
-				array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
+				array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value['weight']));
 			}
 			$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder_id', 1=> 'name', 2 => 'weight'));
 		}
@@ -636,9 +635,34 @@ debug($GETcommands);
 	}
 	
 	function printLoanInfo($loanUID) {
-		$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $loanUID);
-		$content = '';
-		$content .= "Leihvorgang ID$loanUID erstellt am ".date('d.m.Y',$loanDATA['lendingdate']);
+		$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', $loanUID);
+		debug($loanDATA);
+		$content = '<div><tt>';
+		$content .= "<strong>Leihvorgang ID $loanUID</strong><br /> erstellt am ".date('d.m.Y h:i',$loanDATA['lendingdate']).", Pfand: ".$loanDATA['deposit'].'<br />';
+		$folders = explode(",", $loanDATA['folder']);
+		$weights = explode(",", $loanDATA['weight']);
+		debug($weights);
+		foreach ($folders as $id => $folderUID) {
+			$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
+			$content .= ' - ['.$folderDATA['folder_id'].'] '.$folderDATA['name'].', Gewicht: '.$weights[$id].'g';
+			if (array_key_exists($folderDATA['uid'], $this->piVars['folder_list_array'])) {
+				$returnWeight = $this->piVars['folder_list_array'][$folderDATA['uid']]['weight'];
+				$content .= ' ----> Rückgabe mit '.$returnWeight.'g';
+				if ($weights[$id]*1.0/$returnWeight > 1.05) {
+					$content .= ' <strong style="color:red"> (Achtung: &gt;5% Abweichung)</strong>';
+				}
+				else {
+					$content .= ' <strong style="color:green"> (alles gut)</strong>';
+				}
+			}
+			else {
+			    $content .= ' ----> <strong style="color:orange">keine Rückgabe</strong>';
+			}
+			
+// 			$this->piVars['folder_list_array'][$res['uid']]['weight']
+			$content .= '<br />';
+		}
+		$content .= '</tt></div>';
 		return $content;
 	}
 	
@@ -670,7 +694,7 @@ debug($GETcommands);
 		// second: database transformations, and there first secure all folders
 		$lendFolders = array ();
 		$lendWeights = array ();
-		foreach ($folders as $folderUID => $weight) {
+		foreach ($folders as $folderUID => $info) {
 			$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 						'tx_fsmiexams_folder',
 						'uid = '.intval($folderUID),
@@ -679,7 +703,7 @@ debug($GETcommands);
 
 			if ($res) {
 				$lendFolders[] = $folderUID;
-				$lendWeights[] = $weight;
+				$lendWeights[] = $info['weight'];
 			} else {
 				$content .= 'ERROR: Mutex on folder UID '.$folderUID.' could not be set, aboarding this folder.';
 			}
