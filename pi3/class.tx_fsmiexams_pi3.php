@@ -48,6 +48,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	//Constant Values
 	const kMODE_LEND = 1;
 	const kMODE_WITHDRAWAL = 2;	
+	
 	const MAGIC = 'magic';
 	const kGFX_PATH = 'typo3conf/ext/fsmi_exams/images/';
 	const PREFIX = 'tx_fsmiexams_loan';
@@ -130,6 +131,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			$this->piVars['step'] = self::kSTEP_START;
 		}
 
+debug($GETcommands);
+
 		switch ($this->piVars['step']) {
 			case self::kSTEP_SHOW_LENT_FOLDERS: {
 				$content .= $this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'';
@@ -162,6 +165,22 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			case self::kSTEP_SECOND_PAGE: {
 				// if next-button, need to change mode:
 				if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
+					if ($this->piVars['folder_id']!=0 && !$this->folderExists($this->piVars['folder_id'])) {
+						$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										"<b>Fehler:</b><br />Den eingegebenen Ordner-Barcode haben wir leider nicht im Archiv."
+										);
+						$content .= $this->formSecondPage();
+						break;
+					}
+					if ($this->piVars['folder_id'] && !$this->piVars['weight']) {
+						$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										"<b>Fehler:</b><br />Rückgabe ist nur möglich mit Angabe eines Gewichtes.."
+										);
+						$content .= $this->formSecondPage();
+						break;
+					}
 					$content .= $this->formFinalizeLendOrWithdrawal();
 				} else {
 					// first: check if folder even exists
@@ -215,16 +234,15 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	}
 
 	private function formSecondPage() {
-
 		// this page gets the initial folder ID and estimates what to do with it.
 		if ($this->isLent($this->piVars['folder_id'])) {
 			//Withdrawal Mode
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,self::kMODE_LEND);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,self::kMODE_WITHDRAWAL);
 			$content .= $this->withdrawFolderForm($this->piVars['folder_id']);
 
 			return $content;
 		} else { 
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,self::kMODE_WITHDRAWAL);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,self::kMODE_LEND);
 			$content .= $this->lendFolderForm();
 			
 			return $content;
@@ -235,41 +253,90 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	private function formFinalizeLendOrWithdrawal() {
 		if ($this->piVars['mode'] == self::kMODE_WITHDRAWAL) {
 			//Withdrawal Mode
-
+			
 			//Steps
-			$content .= $this->renderTitle('R&uuml;cknehmen');
-			$content .= $this->renderSteps(	3, 
+			$content .= $this->renderTitle('Rücknahme');
+			$content .= $this->renderSteps(	2, 
 											array(
 												0 => array ('title' => 'Ordner'), 
-												1 => array ('title' => 'R&uuml;cknahme'), 
-												2 => array ('title' => '&Uuml;bersicht')
-										   ));
+												1 => array ('title' => 'Rücknahme'), 
+												2 => array ('title' => 'Pfandrückgabe')
+											));
 
-			// put information to folder list
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_WITHDRAWAL);
-
-			$content .= serialize($this->piVars['folder_list_array']);
-			/*** >> Anzeige der ausgeliehenen Ordner + weitere Informationen <<***/
-			$this->piVars['folderInfoArray'] = array();
-			foreach ($this->piVars['folder_list_array'] as $folderInfo) {
-				array_push($this->piVars['folderInfoArray'], $this->getLentFolderInfo($folderInfo, $lentInfoTable));
+			if (isset($this->piVars['folder_id']) && isset($this->piVars['folder_weight'])) {
+				$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_WITHDRAWAL);
 			}
-			$content .= $this->renderLentFolderInfo($this->piVars['folderInfoArray'], $lentInfoTable);
 
-			//Form
+			$foldersToLoans = array();
+
+			if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
+			{
+				$content .= '<h3 style="text-align:center">Vorgemerkte Ordner f&uuml;r diesen Rücknahmevorgang</h3>';
+				$this->piVars['renderArray'] = array();
+				foreach($this->piVars['folder_list_array'] as $key => $value) {
+					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $key);
+					array_push($this->piVars['renderArray'], array('folder_id' => $folderDATA['folder_id'], 'name' => $folderDATA['name'], 'weight' => $value));
+					
+					// now find corresponding loan
+					$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT uid FROM tx_fsmiexams_loan 
+												WHERE deleted=0 AND hidden=0 AND withdrawaldate=0 AND FIND_IN_SET('.$key.',folder)');
+					if($res && $loan = mysql_fetch_array($res)) {
+						$foldersToLoans[$key] = $loan['uid'];
+					}
+					else {
+					    tx_fsmiexams_div::printSystemMessage(
+												tx_fsmiexams_div::kSTATUS_ERROR,
+												'<b>Fehler</b><br /> Der Ordner ist in keinem offenen Ausleihvorgang gebucht.'
+												);
+					}
+					
+				}
+				$content .= $this->renderLentFolderInfo($this->piVars['renderArray'], array(0 => 'folder_id', 1=> 'name', 2 => 'weight'));
+			}
+
+			//TODO an dieser Stelle ausgeben in welchen Ausleihevorgängen die Ordner feststecken
+			if (count($foldersToLoans)==0) {
+				tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										'<b>Fehler</b><br /> Der Ordner ist in keinem offenen Ausleihvorgang gebucht.'
+										);
+			}
+			else {
+				$content .= '<div><h3>Beteiligte Ausleihvorgänge</h3>';
+				foreach ($foldersToLoans as $folderUID => $loanUID) {
+					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
+					$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $loanUID);
+					$content .= '<div>';
+					$content .= "[".$folderDATA['folder_id']."]".$folderDATA['name'].'<br />';
+					$content .= $this->printLoanInfo($loanUID);
+					$content .= '</div>';
+				}
+				$content .= '</div>';
+			}
+
+			//TODO das hier korrigieren
 			$content .= '<form method="GET" action="index.php">' . "\n";
-			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>' . "\n";
+			$content .= '<h3 style="text-align:center">Ausleihdaten</h3>';
+			$content .= '<table cellpadding="5">';
+			$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
+					<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
+				(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /></td></tr>' . "\n";
+			$content .= '<tr><td><label><b>IMT-Login des Ausleihers:</b></label></td>
+					<td><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
+				(isset($this->piVars['lender_imt']) ? $this->piVars['lender_imt'] : '') .'" /></td></tr>' . "\n";
+			$content .= '<tr><td><label><b>Pfand: </b></label></td>
+					<td><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
+				(isset($this->piVars['deposit']) ? $this->piVars['deposit'] : '') . '" /><br/>' . "\n";
+			$content .= '<tr><td><label><b>Name des Ausgebers: </b></label></td>
+					<td><input type="text" name="' . $this->extKey.'[dispenser]" size="30" value="' .
+			(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" /></td></tr>' . "\n";
+			$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
 			$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
-			$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="'.self::kMODE_WITHDRAWAL.'"/>' . "\n";
-
-
-			$content .= (isset($this->piVars['folder_list']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n" : '');
-			$content .= (isset($this->piVars['folder_list_hash']) ? '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n":'');
-
-			$content .= '<text><b>R&uuml;cknahme von:</b></text><br/><textarea name="' . $this->extKey . '[withdrawal]"></textarea><br/>' . "\n";
-
+			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
+			$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
+			$content .= '</table>';
 			//Buttons
-			$content .= $this->renderButtons(null, null, 'Fertig', $this->extKey);
+			$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Weiter" => self::kCTRL_NEXT));
 
 			return $content;
 		}
@@ -286,7 +353,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 											));
 
 			// put information to folder list
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_WITHDRAWAL);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_LEND);
 
 			// list of scheduled folders
 			if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
@@ -351,7 +418,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 										));
 
 		if (isset($this->piVars['folder_id']) && isset($this->piVars['folder_weight'])) {
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_WITHDRAWAL);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_LEND);
 		}
 
 		if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
@@ -402,11 +469,11 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 										array(
 											0 => array ('title' => 'Ordner'), 
 											1 => array ('title' => 'Rücknahme'), 
-											2 => array ('title' => 'Ausgabe')
+											2 => array ('title' => 'Pfandrückgabe')
 										));
 
 		if (isset($this->piVars['folder_id']) && isset($this->piVars['folder_weight'])) {
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_LEND);
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'], $this->piVars['folder_weight'],self::kMODE_WITHDRAWAL);
 		}
 
 		if(is_array($this->piVars['folder_list_array']) && count($this->piVars['folder_list_array'])>0) 
@@ -462,7 +529,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$resFolder = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' FROM tx_fsmiexams_folder WHERE folder_id='.$folder_id.' AND hidden=0 AND deleted=0');
 		if ($resFolder && $res = mysql_fetch_assoc($resFolder)) {
 
-			if ($res['state'] != $mode) {
+			if ($res['state'] == tx_fsmiexams_div::kFOLDER_STATE_LEND && $mode==self::kMODE_LEND) {
 				$this->piVars['folder_id']='0';
 				return tx_fsmiexams_div::printSystemMessage(
 												tx_fsmiexams_div::kSTATUS_ERROR,
@@ -568,6 +635,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $infoTable;
 	}
 	
+	function printLoanInfo($loanUID) {
+		$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $loanUID);
+		$content = '';
+		$content .= "Leihvorgang ID$loanUID erstellt am ".date('d.m.Y',$loanDATA['lendingdate']);
+		return $content;
+	}
+	
+	
 	/**
 	 *
 	 */
@@ -624,7 +699,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 								'deposit' => $GLOBALS['TYPO3_DB']->quoteStr($deposit, 'tx_fsmiexams_loan'),
 								'folder' => implode(',',$lendFolders),
 								'weight' => implode(',',$lendWeights),
-								'lendingdate' => time()
+								'lendingdate' => time(),
+								'withdrawaldate' => 0
 						));
 
 		if ($res) {
@@ -703,7 +779,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	private function printActiveLentForFolder($folderUID) {
 		$content = '';
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_loan 
-												WHERE deleted=0 AND hidden=0 AND FIND_IN_SET('.$folderUID.',folder)');
+												WHERE deleted=0 AND hidden=0 AND withdrawaldate=0 AND FIND_IN_SET('.$folderUID.',folder)');
 		if ($res && $loanDATA = mysql_fetch_assoc($res)){
 			$content .= '<ul>';
 			$content .= '<li>verliehen am: '.date('m.d.Y h:i',$loanDATA['lendingdate']).'</li>';
