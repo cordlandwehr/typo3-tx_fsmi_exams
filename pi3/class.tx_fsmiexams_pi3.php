@@ -55,6 +55,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	const kSTEP_START = 1;
 	const kSTEP_SECOND_PAGE = 2;
 	const kSTEP_FINALIZE = 3;
+	const kSTEP_SHOW_LENT_FOLDERS = 4;
 	
 	const kCTRL_NEXT = 1;		// next button
 	const kCTRL_RELOAD = 2;		// next button
@@ -122,13 +123,19 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		//main_container
 		$content .= '<div style="margin:0px 15px; padding-top:15px; width:700px; border:solid 1px #f00;">' . "\n";
 
+		$content .= $this->pi_linkTP('<i>zeige Ausgeliehene</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_LENT_FOLDERS)).'';
+
 		// on cancel go to start
 		if (isset($GETcommands['control'.self::kCTRL_CANCEL])) {
 			$this->piVars['step'] = self::kSTEP_START;
 		}
 
 		switch ($this->piVars['step']) {
-			
+			case self::kSTEP_SHOW_LENT_FOLDERS: {
+				$content .= $this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'';
+				$content .= $this->listAllLentFolders();
+				break;
+			}
 		    case self::kSTEP_START: {
 				// if next-button, need to change mode:
 				if(!$this->piVars['folder_id'] && isset($GETcommands['control'.self::kCTRL_NEXT])) {
@@ -639,6 +646,20 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $content;
 	}
 
+	private function listAllLentFolders() {
+		$content = '';
+		$resLent = $GLOBALS['TYPO3_DB']->sql_query('SELECT * ' . $query . ' 
+													FROM tx_fsmiexams_folder 
+													WHERE state='.tx_fsmiexams_div::kFOLDER_STATE_LEND.' AND deleted=0 AND hidden=0
+													ORDER BY folder_id');
+		while ($resLent && $folderDATA = mysql_fetch_assoc($resLent)){
+			$content .= '<div><strong>'.$folderDATA['name'].' ['.$folderDATA['folder_id'].']</strong>';
+			$content .= $this->printActiveLentForFolder($folderDATA['uid']);
+			$content .= '</div>';
+		}
+		return $content;
+	}
+
 	//DB_functions
 	private function getLentFolderInfo($folder_id, $tableStructure) {
 
@@ -679,6 +700,20 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			return true;
 		else 
 			return false;	
+	}
+
+	private function printActiveLentForFolder($folderUID) {
+		$content = '';
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_loan 
+												WHERE deleted=0 AND hidden=0 AND FIND_IN_SET('.$folderUID.',folder)');
+		if ($res && $loanDATA = mysql_fetch_assoc($res)){
+			$content .= '<ul>';
+			$content .= '<li>verliehen am: '.date('m.d.Y h:i',$loanDATA['lendingdate']).'</li>';
+			$content .= '<li>geliehen von: <a href="mailto:'.$loanDATA['lenderlogin'].'@campus.uni-paderborn.de">'.$loanDATA['lender'].'</a></li>';
+			$content .= '<li>herausgegeben von: '.$loanDATA['dispenser'].'</li>';
+			$content .= '</ul>';
+		}
+		return $content;
 	}
 
 	private function isEasterEgg($folder_id)
