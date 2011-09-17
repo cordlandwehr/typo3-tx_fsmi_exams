@@ -360,25 +360,24 @@ debug($GETcommands);
 				// JETZT zur DB Aktualisierung
 			}
 			else {
-				// folgende ordner sind noch offen und können unter einem neuen pfandstück definiert werden,
-				// welches?
-				// auswahl + input feld
-				// danach DB updates
-						
-				$content .= 'TODO: THIS CASE IS NOT MODELED, YET';
-			
+				$content .= '<h3>Folgende Ordner wurden nicht zurück gebracht</h3>';
+				foreach ($pendingFolders as $folderUID) {
+					$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
+					$content .= '<div>['.$folderDATA['folder_id'].'] '.$folderDATA['name'].'</div>';
+				}
+				
+				$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', end($pendingFoldersLoan));
 
-				//TODO das hier korrigieren
 				$content .= '<form method="GET" action="index.php">' . "\n";
-				$content .= '<h3 style="text-align:center">Ausleihdaten</h3>';
+				$content .= '<h3 style="text-align:center">Aktualisierte Ausleihdaten</h3>';
 				$content .= '<table cellpadding="5">';
 				$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
 						<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
-					(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /></td></tr>' . "\n";
+						$loanDATA['lender_name']. '" /></td></tr>' . "\n";
 				$content .= '<tr><td><label><b>IMT-Login des Ausleihers:</b></label></td>
 						<td><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
-					(isset($this->piVars['lender_imt']) ? $this->piVars['lender_imt'] : '') .'" /></td></tr>' . "\n";
-				$content .= '<tr><td><label><b>Pfand: </b></label></td>
+						$loanDATA['lender_imt'] .'" /></td></tr>' . "\n";
+				$content .= '<tr><td><label><b>Neues Pfand: </b></label></td>
 						<td><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
 					(isset($this->piVars['deposit']) ? $this->piVars['deposit'] : '') . '" /><br/>' . "\n";
 				$content .= '<tr><td><label><b>Name des Ausgebers: </b></label></td>
@@ -386,6 +385,7 @@ debug($GETcommands);
 				(isset($this->piVars['dispenser']) ? $this->piVars['dispenser'] : '') . '" /></td></tr>' . "\n";
 				$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id.'"/>' . "\n";
 				$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_FINALIZE.'"/>' . "\n";
+				$content .= '<input type="hidden" name="' . $this->extKey . '[mode]" value="'.self::kMODE_WITHDRAWAL.'"/>' . "\n";
 				$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list]" value=\'' . $this->piVars['folder_list'] . '\'/>' . "\n";
 				$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
 				$content .= '</table>';
@@ -726,7 +726,12 @@ debug($GETcommands);
 		// transaction information
 		$formValues = t3lib_div::_GP($this->extKey);
 		$withdrawal = $this->escape($formValues['withdrawal']);
-		$new_deposit = $this->escape($formValues['new_deposit']);
+		$new_deposit = $this->escape($formValues['deposit']);
+		$lender_name = $this->escape($formValues['lender_name']);
+		$lender_imt = $this->escape($formValues['lender_imt']);
+		$deposit = $this->escape($formValues['deposit']);
+		$dispenser = $this->escape($formValues['dispenser']);
+		$folders = $this->piVars['folder_list_array'];
 	
 		$foldersToLoans = array();
 		foreach($this->piVars['folder_list_array'] as $key => $value) {
