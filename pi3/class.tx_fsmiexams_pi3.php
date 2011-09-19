@@ -84,7 +84,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$this->pi_USER_INT_obj = 1;	// Configuring so caching is not expected. This value means that no cHash params are ever set. We do this, because it's a USER_INT object!
 		$this->pi_initPIflexForm(); // Init and get the flexform data of the plugin
 
-		$this->$loanStoragePID =intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidTransactions'));
+		$this->loanStoragePID =intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidTransactions'));
 		$GETcommands = t3lib_div::_GP($this->extKey);
 		$this->piVars = array();
 		
@@ -357,7 +357,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				$content .= '<input type="hidden" name="' . $this->extKey . '[folder_list_hash]" value="' . $this->piVars['folder_list_hash'] . '"/>' . "\n";
 				$content .= '</table>';
 				$content .= $this->renderButtons(array("Abbruch" => self::kCTRL_CANCEL, "Rücknahme abschließen" => self::kCTRL_NEXT));
-				// JETZT zur DB Aktualisierung
+
 			}
 			else {
 				$content .= '<h3>Folgende Ordner wurden nicht zurück gebracht</h3>';
@@ -369,14 +369,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', end($pendingFoldersLoan));
 
 				$content .= '<form method="GET" action="index.php">' . "\n";
-				$content .= '<h3 style="text-align:center">Aktualisierte Ausleihdaten</h3>';
+				$content .= '<h3 style="text-align:center">Ausleihdaten aktualisieren</h3>';
 				$content .= '<table cellpadding="5">';
 				$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
 						<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
-						$loanDATA['lender_name']. '" /></td></tr>' . "\n";
+						$loanDATA['lender']. '" /></td></tr>' . "\n";
 				$content .= '<tr><td><label><b>IMT-Login des Ausleihers:</b></label></td>
 						<td><input type="text" name="' . $this->extKey . '[lender_imt]" size="30" value="'.
-						$loanDATA['lender_imt'] .'" /></td></tr>' . "\n";
+						$loanDATA['lenderlogin'] .'" /></td></tr>' . "\n";
 				$content .= '<tr><td><label><b>Neues Pfand: </b></label></td>
 						<td><input type="text" name="'.$this->extKey .'[deposit]" size="30" value="' .
 					(isset($this->piVars['deposit']) ? $this->piVars['deposit'] : '') . '" /><br/>' . "\n";
@@ -627,8 +627,16 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			return '';
 			
 		$content = '<div>';
+		$countet = 0;
 		foreach ($buttons as $label => $value) {
-			$content .= '<input type="submit" name="'.$this->extKey.'[control'.$value.']" value="' . $label . '" style="float:left;"/>';
+			$counter++;
+			$content .= '<input type="submit" name="'.$this->extKey.'[control'.$value.']" value="' . $label . '"';
+			if ($counter == count($buttons))
+				$content .= ' style="float:right;"/>';
+			else {
+			    $content .= ' style="float:left;" tabindex="1" />';
+			}
+			
 		}
 		return $content;
 	}
@@ -691,12 +699,11 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	
 	function printLoanInfo($loanUID, $state=true) {
 		$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', $loanUID);
-		debug($loanDATA);
 		$content = '<div><tt>';
 		$content .= "<strong>Leihvorgang ID $loanUID</strong> erstellt am ".date('d.m.Y h:i',$loanDATA['lendingdate']).", Pfand: ".$loanDATA['deposit'].'<br />';
 		$folders = explode(",", $loanDATA['folder']);
 		$weights = explode(",", $loanDATA['weight']);
-		debug($weights);
+
 		foreach ($folders as $id => $folderUID) {
 			$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
 			$content .= ' - ['.$folderDATA['folder_id'].'] '.$folderDATA['name'].', Gewicht: '.$weights[$id].'g';
@@ -730,8 +737,13 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$lender_name = $this->escape($formValues['lender_name']);
 		$lender_imt = $this->escape($formValues['lender_imt']);
 		$deposit = $this->escape($formValues['deposit']);
-		$dispenser = $this->escape($formValues['dispenser']);
 		$folders = $this->piVars['folder_list_array'];
+		$dispenser = $this->escape($formValues['dispenser']);
+		
+		// sometimes dispenser takes also folder back
+		if ($withdrawal=='')
+			$withdrawal = $dispenser;
+		
 	
 		$foldersToLoans = array();
 		foreach($this->piVars['folder_list_array'] as $key => $value) {
@@ -767,8 +779,10 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				}
 			}
 			$pledges[] = array ( 'deposit' => $loanDATA['deposit'], 'lender' => $loanDATA['lender']);
+			if (!array_key_exists($loanUID, $affectedLoans))
+				$affectedLoans[] = $loanUID;
 		}
-		
+
 		if (count($foldersToLoans)==0) {
 			tx_fsmiexams_div::printSystemMessage(
 									tx_fsmiexams_div::kSTATUS_ERROR,
@@ -785,7 +799,10 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 							);
 
 				if (!$res)
-					$content .= 'ERROR: Fehler beim Schließen von Leihvorgang '.$loan.'. Bitte diese Seite ausdrucken und dem Admin überreichen.';
+					$content .= tx_fsmiexams_div::printSystemMessage(
+											tx_fsmiexams_div::kSTATUS_ERROR,
+											'<b>Fehler</b><br /> beim Schließen von Leihvorgang '.$loan.'. Bitte diese Seite ausdrucken und dem Admin überreichen.'
+											);
 			}
 			// then we close all folders that ar taken back
 			foreach ($foldersToLoans as $folder) {
@@ -795,7 +812,10 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 							array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT )
 							);
 				if (!res)
-					$content .= 'ERROR: Konnte Zustand von Ordner UID='.$folder.' nicht freigeben.';
+					$content .= tx_fsmiexams_div::printSystemMessage(
+											tx_fsmiexams_div::kSTATUS_ERROR,
+											'<b>Fehler</b><br /> Konnte Zustand von Ordner UID='.$folder.' nicht freigeben.'
+											);
 			}
 			// print out what is closed
 			$content .= '<div><h3>Abgeschlossene Ausleihvorgänge</h3>';
@@ -828,11 +848,29 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 									'lendingdate' => time(),
 									'withdrawaldate' => 0
 							));
-			$content .= '<h4>Folgender Neuer Ausleihvorgang wurde angelegt</h4>';
-			if ($res && $newLoan = mysql_fetch_array($res))
-				$content .= $this->printLoanInfo($newLoan['uid'], false);
-			else
-				$content .= 'ERROR: neuer Ausleihvorgang konnte nicht angelegt werden.';
+
+			if (!$res) {
+					$content .= tx_fsmiexams_div::printSystemMessage(
+											tx_fsmiexams_div::kSTATUS_ERROR,
+											'<b>Fehler</b><br /> Neuer Ausleihvorgang konnte nicht angelegt werden.'
+											);
+			}
+
+			// now update the folders
+			foreach ($foldersToLoans as $folderUID => $loan) {
+				$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+							'tx_fsmiexams_folder',
+							'uid = '.intval($folderUID),
+							array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT )
+							);
+
+				if ($res) {
+					$lendFolders[] = $folderUID;
+					$lendWeights[] = $info['weight'];
+				} else {
+					$content .= 'ERROR: Mutex on folder UID '.$folderUID.' could not be set, aboarding this folder.';
+				}
+			}
 
 		}
 		$content .= '<h4>Folgende Pfandstücke können zurückgegeben werden:</h4>';
