@@ -240,11 +240,11 @@ t3lib_extMgm::addPlugin(array(
 	t3lib_extMgm::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
 
-
+/* Here starts pi3 */
 t3lib_div::loadTCA('tt_content');
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi3']='layout,select_key';
-
-
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi3']='pi_flexform';
+t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_pi3', 'FILE:EXT:fsmi_exams/flexform/flexform_pi3.xml');
 t3lib_extMgm::addPlugin(array(
 	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_pi3',
 	$_EXTKEY . '_pi3',

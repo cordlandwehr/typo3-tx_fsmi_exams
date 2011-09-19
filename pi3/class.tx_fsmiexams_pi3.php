@@ -43,7 +43,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	var $scriptRelPath = 'pi3/class.tx_fsmiexams_pi3.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
 	
-	var $loanStoragePID		= 1;
+	var $loanStoragePID		= 0;
 	
 	//Constant Values
 	const kMODE_LEND = 1;
@@ -58,7 +58,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	const kSTEP_FINALIZE = 3;
 	const kSTEP_SHOW_LENT_FOLDERS = 4;
 	
-	const kCTRL_NEXT = 1;		// next button
+	const kCTRL_NEXT   = 1;		// next button
 	const kCTRL_RELOAD = 2;		// next button
 	const kCTRL_CANCEL = 5;		// cancel button
 	
@@ -82,7 +82,9 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 		$this->pi_USER_INT_obj = 1;	// Configuring so caching is not expected. This value means that no cHash params are ever set. We do this, because it's a USER_INT object!
+		$this->pi_initPIflexForm(); // Init and get the flexform data of the plugin
 
+		$this->$loanStoragePID =intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'pidTransactions'));
 		$GETcommands = t3lib_div::_GP($this->extKey);
 		$this->piVars = array();
 		
@@ -130,8 +132,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		if (isset($GETcommands['control'.self::kCTRL_CANCEL])) {
 			$this->piVars['step'] = self::kSTEP_START;
 		}
-
-debug($GETcommands);
 
 		switch ($this->piVars['step']) {
 			case self::kSTEP_SHOW_LENT_FOLDERS: {
