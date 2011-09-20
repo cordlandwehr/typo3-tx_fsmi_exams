@@ -128,7 +128,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$content .= $this->pi_linkTP('<i>zeige Ausgeliehene</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_LENT_FOLDERS)).'';
     $content .= '</div>';
     
-    $content .= '<div style="margin:0px 15px; padding-top:15px; /*width:700px;*/ border:solid 1px #f00;">' . "\n";
+    $content .= '<div style="margin:0px 15px; padding-top:15px;">' . "\n";
 
 		// on cancel go to start
 		if (isset($GETcommands['control'.self::kCTRL_CANCEL])) {
