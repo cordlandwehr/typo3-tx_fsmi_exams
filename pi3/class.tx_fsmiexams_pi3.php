@@ -141,7 +141,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
         $content .= '<div style="text-align:center;">'.$this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'</div>';
 				break;
 			}
-		    case self::kSTEP_START: {
+      
+		  case self::kSTEP_START: {
 				// if next-button, need to change mode:
 				if(!$this->piVars['folder_id'] && isset($GETcommands['control'.self::kCTRL_NEXT])) {
 					$content .= tx_fsmiexams_div::printSystemMessage(
@@ -245,19 +246,30 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 	private function formSecondPage() {
 		// this page gets the initial folder ID and estimates what to do with it.
+    $content = '';
+    
 		if ($this->isLent($this->piVars['folder_id'])) {
-			//Withdrawal Mode
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,self::kMODE_WITHDRAWAL);
-			$content .= $this->withdrawFolderForm($this->piVars['folder_id']);
 
-			return $content;
+      if($this->piVars['mode'] == 0)
+        $this->piVars['mode'] = self::kMODE_WITHDRAWAL;
+
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,$this->piVars['mode']);
+      
 		} else { 
-			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,self::kMODE_LEND);
-			$content .= $this->lendFolderForm();
-			
-			return $content;
-		}
 
+      if($this->piVars['mode'] == 0)
+        $this->piVars['mode'] = self::kMODE_LEND;
+    
+			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,$this->piVars['mode']);
+      
+		}
+    
+    if($this->piVars['mode'] == self::kMODE_WITHDRAWAL)
+      $content .= $this->withdrawFolderForm($this->piVars['folder_id']);
+    else
+      $content .= $this->lendFolderForm($this->piVars['folder_id']);
+    
+    return $content;
 	}
 
 	private function formFinalizeLendOrWithdrawal() {
@@ -351,7 +363,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				
 				$content .= '<form method="GET" action="index.php">' . "\n";
 				$content .= '<h3 style="text-align:center">Rücknahme</h3>';
-				$content .= '<table cellpadding="5">';
+				$content .= '<table cellpadding="5" style="width:60%;">';
 				$content .= '<tr><td><label><b>Zurückgenommen von:</b></label></td>
 						<td><input type="text" name="'.$this->extKey.'[withdrawal]" size="30" value="'.
 					(isset($this->piVars['withdrawal']) ? $this->piVars['withdrawal'] : '') . '" /></td></tr>' . "\n";
@@ -377,7 +389,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 				$content .= '<form method="GET" action="index.php">' . "\n";
 				$content .= '<h3 style="text-align:center">Ausleihdaten aktualisieren</h3>';
-				$content .= '<table cellpadding="5">';
+				$content .= '<table cellpadding="5" style="width:60%;">';
 				$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
 						<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
 						$loanDATA['lender']. '" /></td></tr>' . "\n";
@@ -434,7 +446,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 			$content .= '<form method="GET" action="index.php">' . "\n";
 			$content .= '<h3 style="text-align:center">Ausleihdaten</h3>';
-			$content .= '<table cellpadding="5">';
+			$content .= '<table cellpadding="5" style="width:60%;">';
 			$content .= '<tr><td><label><b>Name des Ausleihers:</b></label></td>
 					<td><input type="text" name="'.$this->extKey.'[lender_name]" size="30" value="'.
 				(isset($this->piVars['lender_name']) ? $this->piVars['lender_name'] : '') . '" /></td></tr>' . "\n";
@@ -466,7 +478,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	 * @param	$folderUID	UID of database entry
 	 */
 	private function lendFolderForm($folderUID) {
-		$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderUID);
+		$folderDATA = null;
 
 		//Steps
 		$content .= $this->renderTitle('Ausleihen');
@@ -595,6 +607,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				return tx_fsmiexams_div::printSystemMessage(
 												tx_fsmiexams_div::kSTATUS_ERROR,
 												'<b>Fehler</b><br /> Der Ordner &quot;'.$res['name'].'&quot; ist bereits verliehen. Ausleihen geht also nicht.'
+												);
+			}
+      
+			if ($res['state'] == tx_fsmiexams_div::kFOLDER_STATE_PRESENT && $mode==self::kMODE_WITHDRAWAL) {
+				$this->piVars['folder_id']='0';
+				return tx_fsmiexams_div::printSystemMessage(
+												tx_fsmiexams_div::kSTATUS_ERROR,
+												'<b>Fehler</b><br /> Der Ordner &quot;'.$res['name'].'&quot; ist nicht verliehen. Zurückgeben geht also nicht.'
 												);
 			}
 			
@@ -741,7 +761,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	private function transactionWithdrawFolders() {
 		$content = '';
 		
-    
     $content .= $this->renderTitle('Pfandrückgabe');
 		
 		$content .= $this->renderSteps(	4, 
@@ -749,7 +768,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 											0 => array ('title' => 'Ordner'), 
 											1 => array ('title' => 'Rücknahme'), 
 											2 => array ('title' => 'Pfandrückgabe')
-										));
+										));    
     
 		// transaction information
 		$formValues = t3lib_div::_GP($this->extKey);
@@ -777,7 +796,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				$foldersToLoans[$key] = $loan['uid'];
 			}
 			else {
-				tx_fsmiexams_div::printSystemMessage(
+				$content .= tx_fsmiexams_div::printSystemMessage(
 										tx_fsmiexams_div::kSTATUS_ERROR,
 										'<b>Fehler</b><br /> Der Ordner ist in keinem offenen Ausleihvorgang gebucht.'
 										);
@@ -923,14 +942,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	private function transactionLendFolders() {
 		$content = '';	// the transaction log
     
-    $content .= $this->renderTitle('Ausgabe');
-		
-		$content .= $this->renderSteps(	4, 
-										array(
-											0 => array ('title' => 'Ordner'), 
-											1 => array ('title' => 'Ausleihe'), 
-											2 => array ('title' => 'Ausgabe')
-										));
+
 	
 		// first: get all interesting values
 		$formValues = t3lib_div::_GP($this->extKey);
@@ -986,6 +998,15 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 								'withdrawaldate' => 0
 						));
 
+    $content .= $this->renderTitle('Ausgabe');
+		
+		$content .= $this->renderSteps(	4, 
+										array(
+											0 => array ('title' => 'Ordner'), 
+											1 => array ('title' => 'Ausleihe'), 
+											2 => array ('title' => 'Ausgabe')
+										));            
+            
 		if ($res) {
 			$content .= '<h2 style="text-align:center;">Ausleihe erfolgreich!</h2>';
       $content .= '<div style="margin-left:auto; margin-right:auto; width:90%;">';
