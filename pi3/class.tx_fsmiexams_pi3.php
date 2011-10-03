@@ -46,6 +46,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	var $loanStoragePID		= 0;
 	
 	//Constant Values
+  const kMODE_UNKNOWN = 0;
 	const kMODE_LEND = 1;
 	const kMODE_WITHDRAWAL = 2;	
 	
@@ -250,14 +251,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
     
 		if ($this->isLent($this->piVars['folder_id'])) {
 
-      if($this->piVars['mode'] == 0)
+      if($this->piVars['mode'] == self::kMODE_UNKNOWN)
         $this->piVars['mode'] = self::kMODE_WITHDRAWAL;
 
 			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,$this->piVars['mode']);
       
 		} else { 
 
-      if($this->piVars['mode'] == 0)
+      if($this->piVars['mode'] == self::kMODE_UNKNOWN)
         $this->piVars['mode'] = self::kMODE_LEND;
     
 			$content .= $this->addFolderToFolderArray($this->piVars['folder_id'],0,$this->piVars['mode']);
