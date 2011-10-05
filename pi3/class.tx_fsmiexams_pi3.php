@@ -1111,7 +1111,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	private function escape($string)
 	{
 		if (isset($string))
-			return $GLOBALS['TYPO3_DB']->quoteStr($string);
+			return $GLOBALS['TYPO3_DB']->quoteStr($string, null);
 		else
 			return null;
 	}
