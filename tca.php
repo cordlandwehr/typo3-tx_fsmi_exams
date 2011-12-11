@@ -650,17 +650,6 @@ $TCA['tx_fsmiexams_folder'] = array (
 				'size' => '30',
 			)
 		),
-		'folder_id' => array (
-			'exclude' => 0,
-			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.folder_id',
-			'config' => array (
-				'type'     => 'input',
-				'size'     => '5',
-				'max'      => '5',
-				'eval'     => 'int,unique,required',
-				'default' => 0
-			)
-		),
 		'color' => array (
 			'exclude' => 0,
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.barcode',
@@ -673,19 +662,6 @@ $TCA['tx_fsmiexams_folder'] = array (
 					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.3', '3'),
 					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.4', '4'),
 					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.color.I.5', '5'),
-				),
-			)
-		),
-		'state' => array (
-			'exclude' => 0,
-			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state',
-			'config' => array (
-				'type' => 'radio',
-				'items' => array (
-					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.0', '0'),
-					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.1', '1'),
-					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.2', '2'),
-					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder.state.I.3', '3'),
 				),
 			)
 		),
@@ -715,7 +691,119 @@ $TCA['tx_fsmiexams_folder'] = array (
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, folder_id, color, state, content, associated_lectures')
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, name, color, content, associated_lectures')
+	),
+	'palettes' => array (
+		'1' => array('showitem' => '')
+	)
+);
+
+
+
+$TCA['tx_fsmiexams_folder_instance'] = array (
+	'ctrl' => $TCA['tx_fsmiexams_folder_instance']['ctrl'],
+	'interface' => array (
+		'showRecordFieldList' => 'sys_language_uid,l10n_parent,l10n_diffsource,hidden,folder_id,offset,state,synchronization'
+	),
+	'feInterface' => $TCA['tx_fsmiexams_folder']['feInterface'],
+	'columns' => array (
+		'sys_language_uid' => array (
+			'exclude' => 1,
+			'label'  => 'LLL:EXT:lang/locallang_general.xml:LGL.language',
+			'config' => array (
+				'type'                => 'select',
+				'foreign_table'       => 'sys_language',
+				'foreign_table_where' => 'ORDER BY sys_language.title',
+				'items' => array(
+					array('LLL:EXT:lang/locallang_general.xml:LGL.allLanguages', -1),
+					array('LLL:EXT:lang/locallang_general.xml:LGL.default_value', 0)
+				)
+			)
+		),
+		'l10n_parent' => array (
+			'displayCond' => 'FIELD:sys_language_uid:>:0',
+			'exclude'     => 1,
+			'label'       => 'LLL:EXT:lang/locallang_general.xml:LGL.l18n_parent',
+			'config'      => array (
+				'type'  => 'select',
+				'items' => array (
+					array('', 0),
+				),
+				'foreign_table'       => 'tx_fsmiexams_folder',
+				'foreign_table_where' => 'AND tx_fsmiexams_folder.pid=###CURRENT_PID### AND tx_fsmiexams_folder.sys_language_uid IN (-1,0)',
+			)
+		),
+		'l10n_diffsource' => array (
+			'config' => array (
+				'type' => 'passthrough'
+			)
+		),
+		'hidden' => array (
+			'exclude' => 1,
+			'label'   => 'LLL:EXT:lang/locallang_general.xml:LGL.hidden',
+			'config'  => array (
+				'type'    => 'check',
+				'default' => '0'
+			)
+		),
+		'folder' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder',
+			'config' => array (
+				'type' => 'group',
+				'internal_type' => 'db',
+				'allowed' => 'tx_fsmiexams_folder',
+				'size' => 1,
+				'minitems' => 1,
+				'maxitems' => 1,
+			)
+		),
+		'folder_id' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.folder_id',
+			'config' => array (
+				'type'     => 'input',
+				'size'     => '5',
+				'max'      => '5',
+				'eval'     => 'int,unique,required',
+				'default' => 0
+			)
+		),
+		'offset' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.offset',
+			'config' => array (
+				'type'     => 'input',
+				'size'     => '3',
+				'max'      => '3',
+				'eval'     => 'int,unique,required',
+				'default' => 1
+			)
+		),
+		'state' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.state',
+			'config' => array (
+				'type' => 'radio',
+				'items' => array (
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.state.I.0', '0'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.state.I.1', '1'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.state.I.2', '2'),
+					array('LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.state.I.3', '3'),
+				),
+			)
+		),
+		'synchronization' => array (
+			'exclude' => 0,
+			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance.synchronization',
+			'config' => array (
+				'type' => 'input',
+				'size' => '30',
+			)
+		),
+	),
+	'types' => array (
+		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, folder, folder_id, offset, state, synchronization')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')

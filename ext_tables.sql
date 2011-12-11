@@ -177,14 +177,37 @@ CREATE TABLE tx_fsmiexams_folder (
 	deleted tinyint(4) DEFAULT '0' NOT NULL,
 	hidden tinyint(4) DEFAULT '0' NOT NULL,
 	name tinytext,
-	folder_id int(11) DEFAULT '0' NOT NULL,
-	color int(11) DEFAULT '0' NOT NULL,
-	state text,
 	content text,
+	color int(11) DEFAULT '0' NOT NULL,
 	associated_lectures text,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)
+);
+
+
+#
+# Table structure for table 'tx_fsmiexams_folder_instance'
+#
+CREATE TABLE tx_fsmiexams_folder_instance (
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) DEFAULT '0' NOT NULL,
+    tstamp int(11) DEFAULT '0' NOT NULL,
+    crdate int(11) DEFAULT '0' NOT NULL,
+    cruser_id int(11) DEFAULT '0' NOT NULL,
+    sys_language_uid int(11) DEFAULT '0' NOT NULL,
+    l10n_parent int(11) DEFAULT '0' NOT NULL,
+    l10n_diffsource mediumtext,
+    deleted tinyint(4) DEFAULT '0' NOT NULL,
+    hidden tinyint(4) DEFAULT '0' NOT NULL,
+    folder text,
+    offset int(11) DEFAULT '0' NOT NULL,
+    folder_id int(11) DEFAULT '0' NOT NULL,
+    state text,
+    synchronization text,
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
 );
 
 

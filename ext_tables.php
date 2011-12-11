@@ -156,6 +156,25 @@ $TCA['tx_fsmiexams_folder'] = array (
 	),
 );
 
+$TCA['tx_fsmiexams_folder_instance'] = array (
+    'ctrl' => array (
+        'title'     => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance',
+        'label'     => 'folder_id',
+        'tstamp'    => 'tstamp',
+        'crdate'    => 'crdate',
+        'cruser_id' => 'cruser_id',
+        'languageField'            => 'sys_language_uid',
+        'transOrigPointerField'    => 'l10n_parent',
+        'transOrigDiffSourceField' => 'l10n_diffsource',
+        'default_sortby' => 'ORDER BY crdate',
+        'delete' => 'deleted',
+        'enablecolumns' => array (
+            'disabled' => 'hidden',
+        ),
+        'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tca.php',
+        'iconfile'          => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_fsmiexams_folder.gif',
+    ),
+);
 
 $TCA['tx_fsmiexams_loan'] = array (
 	'ctrl' => array (
