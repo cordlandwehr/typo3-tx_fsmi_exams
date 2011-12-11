@@ -88,16 +88,15 @@ class tx_fsmiexams_folderview extends tx_fsmiexams_base_view_user {
 
 		$content .= '<table>';
 		$content .= '<tr>
-			<th>ID</th>
 			<th></th>
 			<th>Name</th>
 			<th>'.$this->LANG->getLL("tx_fsmiexams_folder.associated_lectures").'</th>
+			<th>Ordner</th>
 			</tr>';
 		while ($resFolder && $rowFolder = mysql_fetch_assoc($resFolder)) {
 			$content .= '<tr>';
-			$content .= '<td>'.tx_fsmiexams_div::numberFixedDigits($rowFolder['folder_id'], 4).'</td>';
 			$content .= '<td><span style="background-color:'.tx_fsmiexams_div::printColorHEXcode($rowFolder['color']).'">&nbsp;&nbsp;&nbsp;</span></td>';
-			$content .= '<td>'.tx_fsmiexams_div::folderToText($rowFolder['uid'],$this->pidEditPage).'</td>';
+			$content .= '<td><b>'.tx_fsmiexams_div::folderToText($rowFolder['uid'],$this->pidEditPage).'</b></td>';
 
 			// associated lectures
 			$lectures = explode( ',', $rowFolder['associated_lectures'] );
@@ -107,6 +106,19 @@ class tx_fsmiexams_folderview extends tx_fsmiexams_base_view_user {
 				$content .= $lectureDATA['name'].'<br />';
 			}
 			$content .= '</div></td>';
+			
+			// associziated physical folders
+			$resInstance = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_folder_instance
+													WHERE folder='.$rowFolder['uid'].' AND deleted=0 AND hidden=0
+													ORDER BY offset');
+			$content .= '<td>';
+			while ($resInstance && $rowInstance = mysql_fetch_assoc($resInstance)) {
+				$instanceDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder_instance', $rowInstance['uid']);
+				$content .= '#'.tx_fsmiexams_div::numberFixedDigits($instanceDATA['folder_id'], 4).' ('.$instanceDATA['offset'].') ';
+				$content .= '<br />';
+			}
+			$content .= '</td>';
 			$content .= '</tr>';
 		}
 		$content .= '</table>';
