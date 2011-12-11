@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008 Andreas Cord-Landwehr (cola@uni-paderborn.de)
+*  (c) 2008-2011  Andreas Cord-Landwehr <cola@uni-paderborn.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -430,13 +430,14 @@ class tx_fsmiexams_div {
 	 * \param $digits is number of digits
 	 */
 	static function numberFixedDigits( $number, $digits ) {
-		if ($number>=10*$digits)
+		if (intval($number)>=pow(10,$digits)) {
 			return $number;
+		}
 		$neededZeros = $digits - strlen($number.'');
 
 			//TODO pretty inefficient
 		for ($i=0; $i<$neededZeros; $i++)
-			$number = '0'.$number;
+			$number = '0'.$number;	
 		return $number;
 	}
 

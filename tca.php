@@ -736,7 +736,7 @@ $TCA['tx_fsmiexams_folder_instance'] = array (
 				'size'     => '5',
 				'max'      => '5',
 				'eval'     => 'int,unique,required',
-				'default' => 0
+				'default' => 1
 			)
 		),
 		'offset' => array (
