@@ -703,41 +703,10 @@ $TCA['tx_fsmiexams_folder'] = array (
 $TCA['tx_fsmiexams_folder_instance'] = array (
 	'ctrl' => $TCA['tx_fsmiexams_folder_instance']['ctrl'],
 	'interface' => array (
-		'showRecordFieldList' => 'sys_language_uid,l10n_parent,l10n_diffsource,hidden,folder_id,offset,state,synchronization'
+		'showRecordFieldList' => 'hidden,folder_id,offset,state,synchronization'
 	),
 	'feInterface' => $TCA['tx_fsmiexams_folder']['feInterface'],
 	'columns' => array (
-		'sys_language_uid' => array (
-			'exclude' => 1,
-			'label'  => 'LLL:EXT:lang/locallang_general.xml:LGL.language',
-			'config' => array (
-				'type'                => 'select',
-				'foreign_table'       => 'sys_language',
-				'foreign_table_where' => 'ORDER BY sys_language.title',
-				'items' => array(
-					array('LLL:EXT:lang/locallang_general.xml:LGL.allLanguages', -1),
-					array('LLL:EXT:lang/locallang_general.xml:LGL.default_value', 0)
-				)
-			)
-		),
-		'l10n_parent' => array (
-			'displayCond' => 'FIELD:sys_language_uid:>:0',
-			'exclude'     => 1,
-			'label'       => 'LLL:EXT:lang/locallang_general.xml:LGL.l18n_parent',
-			'config'      => array (
-				'type'  => 'select',
-				'items' => array (
-					array('', 0),
-				),
-				'foreign_table'       => 'tx_fsmiexams_folder',
-				'foreign_table_where' => 'AND tx_fsmiexams_folder.pid=###CURRENT_PID### AND tx_fsmiexams_folder.sys_language_uid IN (-1,0)',
-			)
-		),
-		'l10n_diffsource' => array (
-			'config' => array (
-				'type' => 'passthrough'
-			)
-		),
 		'hidden' => array (
 			'exclude' => 1,
 			'label'   => 'LLL:EXT:lang/locallang_general.xml:LGL.hidden',
@@ -750,9 +719,10 @@ $TCA['tx_fsmiexams_folder_instance'] = array (
 			'exclude' => 0,
 			'label' => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder',
 			'config' => array (
-				'type' => 'group',
+				'type' => 'select',
 				'internal_type' => 'db',
 				'allowed' => 'tx_fsmiexams_folder',
+				'foreign_table' => 'tx_fsmiexams_folder',
 				'size' => 1,
 				'minitems' => 1,
 				'maxitems' => 1,
@@ -803,7 +773,7 @@ $TCA['tx_fsmiexams_folder_instance'] = array (
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'sys_language_uid;;;;1-1-1, l10n_parent, l10n_diffsource, hidden;;1, folder, folder_id, offset, state, synchronization')
+		'0' => array('showitem' => ';;hidden;;1, folder, folder_id, offset, state, synchronization')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => '')
