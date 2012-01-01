@@ -58,6 +58,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	const kSTEP_SECOND_PAGE = 2;
 	const kSTEP_FINALIZE = 3;
 	const kSTEP_SHOW_LENT_FOLDERS = 4;
+	const kSTEP_SHOW_SEARCH_FORM = 5;
 	
 	const kCTRL_NEXT   = 1;		// next button
 	const kCTRL_RELOAD = 2;		// next button
@@ -120,12 +121,12 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 
 
 		//Style
-		$content .= '<style type="text/css"> .tx-fsmiexams-pi3 form{clear:both;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table{margin-left:auto; margin-right:auto; } .tx-fsmiexams-pi3 table td{background-color:AliceBlue;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
+		$content .= '<style type="text/css"> .tx-fsmiexams-pi3 form{clear:both;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
 		//main_container
 
 		$content .= '<div style="text-align:left; font-weight:bold; float:left;">';
 // 		$content .= $this->pi_linkTP('<i>Suche</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_LENT_FOLDERS)).'';
-		$content .= '<i>Suche</i>';
+		$content .= $this->pi_linkTP('<i>Suche</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_SEARCH_FORM)).'';
 		$content .= '</div>';
 		$content .= '<div style="text-align:right; font-weight:bold; float:right;">';
 // 		$content .= $this->pi_linkTP('<i>Suche</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_LENT_FOLDERS)).'';
@@ -148,8 +149,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				$content .= '<div style="text-align:center;">'.$this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'</div>';
 				break;
 			}
+			
+			case self::kSTEP_SHOW_SEARCH_FORM: {
+				$content .= $this->searchForm();
+				$content .= '<div style="text-align:center;">'.$this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'</div>';
+				break;
+			}
       
-		  case self::kSTEP_START: {
+			case self::kSTEP_START: {
 				// if next-button, need to change mode:
 				if(!(is_array($this->piVars['folder_ids']) || count($this->piVars['folder_ids']=0)) && isset($GETcommands['control'.self::kCTRL_NEXT])) {
 					$content .= tx_fsmiexams_div::printSystemMessage(
@@ -903,6 +910,45 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $content;
 	}
 
+	private function searchForm() {
+		$content .= '<h1>Suche</h1>';
+		$content .= '<form method="GET" action="index.php">' . "\n";
+		$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>';
+		$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_SHOW_SEARCH_FORM.'"/>';
+		$content .= '<table>';
+		$content .= '<tr><td><b>Fach</b></td><td><input size="16" name="'.$this->extKey . '[search][lecture]" /></td></tr>';
+		$content .= '<tr><td><b>Dozent</b></td><td><input size="16" name="'.$this->extKey . '[search][lecturer]" /></td></tr>';
+		$content .= '</table>';
+		
+		$content .= '<table>';
+		$content .= '<tr><td>Klausur</td><td><input type="checkbox" checked="checked" size="16" name="'.$this->extKey . '[search][examtype][written]" /></td></tr>';
+		$content .= '<tr><td>Mündliche Prüfung</td><td><input type="checkbox" checked="checked" size="16" name="'.$this->extKey . '[search][examtype][oral]" /></td></tr>';
+		$content .= '<tr><td>Testat</td><td><input type="checkbox" checked="checked" size="16" name="'.$this->extKey . '[search][examtype][test]" /></td></tr>';
+		$content .= '</table>';
+		
+		$content .= '<input type="submit" name="'.$this->extKey.'[control][search]" value="Suche" />';
+		$content .= '</form>';
+		
+		$content .= $this->searchResults();
+		
+		return $content;
+	}
+	
+	private function searchResults() {
+		// transaction information
+		$formValues = t3lib_div::_GP($this->extKey);
+		$lecture = $this->escape($formValues['search']['lecture']);
+		$lecturer = $this->escape($formValues['search']['lecturer']);
+
+		// TODO checkboxes
+		
+		// abort if no strings given
+		if ($lectuerer=='' && $lecture=='')
+			return '';
+		
+		
+	}
+	
 
 	/**
 	 * This function checks if ANY folder in a specific set is lent
