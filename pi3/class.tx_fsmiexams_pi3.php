@@ -943,10 +943,51 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		// TODO checkboxes
 		
 		// abort if no strings given
-		if ($lectuerer=='' && $lecture=='')
+		if ($lecturer=='' && $lecture=='')
 			return '';
 		
+		debug($this->searchLecturers($lecturer));
+
 		
+	}
+	
+	/**
+	 * returns array of lecturers
+	 */
+	private function searchLecturers($lecturerSearchString) {
+		$searchStrings = array ();
+		// case that we have firstname and lastname in commen comma-separated format
+		if (count(explode(',',$lecturerSearchString))==2) {
+			$strings = explode(',',$lecturerSearchString);
+			$searchStrings[] = trim($strings[0]);
+			$searchStrings[] = trim($strings[1]);
+		}
+		else { // now try to find string separation
+			$searchStrings = preg_split("/[ ]+/", $lecturerSearchString);
+			if (count($searchStrings)>2) {
+				debug('could not identify search strings');
+				return array();
+			}
+		}
+	debug($searchStrings);
+		if (count($searchStrings)==1) {
+			$searchQuery = ' lastname LIKE \'%'.$searchStrings[0].'%\' OR firstname LIKE \'%'.$searchStrings[0].'%\' ';
+		}
+		else {
+			$searchQuery = ' (lastname LIKE \'%'.$searchStrings[0].'%\' AND firstname LIKE \'%'.$searchStrings[1].'%\') ';
+			$searchQuery .= ' OR (lastname LIKE \'%'.$searchStrings[1].'%\' AND firstname LIKE \'%'.$searchStrings[0].'%\') ';
+		}
+		// search lecturer
+		$res = $GLOBALS['TYPO3_DB']->sql_query(
+			'SELECT uid FROM tx_fsmiexams_lecturer
+			WHERE ('.$searchQuery.')
+			AND deleted=0 AND hidden=0');
+			
+		$results = array ();
+		while ($res && $lecturer = mysql_fetch_assoc($res)){
+			$results[] = $lecturer['uid'];
+		}
+		return $results;
 	}
 	
 
