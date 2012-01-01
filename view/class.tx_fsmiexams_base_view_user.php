@@ -120,6 +120,7 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 
 	/**
 	 * Creates an array with key UID and value description of exam type.
+	 * FIXME: use version in div-class
 	 * \return array
 	 */
 	function listExamTypes () {

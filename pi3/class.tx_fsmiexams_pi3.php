@@ -911,50 +911,68 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	}
 
 	private function searchForm() {
+		// transaction information
+		$formValues = t3lib_div::_GP($this->extKey);
+		$exam = $this->escape($formValues['search']['exam']);
+		$lecturer = $this->escape($formValues['search']['lecturer']);
+	
 		$content .= '<h1>Suche</h1>';
 		$content .= '<form method="GET" action="index.php">' . "\n";
 		$content .= '<input type="hidden" name="id" value="' . $GLOBALS['TSFE']->id . '"/>';
 		$content .= '<input type="hidden" name="' . $this->extKey . '[step]" value="'.self::kSTEP_SHOW_SEARCH_FORM.'"/>';
 		$content .= '<table>';
-		$content .= '<tr><td><b>Fach</b></td><td><input size="16" name="'.$this->extKey . '[search][lecture]" /></td></tr>';
-		$content .= '<tr><td><b>Dozent</b></td><td><input size="16" name="'.$this->extKey . '[search][lecturer]" /></td></tr>';
+		$content .= '<tr><td><b>Prüfung</b></td><td><input size="16" name="'.$this->extKey . '[search][exam]" value="'.$exam.'" /></td></tr>';
+		$content .= '<tr><td><b>Dozent</b></td><td><input size="16" name="'.$this->extKey . '[search][lecturer]" value="'.$lecturer.'" /></td></tr>';
 		$content .= '</table>';
 		
 		$content .= '<table>';
-		$content .= '<tr><td>Klausur</td><td><input type="checkbox" checked="checked" size="16" name="'.$this->extKey . '[search][examtype][written]" /></td></tr>';
-		$content .= '<tr><td>Mündliche Prüfung</td><td><input type="checkbox" checked="checked" size="16" name="'.$this->extKey . '[search][examtype][oral]" /></td></tr>';
-		$content .= '<tr><td>Testat</td><td><input type="checkbox" checked="checked" size="16" name="'.$this->extKey . '[search][examtype][test]" /></td></tr>';
+		$content .= '<tr><td>Klausur</td><td><input type="checkbox" checked="checked" disabled="disabled" size="16" name="'.$this->extKey . '[search][examtype][written]" /></td></tr>';
+		$content .= '<tr><td>Mündliche Prüfung</td><td><input type="checkbox" checked="checked" disabled="disabled" size="16" name="'.$this->extKey . '[search][examtype][oral]" /></td></tr>';
+		$content .= '<tr><td>Testat</td><td><input type="checkbox" checked="checked" disabled="disabled" size="16" name="'.$this->extKey . '[search][examtype][test]" /></td></tr>';
 		$content .= '</table>';
 		
 		$content .= '<input type="submit" name="'.$this->extKey.'[control][search]" value="Suche" />';
 		$content .= '</form>';
 		
-		$content .= $this->searchResults();
+		$content .= $this->searchResults($lecturer, $exam);
 		
 		return $content;
 	}
 	
-	private function searchResults() {
-		// transaction information
-		$formValues = t3lib_div::_GP($this->extKey);
-		$lecture = $this->escape($formValues['search']['lecture']);
-		$lecturer = $this->escape($formValues['search']['lecturer']);
-
+	private function searchResults($lecturerString, $examString) {
+		$content = '';
+		$examTypes = tx_fsmiexams_div::listExamTypes();
+		
 		// TODO checkboxes
 		
 		// abort if no strings given
-		if ($lecturer=='' && $lecture=='')
+		if ($lecturerString=='' && $examString=='')
 			return '';
 		
-		debug($this->searchLecturers($lecturer));
-
+		$lecturers = $this->searchLecturers($lecturerString);
+		$exams = $this->searchExams($examString, $lecturers);
 		
+		// print exams
+		$content .= '<table><tr><th>Name</th><th>Dozent</th><th>Datum</th><th>Art</th><th>Ordner</th>';
+		foreach ($exams as $exam) {
+			$examDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $exam);
+			$content .= '<tr><td>'.$examDATA['name'].' / '.tx_fsmiexams_div::examToTermdate($exam).'</td>';
+			$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).'</td>';
+			$content .= '<td>'.date('d.m.Y',$examDATA['exactdate']).'</td>';
+			$content .= '<td>'.$examTypes[$examDATA['examtype']].'</td>';
+			$content .= '<td>TODO</td>';
+			$content .= '</tr>';
+		}
+		return $content;
 	}
 	
-	/**
-	 * returns array of lecturers
+	/** \brief returns array of lecturers
+	 * the function can handle strings of kind "name,forname", "forname name", with arbitrary blanks
+	 * returns empty array if empty string is given
 	 */
 	private function searchLecturers($lecturerSearchString) {
+		if ($lecturerSearchString=='') return array();
+	
 		$searchStrings = array ();
 		// case that we have firstname and lastname in commen comma-separated format
 		if (count(explode(',',$lecturerSearchString))==2) {
@@ -969,7 +987,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 				return array();
 			}
 		}
-	debug($searchStrings);
+
 		if (count($searchStrings)==1) {
 			$searchQuery = ' lastname LIKE \'%'.$searchStrings[0].'%\' OR firstname LIKE \'%'.$searchStrings[0].'%\' ';
 		}
@@ -990,6 +1008,36 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		return $results;
 	}
 	
+	/** \brief returns array of exams
+	 * the function can handle strings of kind "name,forname", "forname name", with arbitrary blanks
+	 */
+	private function searchExams($examSearchString, $lecturers=NULL) {
+		$optionalLecturer='';
+		if (is_array($lecturers) && count($lecturers)>0) {
+			$optionalLecturer = ' AND FIND_IN_SET('.implode(',',$lecturers).',lecturer) ';
+		}
+	
+		if ($examSearchString=="") {
+			// no exam search string
+			$res = $GLOBALS['TYPO3_DB']->sql_query(
+				'SELECT uid FROM tx_fsmiexams_exam
+				WHERE TRUE '.$optionalLecturer.'
+				AND deleted=0 AND hidden=0');
+		} else {	
+			$examSearchString = preg_replace('/ /', '%', $examSearchString);
+			// combined search
+			$res = $GLOBALS['TYPO3_DB']->sql_query(
+				'SELECT uid FROM tx_fsmiexams_exam
+				WHERE (name LIKE \'%'.trim($examSearchString).'%\' ) '.
+				$optionalLecturer.'
+				AND deleted=0 AND hidden=0');
+		}
+		$results = array ();
+		while ($res && $exam = mysql_fetch_assoc($res)){
+			$results[] = $exam['uid'];
+		}
+		return $results;
+	}
 
 	/**
 	 * This function checks if ANY folder in a specific set is lent
@@ -1043,7 +1091,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT * FROM tx_fsmiexams_loan 
 												WHERE deleted=0 AND hidden=0 AND withdrawaldate=0 AND FIND_IN_SET('.$folderUID.',folder)');
 		if ($res && $loanDATA = mysql_fetch_assoc($res)){
-		debug('test');
 			$content .= '<td>'.date('m.d.Y h:i',$loanDATA['lendingdate']).'</td>';
 			$content .= '<td><a href="mailto:'.$loanDATA['lenderlogin'].'@campus.uni-paderborn.de">'.$loanDATA['lender'].'</a></td>';
 			$content .= '<td>'.$loanDATA['dispenser'].'</td>';

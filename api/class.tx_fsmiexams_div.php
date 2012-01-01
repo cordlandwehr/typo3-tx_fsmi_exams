@@ -123,13 +123,18 @@ class tx_fsmiexams_div {
 	/**
 	 * Prints name of the lecturer in order "lastname, firstname", but also links to edit page if any is given.
 	 *
-	 * \param $uid UID of lecturer
+	 * \param $uid UID of lecturer OR array of lecturers
 	 * \param $editPage is optional page for FE-editing
 	 * \return text
 	 */
 	static function lecturerToText ($uid, $editPage = 0) {
 		self::init();
-		$lecturerList = explode(',',$uid);
+		if (is_array($uid)) {
+			$lecturerList = $uid;
+		}
+		else {
+			$lecturerList = explode(',',$uid);
+		}
 		$lecturerArray = array();
 		foreach ($lecturerList as $uid) {
 			$lecturer = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
@@ -150,6 +155,24 @@ class tx_fsmiexams_div {
 		return implode('; ', $lecturerArray);
 	}
 
+	/**
+	 * Creates an array with key UID and value description of exam type.
+	 * /TODO use this instead of version in base view class for all views
+	 * \return array
+	 */
+	static function listExamTypes () {
+		$types = array ();
+
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_examtype
+													WHERE deleted=0 AND hidden=0');
+
+		while ($res && $row = mysql_fetch_assoc($res))
+			$types[$row['uid']] = $row['description'];
+
+		return $types;
+	}
+	
 	/**
 	 * Prints name of the folder in order, but also links to edit page if any is given.
 	 *
