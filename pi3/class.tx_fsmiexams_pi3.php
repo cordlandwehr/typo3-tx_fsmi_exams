@@ -125,7 +125,6 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		//main_container
 
 		$content .= '<div style="text-align:left; font-weight:bold; float:left;">';
-// 		$content .= $this->pi_linkTP('<i>Suche</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_LENT_FOLDERS)).'';
 		$content .= $this->pi_linkTP('<i>Suche</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_SEARCH_FORM)).'';
 		$content .= '</div>';
 		$content .= '<div style="text-align:right; font-weight:bold; float:right;">';
@@ -915,6 +914,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$formValues = t3lib_div::_GP($this->extKey);
 		$exam = $this->escape($formValues['search']['exam']);
 		$lecturer = $this->escape($formValues['search']['lecturer']);
+
+		$types = array();
+		if ($formValues['search']['examtype'] && is_array($formValues['search']['examtype'])) {
+			foreach ($formValues['search']['examtype'] as $type => $state) {
+				if (intval($type)==0) continue;
+				$types[] = intval($type);
+			}
+		}
 	
 		$content .= '<h1>Suche</h1>';
 		$content .= '<form method="GET" action="index.php">' . "\n";
@@ -925,32 +932,42 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		$content .= '<tr><td><b>Dozent</b></td><td><input size="16" name="'.$this->extKey . '[search][lecturer]" value="'.$lecturer.'" /></td></tr>';
 		$content .= '</table>';
 		
+		// examtypes
 		$content .= '<table>';
-		$content .= '<tr><td>Klausur</td><td><input type="checkbox" checked="checked" disabled="disabled" size="16" name="'.$this->extKey . '[search][examtype][written]" /></td></tr>';
-		$content .= '<tr><td>Mündliche Prüfung</td><td><input type="checkbox" checked="checked" disabled="disabled" size="16" name="'.$this->extKey . '[search][examtype][oral]" /></td></tr>';
-		$content .= '<tr><td>Testat</td><td><input type="checkbox" checked="checked" disabled="disabled" size="16" name="'.$this->extKey . '[search][examtype][test]" /></td></tr>';
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_examtype
+													WHERE deleted=0 AND hidden=0
+													ORDER BY description');
+		while ($res && $typeDATA = mysql_fetch_assoc($res)) {
+			$content .= '<tr><td>'.$typeDATA['description'].'</td>';
+			$content .= '<td><input type="checkbox" ';
+			if (count($types)==0 || in_array($typeDATA['uid'],$types)) {
+				$content .= ' checked="checked" ';
+			}
+			$content .= ' size="16" name="'.$this->extKey . '[search][examtype]['.$typeDATA['uid'].']" /></td></tr>';
+		}
 		$content .= '</table>';
 		
+		// submit
 		$content .= '<input type="submit" name="'.$this->extKey.'[control][search]" value="Suche" />';
 		$content .= '</form>';
 		
-		$content .= $this->searchResults($lecturer, $exam);
+		$content .= $this->searchResults($lecturer, $exam, $types);
 		
 		return $content;
 	}
 	
-	private function searchResults($lecturerString, $examString) {
+	private function searchResults($lecturerString, $examString, $examtypes) {
+		$examtypeNames = tx_fsmiexams_div::listExamTypes();
+
 		$content = '';
-		$examTypes = tx_fsmiexams_div::listExamTypes();
-		
-		// TODO checkboxes
-		
+
 		// abort if no strings given
 		if ($lecturerString=='' && $examString=='')
 			return '';
 		
 		$lecturers = $this->searchLecturers($lecturerString);
-		$exams = $this->searchExams($examString, $lecturers);
+		$exams = $this->searchExams($examString, $lecturers, $examtypes);
 		
 		// print exams
 		$content .= '<table><tr><th>Name</th><th>Dozent</th><th>Datum</th><th>Art</th><th>Ordner</th>';
@@ -959,8 +976,14 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			$content .= '<tr><td>'.$examDATA['name'].' / '.tx_fsmiexams_div::examToTermdate($exam).'</td>';
 			$content .= '<td>'.tx_fsmiexams_div::lecturerToText($examDATA['lecturer']).'</td>';
 			$content .= '<td>'.date('d.m.Y',$examDATA['exactdate']).'</td>';
-			$content .= '<td>'.$examTypes[$examDATA['examtype']].'</td>';
-			$content .= '<td>TODO</td>';
+			$content .= '<td>'.$examtypeNames[$examDATA['examtype']].'</td>';
+			$folders = tx_fsmiexams_div::folderInstancesForExam($exam);
+			if (count($folders)>0) {
+				$content .= '<td>'.implode('<br />',tx_fsmiexams_div::folderInstancesForExam($exam)).'</td>';
+			}
+			else {
+				$content .= '<td>kein Ordner vorhanden</td>';
+			}
 			$content .= '</tr>';
 		}
 		return $content;
@@ -1011,17 +1034,34 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	/** \brief returns array of exams
 	 * the function can handle strings of kind "name,forname", "forname name", with arbitrary blanks
 	 */
-	private function searchExams($examSearchString, $lecturers=NULL) {
+	private function searchExams($examSearchString, $lecturers, $examtypes) {
+		// efficiency can be improved
+		// but we expect that table to be small (hopefully)
 		$optionalLecturer='';
 		if (is_array($lecturers) && count($lecturers)>0) {
-			$optionalLecturer = ' AND FIND_IN_SET('.implode(',',$lecturers).',lecturer) ';
+			$tmpLecturer = array ();
+			foreach($lecturers as $uid) {
+				$tmpLecturer[] = ' FIND_IN_SET('.$uid.',lecturer) ';
+			}
+			$optionalLecturer = ' AND ('.implode(' OR ',$tmpLecturer).') ';
+		}
+		
+		// efficiency can be improved
+		// but we expect that table to be small (hopefully)
+		$optionalExamtypes='';
+		if (is_array($examtypes) && count($examtypes)>0) {
+			$tmpSearch = array ();
+			foreach($examtypes as $uid) {
+				$tmpSearch[] = ' FIND_IN_SET('.$uid.',examtype) ';
+			}
+			$optionalExamtypes = ' AND ('.implode(' OR ', $tmpSearch).') ';
 		}
 	
 		if ($examSearchString=="") {
 			// no exam search string
 			$res = $GLOBALS['TYPO3_DB']->sql_query(
 				'SELECT uid FROM tx_fsmiexams_exam
-				WHERE TRUE '.$optionalLecturer.'
+				WHERE TRUE '.$optionalLecturer.' '.$optionalExamtypes.'
 				AND deleted=0 AND hidden=0');
 		} else {	
 			$examSearchString = preg_replace('/ /', '%', $examSearchString);
@@ -1029,7 +1069,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			$res = $GLOBALS['TYPO3_DB']->sql_query(
 				'SELECT uid FROM tx_fsmiexams_exam
 				WHERE (name LIKE \'%'.trim($examSearchString).'%\' ) '.
-				$optionalLecturer.'
+				$optionalLecturer.' '.$optionalExamtypes.'
 				AND deleted=0 AND hidden=0');
 		}
 		$results = array ();
@@ -1085,6 +1125,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 		}
 	}
 
+	
 	private function printActiveLentForFolder($folderUID) {
 	debug($folderUID);
 		$content = '';

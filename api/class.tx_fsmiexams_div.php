@@ -158,7 +158,7 @@ class tx_fsmiexams_div {
 	/**
 	 * Creates an array with key UID and value description of exam type.
 	 * /TODO use this instead of version in base view class for all views
-	 * \return array
+	 * \return array of names
 	 */
 	static function listExamTypes () {
 		$types = array ();
@@ -167,9 +167,9 @@ class tx_fsmiexams_div {
 													FROM tx_fsmiexams_examtype
 													WHERE deleted=0 AND hidden=0');
 
-		while ($res && $row = mysql_fetch_assoc($res))
+		while ($res && $row = mysql_fetch_assoc($res)) {
 			$types[$row['uid']] = $row['description'];
-
+		}
 		return $types;
 	}
 	
@@ -198,6 +198,44 @@ class tx_fsmiexams_div {
 			return $folderDATA['name'];
 	}
 
+	/**
+	 * returns array of assembled folder names for given exam where this exam is included
+	 */
+	static function folderInstancesForExam ($exam) {
+		$folderInstance = array ();
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_folder
+													WHERE deleted=0 AND hidden=0
+													AND FIND_IN_SET('.$exam.',content)');
+
+		while ($res && $folderDATA = mysql_fetch_assoc($res)) {
+			$name = $folderDATA['name'];
+			
+			$resInstance = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_folder_instance
+													WHERE deleted=0 AND hidden=0
+													AND folder_id='.$folderDATA['uid'].'
+													ORDER BY offset');
+			$instances = array ();
+			while ($resInstance && $folderInstanceDATA = mysql_fetch_assoc($resInstance)) {
+				$color = '#000';
+				if ($folderInstanceDATA['state']==self::kFOLDER_STATE_LEND) {
+					$color='red';
+				}
+				if ($folderInstanceDATA['state']==self::kFOLDER_STATE_MAINTENANCE) {
+					$color='blue';
+				}
+				if ($folderInstanceDATA['state']==self::kFOLDER_STATE_PRESENT) {
+					$color='green';
+				}
+				$instances[] = '<strong style="color:'.$color.'">('.$folderInstanceDATA['offset'].')</strong>';
+			}
+			$folderInstance[] = $name.' '.implode(' ',$instances);
+		}
+		return $folderInstance;
+	}
+	
+	
 	/**
 	 * Translates given UID of exam to readable term date
 	 *
