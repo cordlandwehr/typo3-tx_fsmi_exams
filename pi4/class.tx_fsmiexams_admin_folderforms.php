@@ -98,7 +98,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 	
 	function setPiVarsFromPOST($type) {
 		// get form data
-		$formData = t3lib_div::_POST($this->extKey);
+		$formData = t3lib_div::_GP($this->extKey);
 
 		// only set if view is create
 		if ($formData['view']!=tx_fsmiexams_admin_menu::kVIEW_CREATE)
@@ -193,8 +193,8 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 					value="'.htmlspecialchars($this->piVars["name"]).'" /></td></tr>';
 
 		// search for next free folder ID and set it if not editing existing folder
-		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT MAX(tx_fsmiexams_folder.folder_id) as minimal_folder_id
-						FROM tx_fsmiexams_folder
+		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT MAX(tx_fsmiexams_folder_instance.folder_id) as minimal_folder_id
+						FROM tx_fsmiexams_folder_instance
 						WHERE deleted=0 AND hidden=0');
 
 		$new_folder_id = $this->minimal_folder_id_;
@@ -219,7 +219,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 					name="'.$this->extKey.'[color]"
 					id="'.$this->extKey.'_color"
 					value="'.htmlspecialchars($this->piVars["color"]).'">';
-		foreach ($this->colors as $id => $info) {
+		foreach (tx_fsmiexams_pi4::colors() as $id => $info) {
 			$content .= '<option value="'.$id.'" style="background:'.$info['rgb'].'">'.$info['name'].'</option>';
 		}
 		$content .= '</select>';

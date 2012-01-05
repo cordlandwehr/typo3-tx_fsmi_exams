@@ -214,7 +214,7 @@ class tx_fsmiexams_div {
 			$resInstance = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 													FROM tx_fsmiexams_folder_instance
 													WHERE deleted=0 AND hidden=0
-													AND folder_id='.$folderDATA['uid'].'
+													AND folder='.$folderDATA['uid'].'
 													ORDER BY offset');
 			$instances = array ();
 			while ($resInstance && $folderInstanceDATA = mysql_fetch_assoc($resInstance)) {

@@ -586,7 +586,7 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 			else {
 			    $content .= '<td></td><td><strong style="color:orange">keine Rückgabe</strong></td>';
 			}
-      $content .= '</tr>';
+			$content .= '</tr>';
 		}
 		$content .= '</tbody></table>';
 		return $content;

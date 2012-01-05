@@ -82,7 +82,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 	var $storageFolder;
 	var $listViewsPage;
 	var $LANG;
-	var $colors = array();
 
 	private $minimal_folder_id_;
 
@@ -117,19 +116,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		// page with listing views
 		$this->listViewsPage = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'listViewsPage'));
 
-		// set color information
-		$this->colors[0]['name'] = "keine";
-		$this->colors[0]['rgb'] = "#cccccc";
-		$this->colors[1]['name'] = "rot";
-		$this->colors[1]['rgb'] = "#f00";
-		$this->colors[2]['name'] = "blau";
-		$this->colors[2]['rgb'] = "#00f";
-		$this->colors[3]['name'] = "gelb";
-		$this->colors[3]['rgb'] = "#ff0";
-		$this->colors[4]['name'] = "grün";
-		$this->colors[4]['rgb'] = "#0f0";
-		$this->colors[5]['name'] = "schwarz";
-		$this->colors[5]['rgb'] = "#000";
+
 
 		// select input type
 		$GETcommands = t3lib_div::_GP($this->extKey);	// can be both: POST or GET
@@ -215,8 +202,11 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				}
 				case self::kCREATE_TYPE_FOLDER: {
 					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_admin_folderforms);
-					if (intval($GETcommands['uid']))
+					if (intval($GETcommands['uid'])) {
 						$this->viewObj->setPiVarsFromDB(self::kCREATE_TYPE_FOLDER, intval($GETcommands['uid']));
+					} else {
+						$this->viewObj->setPiVarsFromPOST(self::kCREATE_TYPE_FOLDER);
+					}
 					$content .= $this->viewObj->createFolderInputForm(intval($GETcommands['uid']));
 					break;
 				}
@@ -270,7 +260,26 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		return $this->pi_wrapInBaseClass($content);
 	}
 
-
+	/**
+	 * allows access for derived classes
+	 */
+	static function colors() {
+		$colors = array ();
+		// set color information
+		$colors[0]['name'] = "keine";
+		$colors[0]['rgb'] = "#cccccc";
+		$colors[1]['name'] = "rot";
+		$colors[1]['rgb'] = "#f00";
+		$colors[2]['name'] = "blau";
+		$colors[2]['rgb'] = "#00f";
+		$colors[3]['name'] = "gelb";
+		$colors[3]['rgb'] = "#ff0";
+		$colors[4]['name'] = "grün";
+		$colors[4]['rgb'] = "#0f0";
+		$colors[5]['name'] = "schwarz";
+		$colors[5]['rgb'] = "#000";
+		return $colors;
+	}
 
 	function setPiVarsFromDB($type, $uid) {
 		switch($type) {
@@ -306,46 +315,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["examtype"] = $examDB['examtype'];
 				break;
 			}
-			case self::kCREATE_TYPE_FOLDER: {
-				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
-				$this->piVars["name"] = $folderDATA['name'];
-				$this->piVars['folder_id'] = $folderDATA['folder_id'];
-				$this->piVars['color'] = $folderDATA['color'];
-				$this->piVars['state'] = $folderDATA['state'];
-
-					// get exams, also delete duplicates
-				$exams = explode(',',$folderDATA['content']);
-				$this->piVars['content'] = array();
-				foreach ($exams as $exam)
-					$this->piVars['content'][$exam] = true;
-				$lectures = explode(',',$folderDATA['associated_lectures']);
-				for($i=0;$i<count($lectures);$i++)
-					$this->piVars['lecture'.$i] = $lectures[$i];
-				break;
-			}
-			case self::kEDIT_TYPE_FOLDER: {
-				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
-				$this->piVars["name"] = $folderDATA['name'];
-				$this->piVars['folder_id'] = $folderDATA['folder_id'];
-				$this->piVars['color'] = $folderDATA['color'];
-				$this->piVars['state'] = $folderDATA['state'];
-
-					// get exams, also delete duplicates
-				$exams = explode(',',$folderDATA['content']);
-				$this->piVars['content'] = array();
-				foreach ($exams as $exam)
-					$this->piVars['content'][$exam] = true;
-				$lectures = explode(',',$folderDATA['associated_lectures']);
-				for($i=0;$i<count($lectures);$i++)
-					$this->piVars['lecture'.$i] = $lectures[$i];
-				break;
-			}
-			case self::kEDIT_TYPE_LECTURER: {
-				$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
-				$this->piVars["firstname"] = $lecturerDB['firstname'];
-				$this->piVars['lastname'] = $lecturerDB['lastname'];
-				break;
-			}
 		}
 	}
 
@@ -358,15 +327,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 			return;
 
 		switch($type) {
-// 			case self::kEDIT_TYPE_LECTURE: {
-// 				$lectureDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecture', $uid);
-// 				$this->piVars["name"] = $lectureDB['name'];
-// 				$this->piVars["field"] = $lectureDB['field']; //TODO not in this DB, search by DB select
-// 				$modules = explode(',',$lectureDB['module']);
-// 				for ($i=0; $i<count($modules); $i++)
-// 					$this->piVars["module".$i] = $modules[$i];
-// 				break;
-// 			}
 			case self::kEDIT_TYPE_EXAM: {
 				// get approved button
 				if (isset($formData['approved']))
@@ -391,36 +351,6 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 				$this->piVars["examtype"] = $formData['examtype'];
 				break;
 			}
-			case self::kCREATE_TYPE_FOLDER: {
-				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
-				$this->piVars["name"] = $formData['name'];
-				$this->piVars['folder_id'] = intval($formData['folder_id']);
-				$this->piVars['color'] = intval($formDATA['color']);
-				for ($i=0; $i<4; $i++)
-					$this->piVars['lecture'.$i] = intval($formData['lecture'.$i]);
-// 				$this->piVars['state'] = $folderDATA['state'];
-// 				$this->piVars['content'] = $folderDATA['content'];
-// 				$this->piVars['associated_lectures'] = $folderDATA['associated_lectures'];
-				break;
-			}
-			case self::kEDIT_TYPE_FOLDER: {
-				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
-				$this->piVars["name"] = $formData['name'];
-				$this->piVars['folder_id'] = intval($formData['folder_id']);
-				$this->piVars['color'] = intval($formDATA['color']);
-				for ($i=0; $i<4; $i++)
-					$this->piVars['lecture'.$i] = intval($formData['lecture'.$i]);
-// 				$this->piVars['state'] = $folderDATA['state'];
-// 				$this->piVars['content'] = $folderDATA['content'];
-// 				$this->piVars['associated_lectures'] = $folderDATA['associated_lectures'];
-				break;
-			}
-// 			case self::kEDIT_TYPE_LECTURER: {
-// 				$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
-// 				$this->piVars["firstname"] = $lecturerDB['firstname'];
-// 				$this->piVars['lastname'] = $lecturerDB['lastname'];
-// 				break;
-// 			}
 		}
 	}
 
@@ -1426,10 +1356,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 									'uid = '.intval($formData['uid']),
 									array (	'tstamp' => time(),
 											'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_folder'),
-											'folder_id' => intval($formData['folder_id']),
 											'color' => intval($formData['color']),
 											'content' => implode(',',$task_add_these_exams),
-											'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT,
 											'associated_lectures' => implode(',',$task_subscribe_these_lectures),
 									));
 
@@ -1447,10 +1375,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 											'crdate' => time(),
 											'tstamp' => time(),
 											'name' => $GLOBALS['TYPO3_DB']->quoteStr($formData['name'], 'tx_fsmiexams_folder'),
-											'folder_id' => intval($formData['folder_id']),
 											'color' => intval($formData['color']),
 											'content' => implode(',',$task_add_these_exams),
-											'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT,
 											'associated_lectures' => implode(',',$task_subscribe_these_lectures),
 									));
 
@@ -1458,7 +1384,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 					if ($res) {
 						return tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::kSTATUS_INFO,
-							'Folder successfully created: '.htmlentities($formData['name']).', ID '.intval($formData['folder_id']));
+							'Virtual Folder successfully created: '.htmlentities($formData['name']));
 					}
 				}
 				return tx_fsmiexams_div::printSystemMessage(
