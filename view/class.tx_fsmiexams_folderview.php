@@ -55,7 +55,7 @@ class tx_fsmiexams_folderview extends tx_fsmiexams_base_view_user {
 		$this->LANG->init($GLOBALS['TSFE']->tmpl->setup['config.']['language']);
 		$this->LANG->includeLLFile('typo3conf/ext/fsmi_exams/locallang_db.xml');
 	}
-
+	
 	/**
 	 * This function outputs a list with anchors to all degree programs.
 	 */

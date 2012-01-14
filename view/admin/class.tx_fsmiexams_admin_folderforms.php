@@ -528,15 +528,28 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
         $content .= '<tr>
             <td>Name:</td>
             <td><input name="'.$this->extKey.'[name]" value="'.$this->piVars['name'].'" /></td></tr>';
-        $content .= '<tr>
-            <td>ID (nicht editierbar)</td>
-            <td><input readonly="readonly" name="'.$this->extKey.'[folder_id]" value="'.$this->piVars['folder_id'].'" /></td></tr>';
         $content .= '</table></fieldset>';
 
-        $content .= '<fieldset><legend>Download Links</legend><ul>';
-		$content .= '<li><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Inhaltsverzeichnis</a></li>';
-		$content .= '<li><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Deckblatt</a></li>';
-		$content .= '</ul></fieldset>';
+        $content .= '<fieldset><legend>Ordnerinstanzen</legend>';
+        $content .= '<table>';
+		$resInstance = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
+													FROM tx_fsmiexams_folder_instance
+													WHERE folder='.$editUID.' AND deleted=0 AND hidden=0
+													ORDER BY offset');
+        while ($resInstance && $rowInstance = mysql_fetch_assoc($resInstance)) {
+			$instanceDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder_instance', $rowInstance['uid']);
+			$content .= '<tr>';
+			$content .= '<td>'.'#'.tx_fsmiexams_div::numberFixedDigits($instanceDATA['folder_id'], 4).' (Kopie '.$instanceDATA['offset'].') </td>';
+			$content .= '<td><a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Inhaltsverzeichnis</a></b>
+				<a href="'.tx_fsmiexams_latex_export::storeExamsListForFolder($folderUID).'">Deckblatt</a></td>';
+			$content .= '</tr>';
+		}
+		if(mysql_num_rows($resInstance)==0) {
+			$content .= '<tr><td>Für diesen Ordner wurden bisher noch keine Instanzen angelegt.</td></tr>';
+		}
+		$content .= '</table>';
+		$content .= '<input type="checkbox" name="'.$this->extKey."[folderinstance]".'[create]" /> weitere Kopie anlegen';
+		$content .= '</fieldset>';
 
 		for ($i=0; $i<4; $i++) {
 			$lectureUID = $this->piVars['lecture'.$i];

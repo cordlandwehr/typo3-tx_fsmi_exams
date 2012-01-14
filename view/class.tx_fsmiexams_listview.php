@@ -176,7 +176,7 @@ class tx_fsmiexams_listview extends tx_fsmiexams_base_view_user {
 									$content .= '<br /><a href="uploads/tx_fsmiexams/'.$examDATA['material'].'">'.$material_descr.'</a>';
 							}
 							$content .= '</td>';
-
+							
 							$content .= '</tr>';
 						}
 					}

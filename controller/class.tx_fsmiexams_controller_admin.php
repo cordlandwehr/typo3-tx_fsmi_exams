@@ -1381,10 +1381,51 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 
 					// present messages if everything went ok
 					if ($res) {
-						return tx_fsmiexams_div::printSystemMessage(
+						$content .= tx_fsmiexams_div::printSystemMessage(
 							tx_fsmiexams_div::kSTATUS_INFO,
-							'Folder successfully updated: '.htmlentities($formData['name']).', ID '.intval($formData['folder_id']));
+							'Folder successfully updated: '.htmlentities($formData['name']));
 					}
+					// create folder intance
+					if ($formData['folderinstance']) {
+						// compute auxiliarity values: MAX-ID
+						$resInstance = $GLOBALS['TYPO3_DB']->sql_query('SELECT MAX(folder_id) as maxid
+																	FROM tx_fsmiexams_folder_instance
+																	WHERE deleted=0 AND hidden=0');
+						if ($resInstance && $instance = mysql_fetch_assoc($resInstance)) {
+							$maxID = $instance['maxid'];
+						}
+						else {
+							$maxID = 1;
+						}
+						
+						// compute auxiliarity values
+						$resInstance = $GLOBALS['TYPO3_DB']->sql_query('SELECT MAX(offset) as maxoffset, MAX(folder_id) as maxid
+																	FROM tx_fsmiexams_folder_instance
+																	WHERE deleted=0 AND hidden=0 AND folder='.$formData['uid']);
+						if ($resInstance && $instance = mysql_fetch_assoc($resInstance)) {
+							$maxOffset = $instance['maxoffset'];
+						}
+						
+						$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
+										'tx_fsmiexams_folder_instance',
+										array (	'pid' => $this->storageFolder,
+												'crdate' => time(),
+												'tstamp' => time(),
+												'folder' => $formData['uid'],
+												'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT,
+												'offset' => $maxOffset+1,
+												'folder_id' => $maxID+1,
+												'synchronization' => ''
+										));
+
+						// present messages if everything went ok
+						if ($res) {
+							$content .= tx_fsmiexams_div::printSystemMessage(
+								tx_fsmiexams_div::kSTATUS_INFO,
+								'Folder successfully updated: ID '.($maxID+1));
+						}
+					}
+					return $content;
 				}
 				else {
 					$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
