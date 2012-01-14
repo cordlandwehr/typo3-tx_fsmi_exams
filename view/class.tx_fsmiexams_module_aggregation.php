@@ -273,7 +273,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	function listMenuBreadcrumb() {
 		$content = '';
 
-		$content .= '<h3>'.$this->LANG->getLL("tt_content.list_type_browse.aggregated").'</h3>';
+		$content .= '<h3>'.$this->LANG->getLL("tt_content.list_type_controller_browse.aggregated").'</h3>';
 
 		return $content;
 	}

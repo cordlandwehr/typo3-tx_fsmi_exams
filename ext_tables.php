@@ -238,36 +238,36 @@ t3lib_extMgm::addToAllTCAtypes('fe_groups','tx_fsmiexams_fsmiexams_rights_print;
 
 /* Controler "browse" */
 t3lib_div::loadTCA('tt_content');
-$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_browse']='layout,select_key';
+$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_controller_browse']='layout,select_key';
 t3lib_extMgm::addPlugin(array(
-	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_browse',
-	$_EXTKEY . '_browse',
+	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_controller_browse',
+	$_EXTKEY . '_controller_browse',
 	t3lib_extMgm::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
-$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_browse']='pi_flexform';
-t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_browse', 'FILE:EXT:fsmi_exams/flexform/flexform_browse.xml');
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_controller_browse']='pi_flexform';
+t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_controller_browse', 'FILE:EXT:fsmi_exams/flexform/flexform_browse.xml');
 
 
 /* Controller "clerk" */
 t3lib_div::loadTCA('tt_content');
-$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_clerk']='layout,select_key';
-$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_clerk']='pi_flexform';
-t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_clerk', 'FILE:EXT:fsmi_exams/flexform/flexform_clerk.xml');
+$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_controller_clerk']='layout,select_key';
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_controller_clerk']='pi_flexform';
+//t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_clerk', 'FILE:EXT:fsmi_exams/flexform/flexform_clerk.xml');
 t3lib_extMgm::addPlugin(array(
-	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_clerk',
-	$_EXTKEY . '_clerk',
+	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_controller_clerk',
+	$_EXTKEY . '_controller_clerk',
 	t3lib_extMgm::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
 
 
 /* Controller "admin" */
 t3lib_div::loadTCA('tt_content');
-$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_admin']='layout,select_key';
-$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_admin']='pi_flexform';
-t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_admin', 'FILE:EXT:fsmi_exams/flexform/flexform_admin.xml');
+$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_controller_admin']='layout,select_key';
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_controller_admin']='pi_flexform';
+t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_controller_admin', 'FILE:EXT:fsmi_exams/flexform/flexform_admin.xml');
 t3lib_extMgm::addPlugin(array(
-	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_admin',
-	$_EXTKEY . '_admin',
+	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_controller_admin',
+	$_EXTKEY . '_controller_admin',
 	t3lib_extMgm::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
 
