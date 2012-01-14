@@ -29,7 +29,6 @@
 
 require_once(PATH_tslib.'class.tslib_pibase.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
-require_once(t3lib_extMgm::extPath('fsmi_exams').'view/admin/class.tx_fsmiexams_admin_menu.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_json.php');
 
 /**
@@ -59,7 +58,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 
 	function setPiVarsFromDB($type, $uid) {
 		switch($type) {
-			case tx_fsmiexams_admin_menu::kCREATE_TYPE_FOLDER: {
+			case tx_fsmiexams_controller_admin::kCREATE_TYPE_FOLDER: {
 				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
 				$this->piVars["name"] = $folderDATA['name'];
 				$this->piVars['folder_id'] = $folderDATA['folder_id'];
@@ -76,7 +75,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 					$this->piVars['lecture'.$i] = $lectures[$i];
 				break;
 			}
-			case tx_fsmiexams_admin_menu::kEDIT_TYPE_FOLDER: {
+			case tx_fsmiexams_controller_admin::kEDIT_TYPE_FOLDER: {
 				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
 				$this->piVars["name"] = $folderDATA['name'];
 				$this->piVars['folder_id'] = $folderDATA['folder_id'];
@@ -101,11 +100,11 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 		$formData = t3lib_div::_GP($this->extKey);
 
 		// only set if view is create
-		if ($formData['view']!=tx_fsmiexams_admin_menu::kVIEW_CREATE)
+		if ($formData['view']!=tx_fsmiexams_controller_admin::kVIEW_CREATE)
 			return;
 
 		switch($type) {
-			case tx_fsmiexams_admin_menu::kCREATE_TYPE_FOLDER: {
+			case tx_fsmiexams_controller_admin::kCREATE_TYPE_FOLDER: {
 				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
 				$this->piVars["name"] = $formData['name'];
 				$this->piVars['folder_id'] = intval($formData['folder_id']);
@@ -117,7 +116,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 // 				$this->piVars['associated_lectures'] = $folderDATA['associated_lectures'];
 				break;
 			}
-			case tx_fsmiexams_admin_menu::kEDIT_TYPE_FOLDER: {
+			case tx_fsmiexams_controller_admin::kEDIT_TYPE_FOLDER: {
 				$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
 				$this->piVars["name"] = $formData['name'];
 				$this->piVars['folder_id'] = intval($formData['folder_id']);

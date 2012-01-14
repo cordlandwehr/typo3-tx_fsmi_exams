@@ -240,7 +240,6 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 		}
 
 		if (intval($GETcommands['view'])==self::kVIEW_LIST) {
-		debug($GETcommands['type']);
 			switch (intval($GETcommands['type'])) {
 				case self::kLIST_TYPE_FOLDER: {
 					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_folderview);
