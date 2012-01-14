@@ -82,13 +82,13 @@ class tx_fsmiexams_base_view_user extends tslib_pibase {
 		$content = '';
 
 		$content .= '<div style="text-align:right; font-weight:bold;">';
-		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_pi1.list"),
+		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_browse.list"),
 						array (	self::extKey.'[type]' => self::kVIEW_TYPE_LIST));
 		$content .= ' / ';
-		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_pi1.aggregated"),
+		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_browse.aggregated"),
 				array (	self::extKey.'[type]' => self::kVIEW_TYPE_AGGREGATION));
 		$content .= ' / ';
-		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_pi1.folderview"),
+		$content .= $this->pi_linkTP($this->LANG->getLL("tt_content.list_type_browse.folderview"),
 				array (	self::extKey.'[type]' => self::kVIEW_TYPE_FOLDERVIEW));
 		$content .= '</div>';
 

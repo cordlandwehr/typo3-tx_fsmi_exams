@@ -38,9 +38,9 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php
  * @package	TYPO3
  * @subpackage	tx_fsmiexams
  */
-class tx_fsmiexams_pi3 extends tslib_pibase {
-	var $prefixId      = 'tx_fsmiexams_pi3';		// Same as class name
-	var $scriptRelPath = 'pi3/class.tx_fsmiexams_pi3.php';	// Path to this script relative to the extension dir.
+class tx_fsmiexams_controller_clerk extends tslib_pibase {
+	var $prefixId      = 'tx_fsmiexams_clerk';		// Same as class name
+	var $scriptRelPath = 'controller/class.tx_fsmiexams_controller_clerk.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
 	
 	var $loanStoragePID		= 0;
@@ -1217,8 +1217,8 @@ class tx_fsmiexams_pi3 extends tslib_pibase {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi3/class.tx_fsmiexams_pi3.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi3/class.tx_fsmiexams_pi3.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/controller/class.tx_fsmiexams_controller_clerk.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/controller/class.tx_fsmiexams_controller_clerk.php']);
 }
 
 ?>

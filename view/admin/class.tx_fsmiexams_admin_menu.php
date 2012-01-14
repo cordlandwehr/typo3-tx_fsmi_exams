@@ -38,8 +38,8 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php
  * @subpackage	tx_fsmiexams
  */
 class tx_fsmiexams_admin_menu extends tslib_pibase {
-	var $prefixId      = 'tx_fsmiexams_pi4';		// Same as class name
-	var $scriptRelPath = 'pi4/class.tx_fsmiexams_pi4.php';	// Path to this script relative to the extension dir.
+	var $prefixId      = 'tx_fsmiexams_controller_admin';		// Same as class name
+	var $scriptRelPath = 'controller/class.tx_fsmiexams_controller_admin.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
 	var $pi_checkCHash = true;
 
@@ -176,8 +176,8 @@ class tx_fsmiexams_admin_menu extends tslib_pibase {
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi4/class.tx_fsmiexams_admin_menu.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi4/class.tx_fsmiexams_admin_menu.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/view/admin/class.tx_fsmiexams_admin_menu.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/view/admin/class.tx_fsmiexams_admin_menu.php']);
 }
 
 ?>

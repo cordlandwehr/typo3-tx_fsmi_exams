@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008 Andreas Cord-Landwehr (cola@uni-paderborn.de)
+*  (c) 2008-2012  Andreas Cord-Landwehr <cola@uni-paderborn.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -273,7 +273,7 @@ class tx_fsmiexams_module_aggregation extends tx_fsmiexams_base_view_user {
 	function listMenuBreadcrumb() {
 		$content = '';
 
-		$content .= '<h3>'.$this->LANG->getLL("tt_content.list_type_pi1.aggregated").'</h3>';
+		$content .= '<h3>'.$this->LANG->getLL("tt_content.list_type_browse.aggregated").'</h3>';
 
 		return $content;
 	}

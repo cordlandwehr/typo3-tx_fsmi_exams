@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Andreas Cord-Landwehr <fsmi@uni-paderborn.de>
+*  (c) 2009-2012  Andreas Cord-Landwehr <cola@uni-paderborn.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -49,9 +49,9 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_latex_e
  * @package	TYPO3
  * @subpackage	tx_fsmiexams
  */
-class tx_fsmiexams_pi4 extends tslib_pibase {
-	var $prefixId      = 'tx_fsmiexams_pi4';		// Same as class name
-	var $scriptRelPath = 'pi4/class.tx_fsmiexams_pi4.php';	// Path to this script relative to the extension dir.
+class tx_fsmiexams_controller_admin extends tslib_pibase {
+	var $prefixId      = 'tx_fsmiexams_controller_admin';		// Same as class name
+	var $scriptRelPath = 'controller/class.tx_fsmiexams_controller_admin.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
 	var $pi_checkCHash = true;
 
@@ -368,7 +368,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		tx_fsmiexams_json::createFieldListJSON();
 		tx_fsmiexams_json::createDegreeprogramListJSON();
 
-		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_controller_admin_widget'] =
 			'<script type="text/javascript">
 				dojo.require("dojo.parser");
 				dojo.require("dijit.form.FilteringSelect");
@@ -624,7 +624,7 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 		tx_fsmiexams_json::createTermListJSON();
 		tx_fsmiexams_json::createNumberListJSON();
 
-		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_controller_admin_widget'] =
 			'<script type="text/javascript">
 				dojo.require("dojo.parser");
 				dojo.require("dijit.form.FilteringSelect");
@@ -1473,8 +1473,8 @@ class tx_fsmiexams_pi4 extends tslib_pibase {
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi4/class.tx_fsmiexams_pi4.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi4/class.tx_fsmiexams_pi4.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/controller/class.tx_fsmiexams_controller_admin.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/controller/class.tx_fsmiexams_controller_admin.php']);
 }
 
 ?>

@@ -80,12 +80,12 @@
 			<label index="tx_fsmiexams.fsmiexams_rights_edit">Exams Archive Edit Rights</label>
 			<label index="tx_fsmiexams.fsmiexams_rights_download">Exams Archive Download Rights</label>
 			<label index="tx_fsmiexams.fsmiexams_rights_print">Exams Archive Print Rights</label>
-			<label index="tt_content.list_type_pi1">Show Archive</label>
-			<label index="tt_content.list_type_pi1.aggregated">Aggregated View</label>
-			<label index="tt_content.list_type_pi1.list">List View</label>
-			<label index="tt_content.list_type_pi1.folderview">Folders</label>
+			<label index="tt_content.list_type_browse">Show Archive</label>
+			<label index="tt_content.list_type_browse.aggregated">Aggregated View</label>
+			<label index="tt_content.list_type_browse.list">List View</label>
+			<label index="tt_content.list_type_browse.folderview">Folders</label>
 			<label index="tt_content.list_type_clerk">Lend it</label>
-			<label index="tt_content.list_type_pi4">Exam Input</label>
+			<label index="tt_content.list_type_admin">Exam Input</label>
 		</languageKey>
 		<languageKey index="de" type="array">
 			<label index="tx_fsmiexams_general.message.sql_error">Ein Datenbankfehler ist aufgetreten. Die Operation wurde nicht erfolgreich durchgeführt.</label>
@@ -159,12 +159,12 @@
 			<label index="tx_fsmiexams.fsmiexams_rights_edit">Klausurarchiv Bearbeitungsrechte</label>
 			<label index="tx_fsmiexams.fsmiexams_rights_download">Klausurarchiv Downloadrechte</label>
 			<label index="tx_fsmiexams.fsmiexams_rights_print">Klausurarchiv Druckrechte</label>
-			<label index="tt_content.list_type_pi1">Archiv anzeigen</label>
-			<label index="tt_content.list_type_pi1.aggregated">Modulansicht</label>
-			<label index="tt_content.list_type_pi1.list">Listenansicht</label>
-			<label index="tt_content.list_type_pi1.folderview">Ordner</label>
+			<label index="tt_content.list_type_browse">Archiv anzeigen</label>
+			<label index="tt_content.list_type_browse.aggregated">Modulansicht</label>
+			<label index="tt_content.list_type_browse.list">Listenansicht</label>
+			<label index="tt_content.list_type_browse.folderview">Ordner</label>
 			<label index="tt_content.list_type_clerk">Ausleihen</label>
-			<label index="tt_content.list_type_pi4">Klausur Eingabe</label>
+			<label index="tt_content.list_type_admin">Klausur Eingabe</label>
 		</languageKey>
 	</data>
 </T3locallang>

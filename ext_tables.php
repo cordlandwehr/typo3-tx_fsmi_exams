@@ -236,17 +236,16 @@ t3lib_extMgm::addToAllTCAtypes('fe_groups','tx_fsmiexams_fsmiexams_rights_edit;;
 t3lib_extMgm::addToAllTCAtypes('fe_groups','tx_fsmiexams_fsmiexams_rights_download;;;;1-1-1');
 t3lib_extMgm::addToAllTCAtypes('fe_groups','tx_fsmiexams_fsmiexams_rights_print;;;;1-1-1');
 
+/* Controler "browse" */
 t3lib_div::loadTCA('tt_content');
-$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1']='layout,select_key';
-
-
+$TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_browse']='layout,select_key';
 t3lib_extMgm::addPlugin(array(
-	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_pi1',
-	$_EXTKEY . '_pi1',
+	'LLL:EXT:fsmi_exams/locallang_db.xml:tt_content.list_type_browse',
+	$_EXTKEY . '_browse',
 	t3lib_extMgm::extRelPath($_EXTKEY) . 'ext_icon.gif'
 ),'list_type');
-$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi1']='pi_flexform';
-t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_pi1', 'FILE:EXT:fsmi_exams/flexform/flexform_pi1.xml');
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_browse']='pi_flexform';
+t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_browse', 'FILE:EXT:fsmi_exams/flexform/flexform_browse.xml');
 
 
 /* Controller "clerk" */

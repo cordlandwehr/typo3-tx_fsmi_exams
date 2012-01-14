@@ -33,7 +33,7 @@
 require_once (PATH_t3lib.'class.t3lib_befunc.php');
 require_once (PATH_t3lib.'class.t3lib_tcemain.php');
 require_once (PATH_t3lib.'class.t3lib_iconworks.php');
-require_once (t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_pi4.php');
+require_once (t3lib_extMgm::extPath('fsmi_exams').'controller/class.tx_fsmiexams_controller_admin.php'); //FIXME: refactor!
 
 
 /**
@@ -80,8 +80,8 @@ class tx_fsmiexams_div {
 				$lectureArray[] = self::$pi_base->pi_linkTP(
 								$lecture['name'],
 								array (
-									self::extKey.'[view]' => tx_fsmiexams_pi4::kVIEW_CREATE,
-									self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURE,
+									self::extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+									self::extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_LECTURE,
 									self::extKey.'[uid]' => $lecture['uid']
 								),
 								0,
@@ -108,8 +108,8 @@ class tx_fsmiexams_div {
 			$text = self::$pi_base->pi_linkTP(
 							$examDB['name'],
 							array (
-								self::extKey.'[view]' => tx_fsmiexams_pi4::kVIEW_CREATE,
-								self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_EXAM,
+								self::extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+								self::extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_EXAM,
 								self::extKey.'[uid]' => $examDB['uid']
 							),
 							0,
@@ -142,8 +142,8 @@ class tx_fsmiexams_div {
 				$lecturerArray[] = self::$pi_base->pi_linkTP(
 								$lecturer['lastname'].', '.$lecturer['firstname'],
 								array (
-									self::extKey.'[view]' => tx_fsmiexams_pi4::kVIEW_CREATE,
-									self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_LECTURER,
+									self::extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+									self::extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_LECTURER,
 									self::extKey.'[uid]' => $lecturer['uid']
 								),
 								0,
@@ -187,8 +187,8 @@ class tx_fsmiexams_div {
 			return self::$pi_base->pi_linkTP(
 							$folderDATA['name'],
 							array (
-								self::extKey.'[view]' => tx_fsmiexams_pi4::kVIEW_CREATE,
-								self::extKey.'[type]' => tx_fsmiexams_pi4::kEDIT_TYPE_FOLDER,
+								self::extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+								self::extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_FOLDER,
 								self::extKey.'[uid]' => $folderDATA['uid']
 							),
 							0,

@@ -29,7 +29,7 @@
 
 require_once(PATH_tslib.'class.tslib_pibase.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
-require_once(t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_admin_menu.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/admin/class.tx_fsmiexams_admin_menu.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_json.php');
 
 /**
@@ -40,8 +40,8 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_json.ph
  * @subpackage	tx_fsmiexams
  */
 class tx_fsmiexams_admin_folderforms extends tslib_pibase {
-	var $prefixId      = 'tx_fsmiexams_pi4';		// Same as class name
-	var $scriptRelPath = 'pi4/class.tx_fsmiexams_pi4.php';	// Path to this script relative to the extension dir.
+	var $prefixId      = 'tx_fsmiexams_controller_admin';		// Same as class name
+	var $scriptRelPath = 'controller/class.tx_fsmiexams_controller_admin.php';	// Path to this script relative to the extension dir.
 	var $extKey        = 'fsmi_exams';	// The extension key.
 	var $pi_checkCHash = true;
 
@@ -150,7 +150,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 		tx_fsmiexams_json::createFieldListJSON();
 		tx_fsmiexams_json::createDegreeprogramListJSON();
 
-		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_controller_admin_widget'] =
 			'<script type="text/javascript">
 				dojo.require("dojo.parser");
 				dojo.require("dijit.form.FilteringSelect");
@@ -219,7 +219,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 					name="'.$this->extKey.'[color]"
 					id="'.$this->extKey.'_color"
 					value="'.htmlspecialchars($this->piVars["color"]).'">';
-		foreach (tx_fsmiexams_pi4::colors() as $id => $info) {
+		foreach (tx_fsmiexams_controller_admin::colors() as $id => $info) {
 			$content .= '<option value="'.$id.'" style="background:'.$info['rgb'].'">'.$info['name'].'</option>';
 		}
 		$content .= '</select>';
@@ -399,7 +399,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 	function createFolderInputForm ($editUID = 0) {
 // 		$preselection_data = t3lib_div::_POST($this->extKey);
 
-		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_controller_admin_widget'] =
 			'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>';
 
 		$content = '';
@@ -498,7 +498,7 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 	function editFolderInputForm ($editUID = 0) {
 // 		$preselection_data = t3lib_div::_POST($this->extKey);
 
-		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_pi4_widget'] =
+		$GLOBALS['TSFE']->additionalHeaderData['fsmi_exam_controller_admin_widget'] =
 			'<script type="text/javascript" src="typo3conf/ext/fsmi_exams/js/update_select.js" ></script>';
 
 		$content = '';
@@ -602,8 +602,8 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi4/class.tx_fsmiexams_admin_folderforms.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/pi4/class.tx_fsmiexams_admin_folderforms.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/view/admin/class.tx_fsmiexams_admin_folderforms.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/fsmi_exams/view/admin/class.tx_fsmiexams_admin_folderforms.php']);
 }
 
 ?>
