@@ -84,7 +84,7 @@
 			<label index="tt_content.list_type_pi1.aggregated">Aggregated View</label>
 			<label index="tt_content.list_type_pi1.list">List View</label>
 			<label index="tt_content.list_type_pi1.folderview">Folders</label>
-			<label index="tt_content.list_type_pi3">Lend it</label>
+			<label index="tt_content.list_type_clerk">Lend it</label>
 			<label index="tt_content.list_type_pi4">Exam Input</label>
 		</languageKey>
 		<languageKey index="de" type="array">
@@ -163,7 +163,7 @@
 			<label index="tt_content.list_type_pi1.aggregated">Modulansicht</label>
 			<label index="tt_content.list_type_pi1.list">Listenansicht</label>
 			<label index="tt_content.list_type_pi1.folderview">Ordner</label>
-			<label index="tt_content.list_type_pi3">Ausleihen</label>
+			<label index="tt_content.list_type_clerk">Ausleihen</label>
 			<label index="tt_content.list_type_pi4">Klausur Eingabe</label>
 		</languageKey>
 	</data>
