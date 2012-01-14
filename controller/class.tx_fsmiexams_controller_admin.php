@@ -303,6 +303,12 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 					$this->piVars["module".$i] = $modules[$i];
 				break;
 			}
+			case self::kEDIT_TYPE_LECTURER: {
+				$lecturerDB = t3lib_BEfunc::getRecord('tx_fsmiexams_lecturer', $uid);
+				$this->piVars["firstname"] = $lecturerDB['firstname'];
+				$this->piVars["lastname"] = $lecturerDB['lastname'];
+				break;
+			}
 			case self::kEDIT_TYPE_EXAM: {
 				$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 				$this->piVars["name"] = $examDB['name'];
@@ -572,8 +578,9 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">';
 
 		// hidden field for UID if editing lecturer
-		if ($editUID)
+		if ($editUID) {
 			$content .= '<input type="hidden" name="'.$this->extKey.'[uid]" value="'.$editUID.'" />';
+		}
 
 		//TODO switch to USER_INT object
 		$content .= '
