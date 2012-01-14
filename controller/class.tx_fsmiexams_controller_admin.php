@@ -37,9 +37,10 @@ require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_base_v
 // require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_module_aggregation.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_folderview.php');
 require_once(t3lib_extMgm::extPath('fsmi_exams').'view/class.tx_fsmiexams_lecturerview.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/admin/class.tx_fsmiexams_admin_menu.php');
+require_once(t3lib_extMgm::extPath('fsmi_exams').'view/admin/class.tx_fsmiexams_admin_folderforms.php');
+
 require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_latex_export.php');
-require_once(t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_admin_menu.php');
-require_once(t3lib_extMgm::extPath('fsmi_exams').'pi4/class.tx_fsmiexams_admin_folderforms.php');
 
 /**
  * Plugin 'Exam Input' for the 'fsmi_exams' extension.
