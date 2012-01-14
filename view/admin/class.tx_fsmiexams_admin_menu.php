@@ -46,27 +46,6 @@ class tx_fsmiexams_admin_menu extends tslib_pibase {
 	var $LANG;						// language object
 	var $cObj;
 
-	// switch between views
-	const kVIEW_CREATE						= 1;
-	const kVIEW_LIST						= 2;
-
-	// constants
-//	const kEDIT_TYPE_NONE						= 0;
-//	const kEDIT_TYPE_MODULE						= 1;
-	const kEDIT_TYPE_EXAM						= 4;
-	const kEDIT_TYPE_EXAM_CREATION_TRIGGERS		= 5;
-	const kEDIT_TYPE_LECTURE					= 6;
-	const kEDIT_TYPE_LECTURER					= 7;
-	const kEDIT_TYPE_FOLDER_PRESELECT			= 8;
-	const kEDIT_TYPE_FOLDER						= 9;
-	const kCREATE_TYPE_FOLDER					= 10;
-	const kEDIT_TYPE_FOLDER_SAVE				= 11;
-
-	const kLIST_TYPE_FOLDER						= 1;
-	const kLIST_TYPE_LECTURE					= 2;
-	const kLIST_TYPE_LECTURER					= 3;
-	//TODO some constants are called contrary to their meanings
-
 	function __construct () {
 		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		$this->LANG = t3lib_div::makeInstance('language');
@@ -77,97 +56,80 @@ class tx_fsmiexams_admin_menu extends tslib_pibase {
 	}
 
 
-	function createAdminMenu ($view) {
+	function createAdminMenu ($type) {
 		// type selection head
-		$content = $this->menuViewModes($view);
-		switch ($view) {
-			case self::kVIEW_CREATE:
-				$content .= $this->menuCreateTypes();
-				break;
-			case self::kVIEW_LIST:
-				$content .= $this->menuListTypes();
-				break;
+		$content = $this->printEditTypeOptions();
+		$content .= $this->printCreateAction($type);
+		return $content;
+	}
+
+
+	private function printEditTypeOptions () {
+		$content = '<div>';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_lecture"),
+								array (
+									$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_LIST,
+									$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kLIST_TYPE_LECTURE
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_exam"),
+								array (
+									$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_LIST,
+									$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kLIST_TYPE_EXAM
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_lecturer"),
+								array (
+									$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_LIST,
+									$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kLIST_TYPE_LECTURER,
+								));
+		$content .= ' | ';
+		$content .= $this->pi_linkTP($this->pi_getLL("option_folder"),
+								array (
+									$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_LIST,
+									$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kLIST_TYPE_FOLDER
+								));
+		$content .= '</div>';
+
+		return $content;
+	}
+
+
+	private function printCreateAction($type) {
+		if (!$type) {
+			return;
 		}
-
-		return $content;
-	}
+		$content = '<div style="font-weight:bold;margin:10px;"><h3>';
 		
-	/**
-	 * Creates menu to switch between
-	 * - create
-	 * - list
-	 * @param	integer	$view	preselected view mode
-	 * @return	string as HTML div
-	 */
-	function menuViewModes ($view = 0) {
-		$content = '<div>';
-		$content .= ($view==self::kVIEW_LIST
-			? '<span style="font-weight: bold">': '');
-		$content .= $this->pi_linkTP($this->pi_getLL("view_list"),
-								array (	$this->extKey.'[view]' => self::kVIEW_LIST));
-		$content .= '</span> | ';
-		$content .= ($view==self::kVIEW_CREATE
-			? '<span style="font-weight: bold">': '');
-		$content .= $this->pi_linkTP($this->pi_getLL("view_create"),
-								array (	$this->extKey.'[view]' => self::kVIEW_CREATE));
-		$content .= '</span>';
-		$content .= '</div>';
-
-		return $content;
-	}
-
-
-	function menuCreateTypes () {
-		$content = '<div>';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecture"),
+		if ($type==tx_fsmiexams_controller_admin::kEDIT_TYPE_LECTURE || $type==tx_fsmiexams_controller_admin::kLIST_TYPE_LECTURE) {
+			$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecture"),
+									array (
+										$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+										$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_LECTURE
+									));
+		}
+		if ($type==tx_fsmiexams_controller_admin::kEDIT_TYPE_EXAM || $type==tx_fsmiexams_controller_admin::kLIST_TYPE_EXAM) {
+			$content .= $this->pi_linkTP($this->pi_getLL("option_new-exam"),
 								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURE
+									$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+									$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_EXAM
 								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-exam"),
+		}
+		if ($type==tx_fsmiexams_controller_admin::kEDIT_TYPE_LECTURER || $type==tx_fsmiexams_controller_admin::kLIST_TYPE_LECTURER) {
+			$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecturer"),
 								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_EXAM
+									$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+									$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_LECTURER,
 								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-lecturer"),
+		}
+		if ($type==tx_fsmiexams_controller_admin::kEDIT_TYPE_FOLDER || $type==tx_fsmiexams_controller_admin::kLIST_TYPE_FOLDER) {
+			$content .= $this->pi_linkTP($this->pi_getLL("option_new-folder"),
 								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_LECTURER,
+									$this->extKey.'[view]' => tx_fsmiexams_controller_admin::kVIEW_CREATE,
+									$this->extKey.'[type]' => tx_fsmiexams_controller_admin::kEDIT_TYPE_FOLDER_PRESELECT
 								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_new-folder"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_CREATE,
-									$this->extKey.'[type]' => self::kEDIT_TYPE_FOLDER_PRESELECT
-								));
-		$content .= '</div>';
-
-		return $content;
-	}
-
-
-	function menuListTypes () {
-		$content = '<div>';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-folder"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_LIST,
-									$this->extKey.'[type]' => self::kLIST_TYPE_FOLDER
-								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-lecture"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_LIST,
-									$this->extKey.'[type]' => self::kLIST_TYPE_LECTURE
-								));
-		$content .= ' | ';
-		$content .= $this->pi_linkTP($this->pi_getLL("option_edit-lecturer"),
-								array (
-									$this->extKey.'[view]' => self::kVIEW_LIST,
-									$this->extKey.'[type]' => self::kLIST_TYPE_LECTURER
-								));
-		$content .= '</div>';
+		}
+		$content .= '</h3></div>';
 
 		return $content;
 	}

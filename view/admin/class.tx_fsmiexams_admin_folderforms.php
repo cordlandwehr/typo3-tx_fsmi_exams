@@ -175,8 +175,8 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
-			<input type="hidden" name="'.$this->extKey.'[view]" value="'.tx_fsmiexams_admin_menu::kVIEW_CREATE.'" />
-			<input type="hidden" name="'.$this->extKey.'[type]" value="'.tx_fsmiexams_admin_menu::kCREATE_TYPE_FOLDER.'" />';
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.tx_fsmiexams_controller_admin::kVIEW_CREATE.'" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.tx_fsmiexams_controller_admin::kCREATE_TYPE_FOLDER.'" />';
 
 		// hidden field for UID if editing existing folder
 		if ($editUID)
@@ -411,8 +411,8 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
-			<input type="hidden" name="'.$this->extKey.'[view]" value="'.tx_fsmiexams_admin_menu::kVIEW_CREATE.'" />
-			<input type="hidden" name="'.$this->extKey.'[type]" value="'.tx_fsmiexams_admin_menu::kEDIT_TYPE_FOLDER_SAVE.'" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.tx_fsmiexams_controller_admin::kVIEW_CREATE.'" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.tx_fsmiexams_controller_admin::kEDIT_TYPE_FOLDER_SAVE.'" />
 			<input type="hidden" name="'.$this->extKey.'[name]" value="'.$this->piVars['name'].'" />
 			<input type="hidden" name="'.$this->extKey.'[folder_id]" value="'.$this->piVars['folder_id'].'" />
 			<input type="hidden" name="'.$this->extKey.'[color]" value="'.$this->piVars['color'].'" />';
@@ -510,8 +510,8 @@ class tx_fsmiexams_admin_folderforms extends tslib_pibase {
 		$content .= '
 			<form action="'.$this->pi_getPageLink($GLOBALS["TSFE"]->id).'" method="POST" name="'.$this->extKey.'">
 			<input type="hidden" name="no_cache" value="1" />
-			<input type="hidden" name="'.$this->extKey.'[view]" value="'.tx_fsmiexams_admin_menu::kVIEW_CREATE.'" />
-			<input type="hidden" name="'.$this->extKey.'[type]" value="'.tx_fsmiexams_admin_menu::kEDIT_TYPE_FOLDER_SAVE.'" />
+			<input type="hidden" name="'.$this->extKey.'[view]" value="'.tx_fsmiexams_controller_admin::kVIEW_CREATE.'" />
+			<input type="hidden" name="'.$this->extKey.'[type]" value="'.tx_fsmiexams_controller_admin::kEDIT_TYPE_FOLDER_SAVE.'" />
 			<input type="hidden" name="'.$this->extKey.'[color]" value="'.$this->piVars['color'].'" />';
 
 		// hidden field for UID if editing existing folder

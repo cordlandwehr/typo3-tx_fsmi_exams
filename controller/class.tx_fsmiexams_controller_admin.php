@@ -74,6 +74,7 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 	const kLIST_TYPE_FOLDER						= 1;
 	const kLIST_TYPE_LECTURE					= 2;
 	const kLIST_TYPE_LECTURER					= 3;
+	const kLIST_TYPE_EXAM						= 4;
 	//TODO some constants are called contrary to their meanings
 
 	// storages
@@ -125,10 +126,13 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 		// switch to list view if UID is present
 		$fakeView = intval($GETcommands['view']);
 		if (intval($GETcommands['uid'])>0)	$fakeView = self::kVIEW_LIST;
+		
+		// "type" is what we are about to create
+		$type = intval($GETcommands['type']);
 
 		// type selection head
 		$adminMenu = t3lib_div::makeInstance(tx_fsmiexams_admin_menu);
-		$content .= $adminMenu->createAdminMenu($fakeView);
+		$content .= $adminMenu->createAdminMenu($type);
 
 		// get Edit information
 		$this->pidEditPage = $GLOBALS['TSFE']->id;
@@ -236,6 +240,7 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 		}
 
 		if (intval($GETcommands['view'])==self::kVIEW_LIST) {
+		debug($GETcommands['type']);
 			switch (intval($GETcommands['type'])) {
 				case self::kLIST_TYPE_FOLDER: {
 					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_folderview);
@@ -251,6 +256,12 @@ class tx_fsmiexams_controller_admin extends tslib_pibase {
 				}
 				case self::kLIST_TYPE_LECTURER: {
 					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_lecturerview);
+					$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
+					$content .= $this->viewObj->listAllExams();
+					break;
+				}
+				case self::kLIST_TYPE_EXAM: {
+					$this->viewObj = t3lib_div::makeInstance(tx_fsmiexams_listview);
 					$this->viewObj->init($this, $this->pidEditPage, $this->allowedGroupsEdit, $this->allowedGroupsDownload, $this->allowedGroupsPrint);
 					$content .= $this->viewObj->listAllExams();
 					break;
