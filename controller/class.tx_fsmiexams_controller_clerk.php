@@ -275,7 +275,7 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 	 */
 	private function transactionForm() {
 		if (!is_array($this->piVars['folder_list_array']) ) {
-			return "Houston, we have a problem!";
+			return "<h1>Houston, we have a problem!</h1>";
 		}
 
 		$folderIDs = array();
@@ -600,7 +600,7 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 		foreach ($this->piVars['folder_list_array'] as $key => $value) {
 			$folderIDs[] = $key;
 		}
-		if ($this->isAvailable($folderIDs) && !$this->isLent()) {
+		if ($this->isAvailable($folderIDs) && !$this->isLent($folderIDs)) {
 			$content .= $this->transactionCreate();
 		}
 		else {
@@ -610,7 +610,7 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 	}
 
 	/**
-	 * Create a new transaction BASED ON an or several existing ones.
+	 * Create a new transaction BASED ON one or several existing transactions.
 	 * Explicitely this is the case if folders are given back (withdrawal).
 	 */
 	private function transactionModify() {
@@ -642,7 +642,6 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 		// sometimes dispenser takes also folder back
 		if ($withdrawal=='')
 			$withdrawal = $dispenser;
-
 
 		$foldersToLoans = array();
 		foreach($this->piVars['folder_list_array'] as $key => $value) {
@@ -769,7 +768,7 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 					$lendFolders[] = $folderInstanceUID;
 					$lendWeights[] = $info['weight'];
 				} else {
-					$content .= 'ERROR: Mutex on folder UID '.$folderInstanceUID.' could not be set, aboarding this folder.';
+					$content .= 'ERROR: Mutex on folder UID '.$folderInstanceUID.' could not be set, aborting this folder.';
 				}
 			}
 		}
@@ -1100,8 +1099,10 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 	 * This function checks if ANY folder in a specific set is available for lending
 	 */
 	private function isAvailable($folderIDs) {
-		if (!is_array($folderIDs))
+		if (!is_array($folderIDs)) {
+			debug("isAvailable(): no array present!");
 			return false;
+		}
 
 		$res = $GLOBALS['TYPO3_DB']->sql_query(
 			'SELECT * FROM tx_fsmiexams_folder_instance
