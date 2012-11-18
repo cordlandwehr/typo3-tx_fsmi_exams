@@ -319,16 +319,16 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 
 		/* combination of different possible lending/return scenarios */
 
-		$pendingFolders = $this->pendingFoldersAfterTransaction($folderIDs);
+		$unprocessedFolders = $this->pendingFoldersAfterTransaction($folderIDs);
 		$affectedLoans = $this->affectedLoansByTransaction($folderIDs);
 		$pendingFolderList = '';
-		foreach ($pendingFolders as $folder) {
+		foreach ($unprocessedFolders as $folder) {
 			$folderInstanceDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder_instance', $folder);
 			$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $folderInstanceDATA['folder']);
 			$pendingFolderList .= '<li>'.$folderDATA['name'].' ('.$folderInstanceDATA['offset'].')</li>';
 		}
 		// print folders that will be left open after this operation
-		if (count($pendingFolders)>0) {
+		if (count($unprocessedFolders)>0) {
 			$content .= tx_fsmiexams_div::printSystemMessage(
 						tx_fsmiexams_div::kSTATUS_WARNING,
 						"<b>Offene Transaktionen</b><br /> Nicht alle ausgeliehenen Ordner werden zurück gegeben. Folgende Ordner fehlen:<ul>".$pendingFolderList.'</ul>'.
@@ -362,7 +362,7 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 				$login[] = $loanDATA['lenderlogin'];
 			}
 			// allow changing of values IFF  not all transactions are close/new ar opened
-			if ($this->isAvailable($folderIDs) || count($pendingFolders)>0) {
+			if ($this->isAvailable($folderIDs) || count($unprocessedFolders)>0) {
 				$content .= '<h4>Transaktionsdaten</h4>';
 				$content .= '<table>';
 				$content .= '<tr><td style="color:#aaa;font-weight:bold">Name (Student)</td>
@@ -569,11 +569,11 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 				$returnWeight = $this->piVars['folder_list_array'][$folderInstanceDATA['uid']]['weight'];
 				$content .= '<td>'.$returnWeight.'g</td>';
 				if ($weights[$id]*1.0/$returnWeight > 1.05) {
-					if ($state) $content .= '<td><strong style="color:red"> Achtung: &gt;5% Abweichung</strong></td>';
+					if ($state) $content .= '<td><strong style="color:red"> &gt;5% Abweichung</strong></td>';
 					else $content .= '<td></td>';
 				}
 				else {
-					if ($state) $content .= '<td><strong style="color:green"> alles gut</strong></td>';
+					if ($state) $content .= '<td><strong style="color:green">&lt;5% Abweichung</strong></td>';
 					else $content .= '<td></td>';
 				}
 			}
@@ -625,137 +625,122 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 		$lender_name = $this->escape($formValues['transaction']['lender_name']);
 		$lender_imt = $this->escape($formValues['transaction']['lender_login']);
 		$deposit = $this->escape($formValues['transaction']['deposit']);
-		$folders = $this->piVars['folder_list_array'];
+		$unprocessedFolders = $this->piVars['folder_list_array'];
+		$withdrawFolders = array(); // list of folder ids to be withdrawn
 		$dispenser = $this->escape($formValues['transaction']['dispenser']);
 
 		// get for all folders that shall be lent the according UID
-		foreach ($folders as $key => $value) {
-			$folders[$key]['weight'] = intval($formValues['folder'][$key]['weight']);
+		foreach ($unprocessedFolders as $key => $value) {
+			$unprocessedFolders[$key]['weight'] = intval($formValues['folder'][$key]['weight']);
 		}
 
 		// sometimes dispenser takes also folder back
-		if ($withdrawal=='')
+		if ($withdrawal=='') {
 			$withdrawal = $dispenser;
+		}
 
-		$foldersToLoans = array();
+		// calculate which loans can be closed
+		$affectedLoans = array();			// array of loans that shall be closed
+		$pledges = array();					// pledges that could be given back
+
+		// select all affected loans
+		$foldersToLoans = array(); // mapper
 		foreach($this->piVars['folder_list_array'] as $key => $value) {
 			// now find corresponding loan
 			$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT uid FROM tx_fsmiexams_loan
 										WHERE deleted=0 AND hidden=0 AND withdrawaldate=0 AND FIND_IN_SET('.$key.',folder)');
 			if($res && $loan = mysql_fetch_array($res)) {
 				$foldersToLoans[$key] = $loan['uid'];
-			}
-			else {
-				$content .= tx_fsmiexams_div::printSystemMessage(
-										tx_fsmiexams_div::kSTATUS_ERROR,
-										'<b>Fehler</b><br /> Der Ordner ist in keinem offenen Ausleihvorgang gebucht.'
-										);
+				$withdrawFolders[] = $key;
 			}
 		}
-
-		// calculate which loans can be closed
-		$affectedLoans = array();			// array of loans that shall be closed
-		$pendingFolders = array();			// array of folders that must be put into new loan
-		$pledges = array();					// pledges that could be given back
-
 		foreach ($foldersToLoans as $folderUID => $loanUID) {
 			$loanDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_loan', $loanUID);
 			$loanFolders = explode(',', $loanDATA['folder']);
 			$loanFolderWeights = explode(',', $loanDATA['weight']);
-			$clean = true;
 			foreach ($loanFolders as $key => $folder) {
 				if (!array_key_exists($folder, $foldersToLoans) ) { // case there is a folder that is not taken back
-					$pendingFolders[$folder] = array( 'uid' => $folder, 'weight' => $loanFolderWeights[$key]);
+					$unprocessedFolders[$folder] = array( 'uid' => $folder, 'weight' => $loanFolderWeights[$key]);
 				}
 			}
 			$pledges[] = array ( 'deposit' => $loanDATA['deposit'], 'lender' => $loanDATA['lender']);
-			if (!array_key_exists($loanUID, $affectedLoans))
+			if (!array_key_exists($loanUID, $affectedLoans)) {
 				$affectedLoans[] = $loanUID;
+			}
 		}
 
-		if (count($foldersToLoans)==0) {
-			$content .= tx_fsmiexams_div::printSystemMessage(
-									tx_fsmiexams_div::kSTATUS_ERROR,
-									'<b>Fehler</b><br /> beim Mapping von Ordnern zu Ausleihvorgängen.'
-									);
+		// first we close all loans
+		foreach ($affectedLoans as $loan) {
+			debug("close loan: ".$loan);
+			$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						'tx_fsmiexams_loan',
+						'uid = '.intval($loan),
+						array ( 'withdrawal' => $withdrawal, 'withdrawaldate' => time(), 'tstamp' => time() )
+						);
+
+			if (!$res) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										'<b>Fehler</b><br /> beim Schließen von Leihvorgang '.$loan.'. Bitte diese Seite ausdrucken und dem Admin überreichen.'
+										);
+			}
 		}
-		else {
-			// first we close all loans
-			foreach ($affectedLoans as $loan) {
-				$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+		// then we close all folders that ar taken back
+		foreach ($withdrawFolders as $folder) {
+			debug("close lent folder: " . $folder);
+			unset($unprocessedFolders[$folder]); // remove from pending folders
+			$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						'tx_fsmiexams_folder_instance',
+						'uid = '.intval($folder),
+						array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT )
+						);
+			if (!res) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										'<b>Fehler</b><br /> Konnte Zustand von Ordner UID='.$folder.' nicht freigeben.'
+										);
+			}
+		}
+		$content .= '</div>';
+
+		// and create a new loan with everything that is left
+		if (count($unprocessedFolders) > 0) {
+			$lendFolders = array();
+			$lendWeights = array();
+			foreach ($unprocessedFolders as $uid => $info) {
+				$lendFolders[] = $uid;
+				$lendWeights[] = $info['weight'];
+			}
+			$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
 							'tx_fsmiexams_loan',
-							'uid = '.intval($loan),
-							array ( 'withdrawal' => $withdrawal, 'withdrawaldate' => time(), 'tstamp' => time() )
-							);
+							array (	'pid' => $this->loanStoragePID,
+									'crdate' => time(),
+									'tstamp' => time(),
+									'deleted' => 0,
+									'hidden' => 0,
+									'dispenser' => $GLOBALS['TYPO3_DB']->quoteStr($dispenser, 'tx_fsmiexams_loan'),
+									'lenderlogin' => $GLOBALS['TYPO3_DB']->quoteStr($lender_imt, 'tx_fsmiexams_loan'),
+									'lender' => $GLOBALS['TYPO3_DB']->quoteStr($lender_name, 'tx_fsmiexams_loan'),
+									'deposit' => $GLOBALS['TYPO3_DB']->quoteStr($deposit, 'tx_fsmiexams_loan'),
+									'folder' => implode(',',$lendFolders),
+									'weight' => implode(',',$lendWeights),
+									'lendingdate' => time(),
+									'withdrawaldate' => 0
+							));
 
-				if (!$res)
-					$content .= tx_fsmiexams_div::printSystemMessage(
-											tx_fsmiexams_div::kSTATUS_ERROR,
-											'<b>Fehler</b><br /> beim Schließen von Leihvorgang '.$loan.'. Bitte diese Seite ausdrucken und dem Admin überreichen.'
-											);
-			}
-			// then we close all folders that ar taken back
-			foreach ($foldersToLoans as $folder) {
-				$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-							'tx_fsmiexams_folder_instance',
-							'uid = '.intval($folder),
-							array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT )
-							);
-				if (!res)
-					$content .= tx_fsmiexams_div::printSystemMessage(
-											tx_fsmiexams_div::kSTATUS_ERROR,
-											'<b>Fehler</b><br /> Konnte Zustand von Ordner UID='.$folder.' nicht freigeben.'
-											);
-			}
-
-			// print out what is closed
-			$content .= '<div style="margin-left:auto; margin-right:auto; width:90%;">';
-			$content .= '<h3 style="text-align:center;">Abgeschlossene Ausleihvorgänge</h3>';
-			foreach ($affectedLoans as $loanUID) {
-				$content .= $this->printLoanInfo($loanUID, true);
-			}
-
-			$content .= '</div>';
-
-			// and create a new loan with everything that is left
-			if (count($pendingFolders)>0) {
-				$lendFolders = array();
-				$lendWeights = array();
-				foreach ($pendingFolders as $folder) {
-					$lendFolders[] = $folder['uid'];
-					$lendWeights[] = $folder['weight'];
-				}
-				$res = $GLOBALS['TYPO3_DB']->exec_INSERTquery(
-								'tx_fsmiexams_loan',
-								array (	'pid' => $this->loanStoragePID,
-										'crdate' => time(),
-										'tstamp' => time(),
-										'deleted' => 0,
-										'hidden' => 0,
-										'dispenser' => $GLOBALS['TYPO3_DB']->quoteStr($dispenser, 'tx_fsmiexams_loan'),
-										'lenderlogin' => $GLOBALS['TYPO3_DB']->quoteStr($lender_imt, 'tx_fsmiexams_loan'),
-										'lender' => $GLOBALS['TYPO3_DB']->quoteStr($lender_name, 'tx_fsmiexams_loan'),
-										'deposit' => $GLOBALS['TYPO3_DB']->quoteStr($deposit, 'tx_fsmiexams_loan'),
-										'folder' => implode(',',$lendFolders),
-										'weight' => implode(',',$lendWeights),
-										'lendingdate' => time(),
-										'withdrawaldate' => 0
-								));
-
-				if (!$res) {
-					$content .= tx_fsmiexams_div::printSystemMessage(
-											tx_fsmiexams_div::kSTATUS_ERROR,
-											'<b>Fehler</b><br /> Neuer Ausleihvorgang konnte nicht angelegt werden.'
-											);
-				}
+			if (!$res) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+										tx_fsmiexams_div::kSTATUS_ERROR,
+										'<b>Fehler</b><br /> Neuer Ausleihvorgang konnte nicht angelegt werden.'
+										);
 			}
 
 			// now update the folders
-			foreach ($foldersToLoans as $folderInstanceUID => $loan) {
+			foreach ($unprocessedFolders as $folderInstanceUID => $info) {
 				$res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 							'tx_fsmiexams_folder_instance',
 							'uid = '.intval($folderInstanceUID),
-							array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_PRESENT )
+							array ( 'state' => tx_fsmiexams_div::kFOLDER_STATE_LEND )
 							);
 
 				if ($res) {
@@ -767,15 +752,24 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 			}
 		}
 
+		// print result data
+		$content .= '<div style="margin-left:auto; margin-right:auto; width:90%;">';
+		$content .= '<h3 style="text-align:center;">Bearbeitete Rückgabe-/Ausleihvorgänge</h3>';
+		foreach ($affectedLoans as $loanUID) {
+			$content .= $this->printLoanInfo($loanUID, true);
+		}
+
+		// print result
 		$content .= '<div style="margin-left:auto; margin-right:auto; width:90%; text-align:center;">';
 		$content .= '<h4>Pfandbearbeitung</h4>';
 		$content .= '<table cellpadding="8" cellspacing="2" style="width:100%; text-align:center;"><tbody><tr><th>Aktion</th><th>Pfand</th></tr>';
 		foreach ($pledges as $pledge) {
-			if (strcmp($pledge['deposit'],$new_deposit)==0)
+			if (strcmp($pledge['deposit'],$new_deposit) == 0) {
 				continue;
+			}
 			$content .= '<tr><td>Zurück geben</td><td>'.$pledge['deposit'].'</td></tr>';
 		}
-		if (count($pendingFolders)>0 && $new_deposit) {
+		if (count($unprocessedFolders) > 0 && $new_deposit) {
 			$content .= '<tr><td><b>Einbehalten</b></td><td>'.$new_deposit.'</td></tr>';
 		}
 		$content .= '</tbody></table>';
@@ -1166,7 +1160,7 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 
 		// calculate which loans can be closed
 		$affectedLoans = array();			// array of loans that shall be closed
-		$pendingFolders = array();			// array of folders that must be put into new loan
+		$unprocessedFolders = array();			// array of folders that must be put into new loan
 		$pledges = array();					// pledges that could be given back
 
 		foreach ($foldersToLoans as $folderUID => $loanUID) {
@@ -1176,14 +1170,14 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 			$clean = true;
 			foreach ($loanFolders as $key => $folder) {
 				if (!array_key_exists($folder, $foldersToLoans) ) { // case there is a folder that is not taken back
-					$pendingFolders[$folder] = array( 'uid' => $folder, 'weight' => $loanFolderWeights[$key]);
+					$unprocessedFolders[$folder] = array( 'uid' => $folder, 'weight' => $loanFolderWeights[$key]);
 				}
 			}
 			$pledges[] = array ( 'deposit' => $loanDATA['deposit'], 'lender' => $loanDATA['lender']);
 			if (!array_key_exists($loanUID, $affectedLoans))
 				$affectedLoans[] = $loanUID;
 		}
-		return $pendingFolders;
+		return $unprocessedFolders;
 	}
 
 	private function getLoanWeightForFolder($folderUID) {
