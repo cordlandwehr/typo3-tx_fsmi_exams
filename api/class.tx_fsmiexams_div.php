@@ -172,7 +172,7 @@ class tx_fsmiexams_div {
 		}
 		return $types;
 	}
-	
+
 	/**
 	 * Prints name of the folder in order, but also links to edit page if any is given.
 	 *
@@ -210,7 +210,7 @@ class tx_fsmiexams_div {
 
 		while ($res && $folderDATA = mysql_fetch_assoc($res)) {
 			$name = $folderDATA['name'];
-			
+
 			$resInstance = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 													FROM tx_fsmiexams_folder_instance
 													WHERE deleted=0 AND hidden=0
@@ -234,8 +234,8 @@ class tx_fsmiexams_div {
 		}
 		return $folderInstance;
 	}
-	
-	
+
+
 	/**
 	 * Translates given UID of exam to readable term date
 	 *
@@ -498,7 +498,7 @@ class tx_fsmiexams_div {
 
 			//TODO pretty inefficient
 		for ($i=0; $i<$neededZeros; $i++)
-			$number = '0'.$number;	
+			$number = '0'.$number;
 		return $number;
 	}
 
