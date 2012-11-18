@@ -143,74 +143,66 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 		}
 
 		switch ($this->piVars['step']) {
-			case self::kSTEP_SHOW_LENT_FOLDERS: {
-				$content .= $this->listAllLentFolders();
-				$content .= '<div style="text-align:center;">'.$this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'</div>';
-				break;
-			}
+		case self::kSTEP_SHOW_LENT_FOLDERS:
+			$content .= $this->listAllLentFolders();
+			$content .= '<div style="text-align:center;">'.$this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'</div>';
+			break;
 
-			case self::kSTEP_SHOW_SEARCH_FORM: {
-				$content .= $this->searchForm();
-				$content .= '<div style="text-align:center;">'.$this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'</div>';
-				break;
-			}
+		case self::kSTEP_SHOW_SEARCH_FORM:
+			$content .= $this->searchForm();
+			$content .= '<div style="text-align:center;">'.$this->pi_linkTP('<h3>Zurück zur Ausleihe</h3>',array()).'</div>';
+			break;
 
-			case self::kSTEP_START: {
-				// if next-button, need to change mode:
-				if(!(is_array($this->piVars['folder_ids']) || count($this->piVars['folder_ids']=0)) && isset($GETcommands['control'.self::kCTRL_NEXT])) {
-					$content .= tx_fsmiexams_div::printSystemMessage(
-										tx_fsmiexams_div::kSTATUS_ERROR,
-										"<b>Fehler:</b><br />Um hier weiter zu kommen musst du schon einen Ordner-Barcode eingeben."
-										);
-					$content .= $this->formStartpage();
-					break;
-				}
-				if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
-					$content .= $this->formSecondPage();
-				} else {
-					$content .= $this->formStartpage();
-				}
-				break;
-			}
-
-		    default: {
+		case self::kSTEP_START:
+			// if next-button, need to change mode:
+			if(!(is_array($this->piVars['folder_ids']) || count($this->piVars['folder_ids']=0)) && isset($GETcommands['control'.self::kCTRL_NEXT])) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+									tx_fsmiexams_div::kSTATUS_ERROR,
+									"<b>Fehler:</b><br />Um hier weiter zu kommen musst du schon einen Ordner-Barcode eingeben."
+									);
 				$content .= $this->formStartpage();
 				break;
 			}
+			if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
+				$content .= $this->formSecondPage();
+			} else {
+				$content .= $this->formStartpage();
+			}
+			break;
 
-			case self::kSTEP_SECOND_PAGE: {
-				// if next-button, need to change mode:
-				if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
-					if (count($this->piVars['folder_ids'])>0 && !$this->piVars['weight']) {
-						$content .= tx_fsmiexams_div::printSystemMessage(
-										tx_fsmiexams_div::kSTATUS_ERROR,
-										"<b>Fehler:</b><br />Rückgabe ist nur möglich mit Angabe eines Gewichtes.."
-										);
-						$content .= $this->formSecondPage();
-						break;
-					}
-					$content .= $this->formFinalizeLendOrWithdrawal();
-				} else {
-					// first: check if folder even exists
-					if (!$this->folderExists($this->piVars['folder_id']))
-						$content .= tx_fsmiexams_div::printSystemMessage(
-										tx_fsmiexams_div::kSTATUS_ERROR,
-										"<b>Fehler:</b><br />Den eingegebenen Ordner-Barcode haben wir leider nicht im Archiv."
-										);
+		case self::kSTEP_SECOND_PAGE:
+			// if next-button, need to change mode:
+			if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
+				if (count($this->piVars['folder_ids'])>0 && !$this->piVars['weight']) {
+					$content .= tx_fsmiexams_div::printSystemMessage(
+									tx_fsmiexams_div::kSTATUS_ERROR,
+									"<b>Fehler:</b><br />Rückgabe ist nur möglich mit Angabe eines Gewichtes.."
+									);
 					$content .= $this->formSecondPage();
+					break;
 				}
-				break;
+				$content .= $this->formFinalizeLendOrWithdrawal();
+			} else {
+				// first: check if folder even exists
+				if (!$this->folderExists($this->piVars['folder_id']))
+					$content .= tx_fsmiexams_div::printSystemMessage(
+									tx_fsmiexams_div::kSTATUS_ERROR,
+									"<b>Fehler:</b><br />Den eingegebenen Ordner-Barcode haben wir leider nicht im Archiv."
+									);
+				$content .= $this->formSecondPage();
 			}
+			break;
 
-			case self::kSTEP_FINALIZE: {
-				$content .= $this->performTransactions();
-				break;
-			}
+		case self::kSTEP_FINALIZE:
+			$content .= $this->performTransactions();
+			break;
+
+		default:
+			$content .= $this->formStartpage();
+			break;
 		}
 
-
 	    $content .= '</form>';
-
 		$content .= '</div>';
 
 
