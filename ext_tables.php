@@ -2,6 +2,10 @@
 if (!defined ('TYPO3_MODE')) {
 	die ('Access denied.');
 }
+
+require_once(t3lib_extMgm::extPath('fsmi_exams').'api/class.tx_fsmiexams_div.php');
+
+
 $TCA['tx_fsmiexams_degreeprogram'] = array (
 	'ctrl' => array (
 		'title'     => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_degreeprogram',
@@ -160,13 +164,14 @@ $TCA['tx_fsmiexams_folder_instance'] = array (
     'ctrl' => array (
         'title'     => 'LLL:EXT:fsmi_exams/locallang_db.xml:tx_fsmiexams_folder_instance',
         'label'     => 'folder_id',
+        'label_userFunc' => 'tx_fsmiexams_div->printTCALabelFolderInstance',
         'tstamp'    => 'tstamp',
         'crdate'    => 'crdate',
         'cruser_id' => 'cruser_id',
         'languageField'            => 'sys_language_uid',
         'transOrigPointerField'    => 'l10n_parent',
         'transOrigDiffSourceField' => 'l10n_diffsource',
-        'default_sortby' => 'ORDER BY crdate',
+        'default_sortby' => 'ORDER BY folder_id',
         'delete' => 'deleted',
         'enablecolumns' => array (
             'disabled' => 'hidden',

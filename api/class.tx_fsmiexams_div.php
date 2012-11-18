@@ -55,7 +55,7 @@ class tx_fsmiexams_div {
 
 	static private $pi_base;
 
-	static function init () {
+	static function init() {
 		if (!self::$pi_base) {
 			self::$pi_base = t3lib_div::makeInstance('tslib_pibase');
 			self::$pi_base->cObj = t3lib_div::makeInstance('tslib_cObj');
@@ -69,7 +69,7 @@ class tx_fsmiexams_div {
 	 * @param	integer	$editPage	is optional page for FE-editing
 	 * @return	string	text
 	 */
-	static function lectureToText ($uid, $editPage = 0) {
+	static function lectureToText($uid, $editPage = 0) {
 		self::init();
 
 		$lectureList = explode(',',$uid);
@@ -100,7 +100,7 @@ class tx_fsmiexams_div {
 	 * \param $editPage is optional page for FE-editing
 	 * \return text
 	 */
-	static function examToText ($uid, $editPage = 0) {
+	static function examToText($uid, $editPage = 0) {
 		self::init();
 		$examDB = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
@@ -127,7 +127,7 @@ class tx_fsmiexams_div {
 	 * \param $editPage is optional page for FE-editing
 	 * \return text
 	 */
-	static function lecturerToText ($uid, $editPage = 0) {
+	static function lecturerToText($uid, $editPage = 0) {
 		self::init();
 		if (is_array($uid)) {
 			$lecturerList = $uid;
@@ -160,7 +160,7 @@ class tx_fsmiexams_div {
 	 * /TODO use this instead of version in base view class for all views
 	 * \return array of names
 	 */
-	static function listExamTypes () {
+	static function listExamTypes() {
 		$types = array ();
 
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
@@ -180,7 +180,7 @@ class tx_fsmiexams_div {
 	 * \param $editPage is optional page for FE-editing
 	 * \return text
 	 */
-	static function folderToText ($uid, $editPage=0) {
+	static function folderToText($uid, $editPage=0) {
 		self::init();
 		$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $uid);
 		if ($editPage)
@@ -198,10 +198,17 @@ class tx_fsmiexams_div {
 			return $folderDATA['name'];
 	}
 
+	static function printTCALabelFolderInstance(&$params, &$pObj) {
+		$instanceDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder_instance', $params['row']['uid']);
+		$folderDATA = t3lib_BEfunc::getRecord('tx_fsmiexams_folder', $instanceDATA['folder']);
+		$params['title'] = $params['title'] = "[" . tx_fsmiexams_div::numberFixedDigits($instanceDATA["folder_id"],4) . "] "
+			. $folderDATA['name'];
+	}
+
 	/**
 	 * returns array of assembled folder names for given exam where this exam is included
 	 */
-	static function folderInstancesForExam ($exam) {
+	static function folderInstancesForExam($exam) {
 		$folderInstance = array ();
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT *
 													FROM tx_fsmiexams_folder
@@ -242,7 +249,7 @@ class tx_fsmiexams_div {
 	 * \param UID $uid
 	 * \return text
 	 */
-	static function examToTermdate ($uid) {
+	static function examToTermdate($uid) {
 			//TODO no locallang yet
 		$exam = t3lib_BEfunc::getRecord('tx_fsmiexams_exam', $uid);
 
@@ -270,7 +277,7 @@ class tx_fsmiexams_div {
 	 * \param UID $folder
 	 * \return array of uids
 	 */
-	function getExamUIDs ($degreeprogram, $field, $module, $lecture, $lecturer, $folder, $examtype) {
+	function getExamUIDs($degreeprogram, $field, $module, $lecture, $lecturer, $folder, $examtype) {
 		/*
 		 * For the logic behind the following questions please confer the handbook, especially the
 		 * database scheme. E.g. if a field is given, the degreeprogram alreade is uniquely defined
@@ -390,7 +397,7 @@ class tx_fsmiexams_div {
 	/**
 	 * Get all exam UIDs that are present for specific lecture
 	 **/
-	function get_exam_uids ($lecture) {
+	function get_exam_uids($lecture) {
 		$exam_uids = array();
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT tx_fsmiexams_exam.uid as uid, year, term, exactdate
 												FROM tx_fsmiexams_exam
@@ -409,7 +416,7 @@ class tx_fsmiexams_div {
 	 * grouped by exam types.
 	 * \param $lecture UID of lecture
 	 **/
-	function get_exam_uids_grouped ($lecture) {
+	function get_exam_uids_grouped($lecture) {
 		$exam_uids = array();
 		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT examtype, tx_fsmiexams_exam.uid as uid
 												FROM tx_fsmiexams_exam

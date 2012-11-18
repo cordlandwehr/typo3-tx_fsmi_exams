@@ -835,10 +835,10 @@ $TCA['tx_fsmiexams_loan'] = array (
 			'config' => array (
 				'type' => 'group',
 				'internal_type' => 'db',
-				'allowed' => 'tx_fsmiexams_folder',
-				'size' => 1,
+				'allowed' => 'tx_fsmiexams_folder_instance',
+				'size' => 5,
 				'minitems' => 0,
-				'maxitems' => 1,
+				'maxitems' => 1000,
 			)
 		),
 		'lender' => array (
