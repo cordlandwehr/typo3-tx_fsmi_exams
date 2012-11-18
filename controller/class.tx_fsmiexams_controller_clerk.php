@@ -119,11 +119,13 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 		}
 	    //TODO: serialized arrays as strings contain " - xml attributes use "
 
+		//TODO at this point compare IP address if this action shall be allowd
+		//static t3lib_div::cmpIP
 
-		//Style
+		// set style
 		$content .= '<style type="text/css"> .tx-fsmiexams-pi3 form{clear:both;} .tx-fsmiexams-pi3 img{margin-bottom:5px;} .tx-fsmiexams-pi3 .step{text-align:center; width:80px; display:inline-block; margin:10px 15px;} .tx-fsmiexams-pi3 a{text-decoration:none;} .tx-fsmiexams-pi3 table th{background-color:#B5CDE1;}</style>' . "\n";
-		//main_container
 
+		// prepare main_container
 		$content .= '<div style="text-align:left; font-weight:bold; float:left;">';
 		$content .= $this->pi_linkTP('<i>Suche</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_SEARCH_FORM)).'';
 		$content .= '</div>';
@@ -134,7 +136,6 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 		$content .= '<div style="text-align:center; font-weight:bold;">';
 		$content .= $this->pi_linkTP('<i>zeige Ausgeliehene</i>',array($this->extKey.'[step]' => self::kSTEP_SHOW_LENT_FOLDERS)).'';
 		$content .= '</div>';
-
 		$content .= '<div style="margin:0px 15px; padding-top:15px; clear:both;">' . "\n";
 
 		// on cancel go to start
@@ -154,11 +155,11 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 			break;
 
 		case self::kSTEP_START:
-			// if next-button, need to change mode:
-			if(!(is_array($this->piVars['folder_ids']) || count($this->piVars['folder_ids']=0)) && isset($GETcommands['control'.self::kCTRL_NEXT])) {
+			// if next-button, check if data is sufficient for next page
+			if(!(is_array($this->piVars['folder_ids']) || count($this->piVars['folder_ids'])==0) && isset($GETcommands['control'.self::kCTRL_NEXT])) {
 				$content .= tx_fsmiexams_div::printSystemMessage(
 									tx_fsmiexams_div::kSTATUS_ERROR,
-									"<b>Fehler:</b><br />Um hier weiter zu kommen musst du schon einen Ordner-Barcode eingeben."
+									"<b>Fehler:</b><br />Es muss mindestens ein Ordner-Barcode eingegeben werden."
 									);
 				$content .= $this->formStartpage();
 				break;
@@ -171,25 +172,27 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 			break;
 
 		case self::kSTEP_SECOND_PAGE:
+			// first: check if folder exists
+			if (!$this->folderExists($this->piVars['folder_id'])) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+								tx_fsmiexams_div::kSTATUS_ERROR,
+								"<b>Fehler:</b><br />Den eingegebenen Ordner-Barcode haben wir leider nicht im Archiv."
+								);
+				$content .= $this->formSecondPage();
+				break;
+			}
+			//TODO LOOKS BROKEN
+			if (count($this->piVars['folder_ids']) > 0 && !$this->piVars['weight']) {
+				$content .= tx_fsmiexams_div::printSystemMessage(
+								tx_fsmiexams_div::kSTATUS_ERROR,
+								"<b>Fehler:</b><br />Rückgabe ist nur möglich mit Angabe eines Gewichtes.."
+								);
+				$content .= $this->formSecondPage();
+				break;
+			}
 			// if next-button, need to change mode:
 			if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
-				if (count($this->piVars['folder_ids'])>0 && !$this->piVars['weight']) {
-					$content .= tx_fsmiexams_div::printSystemMessage(
-									tx_fsmiexams_div::kSTATUS_ERROR,
-									"<b>Fehler:</b><br />Rückgabe ist nur möglich mit Angabe eines Gewichtes.."
-									);
-					$content .= $this->formSecondPage();
-					break;
-				}
-				$content .= $this->formFinalizeLendOrWithdrawal();
-			} else {
-				// first: check if folder even exists
-				if (!$this->folderExists($this->piVars['folder_id']))
-					$content .= tx_fsmiexams_div::printSystemMessage(
-									tx_fsmiexams_div::kSTATUS_ERROR,
-									"<b>Fehler:</b><br />Den eingegebenen Ordner-Barcode haben wir leider nicht im Archiv."
-									);
-				$content .= $this->formSecondPage();
+				$content .= $this->performTransactions();
 			}
 			break;
 
@@ -204,11 +207,6 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 
 	    $content .= '</form>';
 		$content .= '</div>';
-
-
-//static t3lib_div::cmpIP
-
-
 		return $this->pi_wrapInBaseClass($content);
 	}
 
@@ -237,13 +235,13 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 	}
 
 	private function formSecondPage() {
-		$this->addFoldersToFolderArray($this->piVars['folder_ids']);
-		if (count($this->piVars['folder_ids'])==0) {
-			return $this->formStartpage();
-		}
-
 		// this page gets the initial folder IDs and estimates what to do with them.
 		$content = '';
+
+		$content .= $this->addFoldersToFolderArray($this->piVars['folder_ids']);
+		if (count($this->piVars['folder_ids'])==0) {
+			return $content . $this->formStartpage();
+		}
 
 		//Steps
 		$content .= '<h1>Buchung vorbereiten</h1>';
@@ -421,14 +419,18 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 		// delete empty lines
 		foreach ($this->piVars['folder_ids'] as $key => $value) {
 			if ($value=='' || !$this->folderExists($value)) {
-				unset ($this->piVars['folder_ids'][$key]);
+				$content .= tx_fsmiexams_div::printSystemMessage(
+													tx_fsmiexams_div::kSTATUS_WARNING,
+													"<b>Unbekannter Barcode</b><br />
+													Der Barcode \"$value\" ist nicht bekannt");
+				unset($this->piVars['folder_ids'][$key]);
 			}
 		}
 
 		if (count($this->piVars['folder_ids'])==0) {
 			$this->piVars['folder_list'] = serialize($this->piVars['folder_list_array']); //TODO we do not need all information
 			$this->piVars['folder_list_hash'] = md5($this->piVars['folder_list'] . self::MAGIC);
-			return '';
+			return $content;
 		}
 
 		$resFolder = $GLOBALS['TYPO3_DB']->sql_query(
