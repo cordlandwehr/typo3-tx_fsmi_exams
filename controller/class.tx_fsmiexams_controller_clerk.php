@@ -181,15 +181,6 @@ class tx_fsmiexams_controller_clerk extends tslib_pibase {
 				$content .= $this->formSecondPage();
 				break;
 			}
-			//TODO LOOKS BROKEN
-			if (count($this->piVars['folder_ids']) > 0 && !$this->piVars['weight']) {
-				$content .= tx_fsmiexams_div::printSystemMessage(
-								tx_fsmiexams_div::kSTATUS_ERROR,
-								"<b>Fehler:</b><br />Rückgabe ist nur möglich mit Angabe eines Gewichtes.."
-								);
-				$content .= $this->formSecondPage();
-				break;
-			}
 			// if next-button, need to change mode:
 			if (isset($GETcommands['control'.self::kCTRL_NEXT])) {
 				$content .= $this->performTransactions();
